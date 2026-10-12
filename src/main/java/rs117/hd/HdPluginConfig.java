@@ -68,7 +68,7 @@ import static rs117.hd.utils.MathUtils.*;
 @ConfigGroup(CONFIG_GROUP)
 public interface HdPluginConfig extends Config
 {
-	String CONFIG_GROUP = "hd";
+	String CONFIG_GROUP = "hdenhanced";
 
 	/*====== General settings ======*/
 

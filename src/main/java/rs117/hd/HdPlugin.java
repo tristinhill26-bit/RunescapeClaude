@@ -151,10 +151,10 @@ import static rs117.hd.utils.buffer.GLBuffer.STORAGE_WRITE;
 @Slf4j
 @Singleton
 @PluginDescriptor(
-	name = "117 HD",
-	description = "GPU renderer with a suite of graphical enhancements",
+	name = "117 HD Enhanced",
+	description = "Fork of 117 HD with interaction lighting: light beams, mouse-over lights, scan pulses and more",
 	tags = { "hd", "high", "detail", "graphics", "shaders", "textures", "gpu", "shadows", "lights" },
-	conflicts = "GPU"
+	conflicts = { "GPU", "117 HD" }
 )
 public class HdPlugin extends Plugin {
 	public static final ResourcePath PLUGIN_DIR = Props

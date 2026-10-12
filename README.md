@@ -5,6 +5,50 @@
 </p>
 
 
+# 117 HD Enhanced
+
+A fork of [117 HD](https://github.com/117HD/RLHD) which adds **interaction lighting**: the things you click, hover and
+search for are lit up by real dynamic lights in the 117 HD renderer, so they stand out, especially at night.
+
+It ships two plugins:
+
+- **117 HD Enhanced** is 117 HD with a small hook in its light manager (`ExternalLightProvider`), so other code can add
+  lights each frame, plus scene light strength and radius multipliers. It uses its own config group (`hdenhanced`)
+  and conflicts with the original 117 HD, so only one of them runs at a time.
+- **117 HD Interaction Lights** is the settings panel with the new features:
+  - **Click marker**: a light beam, glowing tile outline and lit ground on whatever you last clicked, with dots
+    tracing the path your character will walk, plus a flash when you click.
+  - **Mouse-over**: outlines and softly lights the tile, object, NPC or item under your cursor.
+  - **Chevron**: an optional bouncing arrow above the marker.
+  - **Long range**: a taller beam and an arrow at the edge of the screen for far away or off-screen markers,
+    and a beam (plus light, if you like) on the game's own hint arrow target.
+  - **Behaviour**: clear walk markers on arrival, forget markers after a delay, or keep them after the target is gone.
+  - **Scan pulse**: press a hotkey to send out a ring of light. As it passes, it lights up agility shortcuts
+    (red if you're under the level), ladders, stairs and exits, valuable, highlighted or your own ground items,
+    Object Markers, and other resources like the one you last interacted with (e.g. every Evergreen tree).
+  - **Shortcut glint**: usable agility shortcuts nearby give off a faint twinkling light.
+  - **Scene lights**: make torches, fires and other 117 HD lights brighter or reach further.
+
+The overlays (beam, outline, dots, arrows) work on their own. The lighting needs 117 HD Enhanced running with
+*Dynamic lights* enabled.
+
+## Development
+
+Run `rs117.hd.HdPluginTest` (or `./gradlew run`) to start RuneLite with both plugins loaded.
+The interaction lighting lives in [`src/main/java/rs117/hd/interaction`](src/main/java/rs117/hd/interaction).
+
+To pull in upstream 117 HD changes:
+
+```
+git remote add upstream https://github.com/117HD/RLHD.git
+git fetch upstream
+git merge upstream/master
+```
+
+---
+
+*The rest of this README is from upstream 117 HD.*
+
 # 117 HD
 
 GPU renderer with a suite of graphical enhancements.

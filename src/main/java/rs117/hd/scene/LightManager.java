@@ -38,6 +38,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.*;
 import net.runelite.api.coords.*;
@@ -58,6 +59,7 @@ import rs117.hd.scene.daylight_cycle.SkyState;
 import rs117.hd.scene.daylight_cycle.SkyState.LightingSample;
 import rs117.hd.scene.environments.Environment;
 import rs117.hd.scene.lights.Alignment;
+import rs117.hd.scene.lights.ExternalLightProvider;
 import rs117.hd.scene.lights.Light;
 import rs117.hd.scene.lights.LightDefinition;
 import rs117.hd.scene.lights.LightType;
@@ -115,6 +117,10 @@ public class LightManager {
 	private final ArrayList<Light> lights = new ArrayList<>();
 	@Getter
 	private int numVisibleLights;
+
+	@Setter
+	@Nullable
+	private volatile ExternalLightProvider externalLightProvider;
 
 	private final ArrayList<Light> WORLD_LIGHTS = new ArrayList<>();
 	private final ListMultimap<Integer, LightDefinition> NPC_LIGHTS = ArrayListMultimap.create();
@@ -233,6 +239,22 @@ public class LightManager {
 			return light.actor instanceof NPC && view.npcs().byIndex(((NPC) light.actor).getIndex()) != light.actor ||
 				   light.actor instanceof Player && view.players().byIndex(((Player) light.actor).getId()) != light.actor;
 		});
+
+		// External lights are resupplied every frame
+		lights.removeIf(light -> light.external);
+		float sceneLightStrengthScale = 1;
+		float sceneLightRadiusScale = 1;
+		var externalLightProvider = this.externalLightProvider;
+		if (externalLightProvider != null) {
+			try {
+				externalLightProvider.addLights(sceneContext, lights);
+				sceneLightStrengthScale = externalLightProvider.getSceneLightStrengthScale();
+				sceneLightRadiusScale = externalLightProvider.getSceneLightRadiusScale();
+			} catch (Exception ex) {
+				log.error("Error while adding external lights", ex);
+				lights.removeIf(light -> light.external);
+			}
+		}
 
 		int drawDistance = plugin.getDrawDistance() * LOCAL_TILE_SIZE;
 		int gameCycle = client.getGameCycle();
@@ -508,6 +530,8 @@ public class LightManager {
 				light.distanceSquared = distX * distX + distZ * distZ;
 
 				float maxRadius = light.def.radius * light.daylightCycleRadiusScale;
+				if (!light.external)
+					maxRadius *= sceneLightRadiusScale;
 				switch (light.def.type) {
 					case FLICKER:
 						maxRadius *= 1.5f;
@@ -591,6 +615,10 @@ public class LightManager {
 
 			light.strength *= light.daylightCycleStrengthScale;
 			light.radius *= light.daylightCycleRadiusScale;
+			if (!light.external) {
+				light.strength *= sceneLightStrengthScale;
+				light.radius *= sceneLightRadiusScale;
+			}
 			applyOutdoorLighting(light);
 
 			// Spawn & despawn fade-in and fade-out

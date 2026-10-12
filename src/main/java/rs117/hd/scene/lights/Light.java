@@ -33,6 +33,10 @@ public class Light
 	public boolean markedForRemoval;
 	public boolean persistent;
 	public boolean replayable;
+	/**
+	 * Supplied by an {@link ExternalLightProvider} instead of lights.json
+	 */
+	public boolean external;
 
 	public final boolean animationSpecific;
 	public final boolean dynamicLifetime;
