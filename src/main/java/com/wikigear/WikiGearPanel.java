@@ -53,6 +53,7 @@ class WikiGearPanel extends PluginPanel {
 	private List<GearSetup> setups = new ArrayList<>();
 	private WikiClient.Target target;
 	private String strategyPage;
+	private boolean wilderness;
 	/**
 	 * Increments with each search or selection, so stale responses are ignored
 	 */
@@ -242,6 +243,7 @@ class WikiGearPanel extends PluginPanel {
 		int id = ++requestId;
 		target = selected;
 		strategyPage = null;
+		wilderness = false;
 		setups = new ArrayList<>();
 		setupBoxes.clear();
 		setupsPanel.removeAll();
@@ -271,6 +273,7 @@ class WikiGearPanel extends PluginPanel {
 	private void showSetups(WikiClient.StrategyPage page) {
 		strategyPage = page.title;
 		setups = page.setups;
+		wilderness = page.wilderness;
 		monsterLabel.setText("<html><u>" + target.name + "</u></html>");
 
 		if (setups.isEmpty()) {
@@ -346,11 +349,11 @@ class WikiGearPanel extends PluginPanel {
 		createButton.setEnabled(false);
 		clearExport();
 		summary.setText("Creating tags...");
-		plugin.createLoadouts(target.name, selected,
+		plugin.createLoadouts(target.name, selected, wilderness,
 			results -> SwingUtilities.invokeLater(() -> {
 				if (id != requestId)
 					return;
-				summary.setText(describe(results));
+				summary.setText((wilderness ? "Wilderness content, so blighted items are allowed.\n\n" : "") + describe(results));
 				showExport(results);
 				updateCreateButton();
 				refresh();

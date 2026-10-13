@@ -71,7 +71,6 @@ public class WikiClient
 		}
 	}
 
-	@RequiredArgsConstructor
 	public static class StrategyPage
 	{
 		/**
@@ -79,6 +78,20 @@ public class WikiClient
 		 */
 		public final String title;
 		public final List<GearSetup> setups;
+		/**
+		 * Whether this takes place in the Wilderness, so blighted items can be used
+		 */
+		public final boolean wilderness;
+
+		public StrategyPage(String title, List<GearSetup> setups) {
+			this(title, setups, false);
+		}
+
+		public StrategyPage(String title, List<GearSetup> setups, boolean wilderness) {
+			this.title = title;
+			this.setups = setups;
+			this.wilderness = wilderness;
+		}
 	}
 
 	@Inject
@@ -279,7 +292,8 @@ public class WikiClient
 			}
 			String wikitext = parse.get("wikitext").getAsString();
 			String pageTitle = parse.has("title") ? parse.get("title").getAsString() : title;
-			onResult.accept(new StrategyPage(pageTitle, RecommendedEquipmentParser.parse(wikitext)));
+			onResult.accept(new StrategyPage(pageTitle, RecommendedEquipmentParser.parse(wikitext),
+				WildernessDetector.isWilderness(pageTitle, wikitext)));
 		}, onError);
 	}
 

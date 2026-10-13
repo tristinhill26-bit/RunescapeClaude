@@ -132,7 +132,7 @@ public class WikiGearPlugin extends Plugin {
 	/**
 	 * Create a bank tag for each setup with the best gear the player owns, then call back on the client thread.
 	 */
-	void createLoadouts(String monster, List<GearSetup> setups, Consumer<List<LoadoutResult>> onDone, Consumer<String> onError) {
+	void createLoadouts(String monster, List<GearSetup> setups, boolean wilderness, Consumer<List<LoadoutResult>> onDone, Consumer<String> onError) {
 		clientThread.invoke(() -> {
 			if (client.getGameState() != GameState.LOGGED_IN) {
 				onError.accept("Log in first.");
@@ -145,16 +145,18 @@ public class WikiGearPlugin extends Plugin {
 				return;
 			}
 
+			// Blighted items only work in the Wilderness, so leave them out everywhere else
+			boolean allowBlighted = wilderness || config.alwaysAllowBlighted();
 			var owned = new GearPicker.OwnedItems();
 			var heals = new HashMap<Integer, Integer>();
 			var substitutes = config.substituteInventory() ? new InventorySubstitutes(
 				name -> healByName(name, heals),
 				item -> healOf(item.itemId, heals)
 			) : null;
-			addOwned(owned, bank);
-			addOwned(owned, client.getItemContainer(InventoryID.WORN));
-			addOwned(owned, client.getItemContainer(InventoryID.INV));
-			addPotionStore(owned);
+			addOwned(owned, bank, allowBlighted);
+			addOwned(owned, client.getItemContainer(InventoryID.WORN), allowBlighted);
+			addOwned(owned, client.getItemContainer(InventoryID.INV), allowBlighted);
+			addPotionStore(owned, allowBlighted);
 
 			var results = new ArrayList<LoadoutResult>();
 			for (var setup : setups) {
@@ -183,7 +185,7 @@ public class WikiGearPlugin extends Plugin {
 		});
 	}
 
-	private void addOwned(GearPicker.OwnedItems owned, ItemContainer container) {
+	private void addOwned(GearPicker.OwnedItems owned, ItemContainer container, boolean allowBlighted) {
 		if (container == null)
 			return;
 		for (Item item : container.getItems()) {
@@ -192,6 +194,8 @@ public class WikiGearPlugin extends Plugin {
 			var composition = itemManager.getItemComposition(item.getId());
 			// Skip bank placeholders and noted items
 			if (composition.getPlaceholderTemplateId() != -1 || composition.getNote() != -1)
+				continue;
+			if (!allowBlighted && WildernessDetector.isBlighted(composition.getName()))
 				continue;
 
 			String baseName = null;
@@ -226,7 +230,7 @@ public class WikiGearPlugin extends Plugin {
 	 * Add potions kept in the bank's potion store, which aren't part of the bank's item container.
 	 * This reads the store the same way RuneLite's Bank Tags does, using the game's own potion store scripts.
 	 */
-	private void addPotionStore(GearPicker.OwnedItems owned) {
+	private void addPotionStore(GearPicker.OwnedItems owned, boolean allowBlighted) {
 		for (int listId : new int[] { EnumID.POTIONSTORE_POTIONS, EnumID.POTIONSTORE_UNFINISHED_POTIONS }) {
 			EnumComposition list = client.getEnum(listId);
 			if (list == null)
@@ -251,6 +255,8 @@ public class WikiGearPlugin extends Plugin {
 					continue;
 
 				String name = itemManager.getItemComposition(itemId).getName();
+				if (!allowBlighted && WildernessDetector.isBlighted(name))
+					continue;
 				owned.add(itemId, name, null, null, Math.max(1, doses / 4));
 			}
 		}

@@ -63,11 +63,22 @@ public interface WikiGearConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "alwaysAllowBlighted",
+		name = "Always allow blighted items",
+		description = "Blighted items only work in the Wilderness, so they're left out unless the monster or activity<br>" +
+			"is in the Wilderness. Turn this on to always allow them.",
+		position = 5
+	)
+	default boolean alwaysAllowBlighted() {
+		return false;
+	}
+
+	@ConfigItem(
 		keyName = "addTab",
 		name = "Add as bank tab",
 		description = "Add each new tag to your bank's tag tabs, so you don't need to import it.<br>" +
 			"The tab appears the next time you open your bank.",
-		position = 5
+		position = 6
 	)
 	default boolean addTab() {
 		return true;
@@ -77,7 +88,7 @@ public interface WikiGearConfig extends Config
 		keyName = "openTag",
 		name = "Open tag after creating",
 		description = "Open the new tag in your bank straight away, if your bank is open.",
-		position = 6
+		position = 7
 	)
 	default boolean openTag() {
 		return true;
