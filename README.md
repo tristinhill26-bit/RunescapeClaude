@@ -33,6 +33,11 @@ It also includes **Fairy Ring Labels**, which adds the destination next to fairy
 such as the Favorites list and Last-destination, e.g. `CIR - Farming Guild`. Names can be short or RuneLite's full
 descriptions, and you can set your own names per code.
 
+**Wiki Gear Loadouts** adds a side panel where you search for a monster (with its wiki picture), tick the combat
+styles you want, and it creates a bank tag per style, e.g. `gear vorkath ranged`. Each tag holds the best gear you own
+for every slot, as ranked by the wiki's Recommended equipment tables, laid out like the equipment screen.
+Open your bank once per session first, so the plugin can see what you own.
+
 The overlays (beam, outline, dots, arrows) work on their own. The lighting needs 117 HD Enhanced running with
 *Dynamic lights* enabled.
 
