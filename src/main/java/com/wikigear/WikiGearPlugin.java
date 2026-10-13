@@ -8,7 +8,9 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -34,6 +36,10 @@ import net.runelite.client.plugins.banktags.BankTagsService;
 import net.runelite.client.plugins.banktags.TagManager;
 import net.runelite.client.plugins.banktags.tabs.Layout;
 import net.runelite.client.plugins.banktags.tabs.LayoutManager;
+import net.runelite.client.plugins.itemstats.Effect;
+import net.runelite.client.plugins.itemstats.FoodBase;
+import net.runelite.client.plugins.itemstats.ItemStatChangesService;
+import net.runelite.client.plugins.itemstats.ItemStatPlugin;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.NavigationButton;
@@ -46,6 +52,7 @@ import net.runelite.client.util.Text;
 	tags = { "wiki", "gear", "bank", "tags", "loadout", "setup", "equipment", "strategy", "bis", "raids", "minigames", "barrows" }
 )
 @PluginDependency(BankTagsPlugin.class)
+@PluginDependency(ItemStatPlugin.class)
 public class WikiGearPlugin extends Plugin {
 	@Inject
 	private Client client;
@@ -67,6 +74,9 @@ public class WikiGearPlugin extends Plugin {
 
 	@Inject
 	private BankTagsService bankTagsService;
+
+	@Inject
+	private ItemStatChangesService itemStatChangesService;
 
 	@Inject
 	private WikiGearConfig config;
@@ -126,18 +136,24 @@ public class WikiGearPlugin extends Plugin {
 			}
 
 			var owned = new GearPicker.OwnedItems();
+			var heals = new HashMap<Integer, Integer>();
+			var substitutes = config.substituteInventory() ? new InventorySubstitutes(
+				name -> healByName(name, heals),
+				item -> healOf(item.itemId, heals)
+			) : null;
 			addOwned(owned, bank);
 			addOwned(owned, client.getItemContainer(InventoryID.WORN));
 			addOwned(owned, client.getItemContainer(InventoryID.INV));
 
 			var results = new ArrayList<LoadoutResult>();
 			for (var setup : setups) {
-				var result = GearPicker.pick(setup, owned, config.fillEmptySlots());
+				var result = GearPicker.pick(setup, owned, config.fillEmptySlots(), substitutes);
 				if (!config.includeSpecial())
 					result.picks.remove(GearSlot.SPECIAL);
 				if (!config.includeInventory()) {
 					Arrays.fill(result.inventory, -1);
 					result.missingInventory.clear();
+					result.substitutions.clear();
 				}
 				String tag = tagName(monster, setup);
 				saveTag(tag, result);
@@ -166,8 +182,28 @@ public class WikiGearPlugin extends Plugin {
 			int baseId = ItemVariationMapping.map(item.getId());
 			if (baseId != item.getId())
 				baseName = itemManager.getItemComposition(baseId).getName();
-			owned.add(item.getId(), composition.getName(), baseName, getBonuses(item.getId()));
+			owned.add(item.getId(), composition.getName(), baseName, getBonuses(item.getId()), item.getQuantity());
 		}
+	}
+
+	/**
+	 * How much a food heals, using the Item Stats plugin's data, or 0 for anything that isn't food
+	 */
+	private int healOf(int itemId, Map<Integer, Integer> cache) {
+		return cache.computeIfAbsent(itemId, id -> {
+			Effect effect = itemStatChangesService.getItemStatChanges(id);
+			return effect instanceof FoodBase ? Math.max(0, ((FoodBase) effect).heals(client)) : 0;
+		});
+	}
+
+	/**
+	 * How much a food heals, by name. Only tradeable items can be found by name, which covers nearly all food.
+	 */
+	private int healByName(String name, Map<Integer, Integer> cache) {
+		for (var item : itemManager.search(name))
+			if (item.getName().equalsIgnoreCase(name))
+				return healOf(item.getId(), cache);
+		return 0;
 	}
 
 	@Nullable

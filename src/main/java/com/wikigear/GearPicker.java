@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -88,18 +89,44 @@ public class GearPicker
 		 */
 		public final int[] inventory;
 		/**
-		 * Recommended inventory items the player doesn't own
+		 * Recommended inventory items the player doesn't own, and which had no substitute
 		 */
 		public final List<String> missingInventory;
+		/**
+		 * Recommended inventory items replaced with something the player owns, e.g. Shark to Monkfish
+		 */
+		public final Map<String, String> substitutions;
 	}
 
-	@RequiredArgsConstructor
 	public static class OwnedItem
 	{
 		public final int itemId;
 		public final String name;
 		@Nullable
 		public final ItemBonuses bonuses;
+		/**
+		 * Total amount owned across the bank, equipment and inventory
+		 */
+		public long quantity;
+
+		OwnedItem(int itemId, String name, @Nullable ItemBonuses bonuses, long quantity) {
+			this.itemId = itemId;
+			this.name = name;
+			this.bonuses = bonuses;
+			this.quantity = quantity;
+		}
+	}
+
+	/**
+	 * Finds owned items which can stand in for an inventory item the player doesn't have, like other food for sharks
+	 */
+	public interface Substitutes
+	{
+		/**
+		 * @param needed how many inventory slots the item fills
+		 * @return owned substitutes, best first
+		 */
+		List<OwnedItem> find(String wikiName, OwnedItems owned, int needed);
 	}
 
 	/**
@@ -109,23 +136,39 @@ public class GearPicker
 	{
 		private final Map<String, OwnedItem> exact = new HashMap<>();
 		private final Map<String, OwnedItem> loose = new HashMap<>();
+		private final Map<Integer, OwnedItem> byId = new HashMap<>();
 		private final List<OwnedItem> all = new ArrayList<>();
 
 		/**
 		 * @param baseName name of the item's base variant, if it has one, e.g. "Slayer helmet" for "Slayer helmet (i)"
 		 * @param bonuses  the item's equipment stats, or null if it can't be equipped
 		 */
-		public void add(int itemId, String name, @Nullable String baseName, @Nullable ItemBonuses bonuses) {
-			var item = new OwnedItem(itemId, name, bonuses);
-			if (exact.putIfAbsent(normalize(name), item) == null)
-				all.add(item);
+		public void add(int itemId, String name, @Nullable String baseName, @Nullable ItemBonuses bonuses, long quantity) {
+			var existing = byId.get(itemId);
+			if (existing != null) {
+				existing.quantity += quantity;
+				return;
+			}
+
+			var item = new OwnedItem(itemId, name, bonuses, quantity);
+			byId.put(itemId, item);
+			all.add(item);
+			exact.putIfAbsent(normalize(name), item);
 			if (baseName != null)
 				loose.putIfAbsent(normalize(baseName), item);
 			loose.putIfAbsent(stripVariant(normalize(name)), item);
 		}
 
+		public void add(int itemId, String name, @Nullable String baseName, @Nullable ItemBonuses bonuses) {
+			add(itemId, name, baseName, bonuses, 1);
+		}
+
 		public void add(int itemId, String name, @Nullable String baseName) {
-			add(itemId, name, baseName, null);
+			add(itemId, name, baseName, null, 1);
+		}
+
+		public List<OwnedItem> getAll() {
+			return all;
 		}
 
 		@Nullable
@@ -164,6 +207,10 @@ public class GearPicker
 	}
 
 	public static Result pick(GearSetup setup, OwnedItems owned, boolean fillEmptySlots) {
+		return pick(setup, owned, fillEmptySlots, null);
+	}
+
+	public static Result pick(GearSetup setup, OwnedItems owned, boolean fillEmptySlots, @Nullable Substitutes substitutes) {
 		var notes = new ArrayList<String>();
 		var excluded = new HashSet<String>();
 		var picks = pickFromWiki(setup, owned, excluded);
@@ -207,20 +254,34 @@ public class GearPicker
 
 		int[] inventory = new int[GearSetup.INVENTORY_SIZE];
 		var missing = new ArrayList<String>();
+		var substitutions = new LinkedHashMap<String, String>();
+		var resolved = new HashMap<String, OwnedItem>();
 		for (int slot = 0; slot < inventory.length; slot++) {
 			inventory[slot] = -1;
 			String name = setup.getInventoryItem(slot);
-			if (name == null)
+			if (name == null || missing.contains(name))
 				continue;
-			var item = owned.findAnyDose(name);
-			if (item != null) {
-				inventory[slot] = item.itemId;
-			} else if (!missing.contains(name)) {
-				missing.add(name);
+
+			OwnedItem item = resolved.get(name);
+			if (item == null) {
+				item = owned.findAnyDose(name);
+				if (item == null && substitutes != null) {
+					var candidates = substitutes.find(name, owned, countSlots(setup, name));
+					if (!candidates.isEmpty()) {
+						item = candidates.get(0);
+						substitutions.put(name, item.name);
+					}
+				}
+				if (item == null) {
+					missing.add(name);
+					continue;
+				}
+				resolved.put(name, item);
 			}
+			inventory[slot] = item.itemId;
 		}
 
-		return new Result(picks, notes, style, inventory, missing);
+		return new Result(picks, notes, style, inventory, missing, substitutions);
 	}
 
 	private static Map<GearSlot, Pick> pickFromWiki(GearSetup setup, OwnedItems owned, Set<String> excluded) {
@@ -242,6 +303,14 @@ public class GearPicker
 			}
 		}
 		return picks;
+	}
+
+	private static int countSlots(GearSetup setup, String name) {
+		int count = 0;
+		for (int slot = 0; slot < GearSetup.INVENTORY_SIZE; slot++)
+			if (name.equals(setup.getInventoryItem(slot)))
+				count++;
+		return count;
 	}
 
 	private static void fillEmptySlots(Map<GearSlot, Pick> picks, OwnedItems owned, CombatStyle style, Set<String> excluded) {

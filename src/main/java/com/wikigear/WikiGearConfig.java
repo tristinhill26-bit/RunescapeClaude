@@ -41,11 +41,22 @@ public interface WikiGearConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "substituteInventory",
+		name = "Substitute inventory items",
+		description = "Replace recommended inventory items you don't own with the closest thing you do:<br>" +
+			"your best food for food, or a potion that does the same job, like a Prayer potion for a Super restore.",
+		position = 3
+	)
+	default boolean substituteInventory() {
+		return true;
+	}
+
+	@ConfigItem(
 		keyName = "fillEmptySlots",
 		name = "Fill empty slots",
 		description = "When the wiki recommends nothing you own for a slot, use your best item for the setup's combat style,<br>" +
 			"judged by its stats. For example an Amulet of glory when the wiki doesn't list a necklace.",
-		position = 3
+		position = 4
 	)
 	default boolean fillEmptySlots() {
 		return true;
@@ -55,7 +66,7 @@ public interface WikiGearConfig extends Config
 		keyName = "openTag",
 		name = "Open tag after creating",
 		description = "Open the new tag in your bank straight away, if your bank is open.",
-		position = 4
+		position = 5
 	)
 	default boolean openTag() {
 		return true;

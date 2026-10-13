@@ -37,7 +37,8 @@ descriptions, and you can set your own names per code.
 minigame (with its wiki picture), tick the combat
 styles you want, and it creates a bank tag per style, e.g. `gear vorkath ranged`. Each tag holds the best gear you own
 for every slot, as ranked by the wiki's Recommended equipment tables, laid out like the equipment screen, with the
-page's recommended inventory in a 4 by 7 grid beside it.
+page's recommended inventory in a 4 by 7 grid beside it. Inventory items you don't own are swapped for the closest
+thing you do: your best food (by heal amount, from RuneLite's Item Stats data), or a potion that does the same job.
 Gear that only works as a full set, like Void, is only used when you own every piece. Slots the wiki leaves empty
 are filled with your best item for the setup's combat style, judged by its stats.
 Open your bank once per session first, so the plugin can see what you own.
