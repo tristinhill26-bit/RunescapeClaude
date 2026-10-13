@@ -40,8 +40,8 @@ import net.runelite.client.util.Text;
 @Slf4j
 @PluginDescriptor(
 	name = "Wiki Gear Loadouts",
-	description = "Search a monster and create a bank tag with the best gear you own, using the wiki's recommended equipment",
-	tags = { "wiki", "gear", "bank", "tags", "loadout", "setup", "equipment", "strategy", "bis" }
+	description = "Search a monster or activity and create a bank tag with the best gear you own, using the wiki's recommended equipment",
+	tags = { "wiki", "gear", "bank", "tags", "loadout", "setup", "equipment", "strategy", "bis", "raids", "minigames", "barrows" }
 )
 @PluginDependency(BankTagsPlugin.class)
 public class WikiGearPlugin extends Plugin {

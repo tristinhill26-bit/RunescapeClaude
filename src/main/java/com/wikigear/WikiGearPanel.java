@@ -27,7 +27,7 @@ import net.runelite.client.ui.components.IconTextField;
 import net.runelite.client.util.LinkBrowser;
 
 /**
- * Side panel: search for a monster, pick it, tick the setups to generate, then create the bank tags.
+ * Side panel: search for a monster or activity, pick it, tick the setups to generate, then create the bank tags.
  */
 class WikiGearPanel extends PluginPanel {
 	private static final int ICON_SIZE = 32;
@@ -46,7 +46,7 @@ class WikiGearPanel extends PluginPanel {
 
 	private final List<JCheckBox> setupBoxes = new ArrayList<>();
 	private List<GearSetup> setups = new ArrayList<>();
-	private String monster;
+	private WikiClient.Target target;
 	private String strategyPage;
 	/**
 	 * Increments with each search or selection, so stale responses are ignored
@@ -86,7 +86,7 @@ class WikiGearPanel extends PluginPanel {
 		buildMonsterPanel();
 		content.add(monsterPanel);
 
-		var hint = new JLabel("<html>Type a monster's name and press Enter.</html>");
+		var hint = new JLabel("<html>Type a monster or activity, like Vorkath, Barrows or Chambers of Xeric, and press Enter.</html>");
 		hint.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		hint.setAlignmentX(LEFT_ALIGNMENT);
 		resultsPanel.add(hint);
@@ -149,12 +149,12 @@ class WikiGearPanel extends PluginPanel {
 
 		int id = ++requestId;
 		searchBar.setIcon(IconTextField.Icon.LOADING_DARKER);
-		wikiClient.searchMonsters(query,
-			monsters -> SwingUtilities.invokeLater(() -> {
+		wikiClient.search(query,
+			targets -> SwingUtilities.invokeLater(() -> {
 				if (id != requestId)
 					return;
 				searchBar.setIcon(IconTextField.Icon.SEARCH);
-				showResults(monsters);
+				showResults(targets);
 			}),
 			error -> SwingUtilities.invokeLater(() -> {
 				if (id != requestId)
@@ -166,12 +166,12 @@ class WikiGearPanel extends PluginPanel {
 			}));
 	}
 
-	private void showResults(List<WikiClient.Monster> monsters) {
+	private void showResults(List<WikiClient.Target> targets) {
 		resultsPanel.removeAll();
-		if (monsters.isEmpty())
-			resultsPanel.add(message("No monsters found."));
+		if (targets.isEmpty())
+			resultsPanel.add(message("Nothing found."));
 
-		for (var monster : monsters) {
+		for (var result : targets) {
 			var row = new JPanel(new BorderLayout(8, 0));
 			row.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 			row.setBorder(new EmptyBorder(4, 4, 4, 4));
@@ -183,8 +183,9 @@ class WikiGearPanel extends PluginPanel {
 			icon.setPreferredSize(new Dimension(ICON_SIZE, ICON_SIZE));
 			icon.setHorizontalAlignment(JLabel.CENTER);
 			row.add(icon, BorderLayout.WEST);
-			if (monster.thumbnailUrl != null) {
-				wikiClient.fetchImage(monster.thumbnailUrl, image -> SwingUtilities.invokeLater(() -> {
+			String thumbnailUrl = result.thumbnailUrl;
+			if (thumbnailUrl != null) {
+				wikiClient.fetchImage(thumbnailUrl, image -> SwingUtilities.invokeLater(() -> {
 					double scale = Math.min((double) ICON_SIZE / image.getWidth(), (double) ICON_SIZE / image.getHeight());
 					int w = Math.max(1, (int) (image.getWidth() * scale));
 					int h = Math.max(1, (int) (image.getHeight() * scale));
@@ -192,14 +193,16 @@ class WikiGearPanel extends PluginPanel {
 				}));
 			}
 
-			var name = new JLabel(monster.title);
+			var name = new JLabel(result.isGuide()
+				? "<html>" + result.name + "<br><font color='#a5a5a5'>Has recommended gear</font></html>"
+				: result.name);
 			name.setForeground(Color.WHITE);
 			row.add(name, BorderLayout.CENTER);
 
 			row.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					selectMonster(monster.title);
+					select(result);
 				}
 
 				@Override
@@ -219,22 +222,22 @@ class WikiGearPanel extends PluginPanel {
 		refresh();
 	}
 
-	private void selectMonster(String title) {
+	private void select(WikiClient.Target selected) {
 		int id = ++requestId;
-		monster = title;
+		target = selected;
 		strategyPage = null;
 		setups = new ArrayList<>();
 		setupBoxes.clear();
 		setupsPanel.removeAll();
 		summary.setText("");
 		createButton.setEnabled(false);
-		monsterLabel.setText(title);
+		monsterLabel.setText(selected.name);
 		statusLabel.setText("Loading recommended equipment...");
 		monsterPanel.setVisible(true);
 		resultsPanel.removeAll();
 		refresh();
 
-		wikiClient.fetchStrategies(title,
+		wikiClient.fetchStrategies(selected,
 			page -> SwingUtilities.invokeLater(() -> {
 				if (id != requestId)
 					return;
@@ -251,10 +254,10 @@ class WikiGearPanel extends PluginPanel {
 	private void showSetups(WikiClient.StrategyPage page) {
 		strategyPage = page.title;
 		setups = page.setups;
-		monsterLabel.setText("<html><u>" + monster + "</u></html>");
+		monsterLabel.setText("<html><u>" + target.name + "</u></html>");
 
 		if (setups.isEmpty()) {
-			statusLabel.setText("<html>The wiki has no recommended equipment for this monster.</html>");
+			statusLabel.setText("<html>The wiki has no recommended equipment tables for this.</html>");
 			refresh();
 			return;
 		}
@@ -288,7 +291,7 @@ class WikiGearPanel extends PluginPanel {
 		int id = requestId;
 		createButton.setEnabled(false);
 		summary.setText("Creating tags...");
-		plugin.createLoadouts(monster, selected,
+		plugin.createLoadouts(target.name, selected,
 			results -> SwingUtilities.invokeLater(() -> {
 				if (id != requestId)
 					return;
