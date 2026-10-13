@@ -121,4 +121,16 @@ public class RecommendedEquipmentParserTest {
 		assertEquals("Spade", setups.get(0).getInventoryItem(0));
 		assertEquals("Spade", setups.get(1).getInventoryItem(0));
 	}
+
+	@Test
+	public void resolvesTemplatesInInventorySlots() {
+		var inventory = RecommendedEquipmentParser.parseInventory(
+			"Inventory|Crimson kisten|{{Cheap prayer}}|{{Cheap food}}|{{plinkp|Divine rune pouch}}|Teleport to house (tablet)|{{Unknown thing}}");
+		assertEquals("Crimson kisten", inventory.get(0));
+		assertEquals("Prayer potion(4)", inventory.get(1));
+		assertEquals(InventorySubstitutes.ANY_FOOD, inventory.get(2));
+		assertEquals("Divine rune pouch", inventory.get(3));
+		assertEquals("Teleport to house (tablet)", inventory.get(4));
+		assertNull(inventory.get(5));
+	}
 }

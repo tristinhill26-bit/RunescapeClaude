@@ -129,7 +129,15 @@ public class RecommendedEquipmentParser
 			if (slot < 0 || slot >= GearSetup.INVENTORY_SIZE)
 				continue;
 
-			String item = part;
+			String item = part.trim();
+			if (item.startsWith("{{")) {
+				// A template standing in for an item, like {{plinkp|Shark}} or a placeholder like {{Cheap food}}
+				int end = findClosing(item, 0, "{{", "}}");
+				if (end > 0) {
+					inventory.set(slot, resolveItemTemplate(item.substring(2, end - 2)));
+					continue;
+				}
+			}
 			int semicolon = item.indexOf(';');
 			if (semicolon >= 0)
 				item = item.substring(0, semicolon);
@@ -316,6 +324,40 @@ public class RecommendedEquipmentParser
 		}
 
 		return cleanText(context);
+	}
+
+	/**
+	 * Placeholder templates the wiki uses in inventories, like {{Cheap prayer}}, matched by keyword, and the item
+	 * to use in their place. Any item from the same potion group can then stand in for it.
+	 */
+	private static final String[][] PLACEHOLDER_KEYWORDS = {
+		{ "food", InventorySubstitutes.ANY_FOOD },
+		{ "brew", "Saradomin brew(4)" },
+		{ "restore", "Super restore(4)" },
+		{ "prayer", "Prayer potion(4)" },
+		{ "combat", "Super combat potion(4)" },
+		{ "rang", "Ranging potion(4)" },
+		{ "magic", "Magic potion(4)" },
+		{ "antifire", "Extended super antifire(4)" },
+		{ "venom", "Anti-venom+(4)" },
+		{ "poison", "Anti-venom+(4)" },
+		{ "stamina", "Stamina potion(4)" },
+		{ "energy", "Stamina potion(4)" },
+	};
+
+	/**
+	 * Work out the item a template in an inventory slot stands for
+	 */
+	@Nullable
+	static String resolveItemTemplate(String body) {
+		var parts = splitTopLevel(body);
+		String name = parts.get(0).trim().toLowerCase(Locale.ROOT);
+		if (name.startsWith("plink") && parts.size() > 1)
+			return cleanText(parts.get(1));
+		for (var placeholder : PLACEHOLDER_KEYWORDS)
+			if (name.contains(placeholder[0]))
+				return placeholder[1];
+		return null;
 	}
 
 	@Nullable

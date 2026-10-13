@@ -410,8 +410,13 @@ class WikiGearPanel extends PluginPanel {
 						text.append(", missing ").append(String.join(", ", loadout.result.missingInventory));
 					text.append('\n');
 				}
-				for (var swap : loadout.result.substitutions.entrySet())
-					text.append("Swapped ").append(swap.getKey()).append(" for ").append(swap.getValue()).append('\n');
+				for (var swap : loadout.result.substitutions.entrySet()) {
+					if (swap.getKey().equals(InventorySubstitutes.ANY_FOOD)) {
+						text.append("Food: ").append(swap.getValue()).append('\n');
+					} else {
+						text.append("Swapped ").append(swap.getKey()).append(" for ").append(swap.getValue()).append('\n');
+					}
+				}
 			}
 			for (var note : loadout.result.notes)
 				text.append(note).append('\n');

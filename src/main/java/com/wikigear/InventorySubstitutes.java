@@ -15,6 +15,11 @@ import java.util.function.ToIntFunction;
 public class InventorySubstitutes implements GearPicker.Substitutes
 {
 	/**
+	 * Stands for whatever food the player has, from wiki placeholders like {{Cheap food}}
+	 */
+	public static final String ANY_FOOD = "Food";
+
+	/**
 	 * Potions which do the same job, best first. Doses don't matter.
 	 */
 	static final List<List<String>> POTION_GROUPS = List.of(
@@ -57,7 +62,7 @@ public class InventorySubstitutes implements GearPicker.Substitutes
 			return result;
 		}
 
-		if (healByName.applyAsInt(wikiName) <= 0)
+		if (!wikiName.equals(ANY_FOOD) && healByName.applyAsInt(wikiName) <= 0)
 			return result;
 
 		var foods = new ArrayList<FoodOption>();

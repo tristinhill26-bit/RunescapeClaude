@@ -179,8 +179,8 @@ public class GearPicker
 		}
 
 		/**
-		 * Like {@link #findItem}, but also matches any dose or charge count, e.g. Prayer potion(3) for Prayer potion(4).
-		 * Imbues and other variants still have to match.
+		 * Like {@link #findItem}, but also matches any dose or charge count, e.g. Prayer potion(3) for Prayer potion(4),
+		 * and ignores notes in the wiki's page names, like "Teleport to house (tablet)". Used for inventory items.
 		 */
 		@Nullable
 		public OwnedItem findAnyDose(String wikiName) {
@@ -189,7 +189,16 @@ public class GearPicker
 				return item;
 			String withoutDoses = DOSES.matcher(normalize(wikiName)).replaceFirst("");
 			item = exact.get(withoutDoses);
-			return item != null ? item : loose.get(withoutDoses);
+			if (item == null)
+				item = loose.get(withoutDoses);
+			if (item == null) {
+				// The wiki sometimes uses page names with a note, like "Teleport to house (tablet)"
+				String withoutNote = stripVariant(normalize(wikiName));
+				item = exact.get(withoutNote);
+				if (item == null)
+					item = loose.get(withoutNote);
+			}
+			return item;
 		}
 
 		@Nullable
@@ -264,7 +273,7 @@ public class GearPicker
 
 			OwnedItem item = resolved.get(name);
 			if (item == null) {
-				item = owned.findAnyDose(name);
+				item = name.equals(InventorySubstitutes.ANY_FOOD) ? null : owned.findAnyDose(name);
 				if (item == null && substitutes != null) {
 					var candidates = substitutes.find(name, owned, countSlots(setup, name));
 					if (!candidates.isEmpty()) {
