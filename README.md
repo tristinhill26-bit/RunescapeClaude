@@ -42,8 +42,9 @@ thing you do: your best food (by heal amount, from RuneLite's Item Stats data), 
 Gear that only works as a full set, like Void, is only used when you own every piece. Slots the wiki leaves empty
 are filled with your best item for the setup's combat style, judged by its stats.
 Open your bank once per session first, so the plugin can see what you own.
-Each new tag gets a **Copy** button: in your bank, right-click the + above the tag tabs and choose
-*Import tag tab* to add it as a tab with its layout.
+New tags are added to your bank's tag tabs automatically (they appear the next time you open the bank), so this
+works even with plugins that hide the tag tab + button. Each tag also gets a **Copy** button for Bank Tags'
+*Import tag tab*, or for sharing.
 
 The overlays (beam, outline, dots, arrows) work on their own. The lighting needs 117 HD Enhanced running with
 *Dynamic lights* enabled.

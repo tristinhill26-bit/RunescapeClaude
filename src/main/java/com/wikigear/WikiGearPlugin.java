@@ -79,6 +79,9 @@ public class WikiGearPlugin extends Plugin {
 	private ItemStatChangesService itemStatChangesService;
 
 	@Inject
+	private ConfigManager configManager;
+
+	@Inject
 	private WikiGearConfig config;
 
 	private WikiGearPanel panel;
@@ -162,7 +165,10 @@ public class WikiGearPlugin extends Plugin {
 				String tag = tagName(monster, setup);
 				int[] layout = TagExport.layout(result);
 				saveTag(tag, result, layout);
-				String importText = TagExport.toImportText(tag, TagExport.iconItem(result, layout), layout);
+				int iconItemId = TagExport.iconItem(result, layout);
+				if (config.addTab())
+					addTagTab(tag, iconItemId);
+				String importText = TagExport.toImportText(tag, iconItemId, layout);
 				results.add(new LoadoutResult(setup, tag, result, importText));
 			}
 
@@ -247,6 +253,25 @@ public class WikiGearPlugin extends Plugin {
 			if (itemId != -1)
 				tagManager.addTag(itemId, tag, false);
 		layoutManager.saveLayout(new Layout(tag, layout));
+	}
+
+	/**
+	 * Add the tag to Bank Tags' list of tabs, keeping all existing tabs. Bank Tags reloads this list each time
+	 * the bank opens, so the tab shows up from then on.
+	 */
+	private void addTagTab(String tag, int iconItemId) {
+		String saved = configManager.getConfiguration(BankTagsPlugin.CONFIG_GROUP, BankTagsPlugin.TAG_TABS_CONFIG);
+		var tabs = new ArrayList<String>();
+		for (String name : Text.fromCSV(saved == null ? "" : saved))
+			if (!name.isEmpty())
+				tabs.add(name);
+
+		if (!tabs.contains(tag)) {
+			tabs.add(tag);
+			configManager.setConfiguration(BankTagsPlugin.CONFIG_GROUP, BankTagsPlugin.TAG_TABS_CONFIG, Text.toCSV(tabs));
+		}
+		if (iconItemId != -1)
+			configManager.setConfiguration(BankTagsPlugin.CONFIG_GROUP, BankTagsPlugin.TAG_ICON_PREFIX + tag, iconItemId);
 	}
 
 	private boolean isBankOpen() {

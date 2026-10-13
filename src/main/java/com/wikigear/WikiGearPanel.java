@@ -36,6 +36,7 @@ class WikiGearPanel extends PluginPanel {
 
 	private final WikiClient wikiClient;
 	private final WikiGearPlugin plugin;
+	private final WikiGearConfig config;
 
 	private final IconTextField searchBar = new IconTextField();
 	private final JPanel resultsPanel = new JPanel();
@@ -58,9 +59,10 @@ class WikiGearPanel extends PluginPanel {
 	private int requestId;
 
 	@Inject
-	private WikiGearPanel(WikiClient wikiClient, WikiGearPlugin plugin) {
+	private WikiGearPanel(WikiClient wikiClient, WikiGearPlugin plugin, WikiGearConfig config) {
 		this.wikiClient = wikiClient;
 		this.plugin = plugin;
+		this.config = config;
 
 		setBorder(new EmptyBorder(10, 10, 10, 10));
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -313,8 +315,13 @@ class WikiGearPanel extends PluginPanel {
 
 	private void copyExport(WikiGearPlugin.LoadoutResult result) {
 		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(result.importText), null);
-		exportStatus.setText("<html>Copied '" + result.tag + "'. In your bank, right-click the + above the tag tabs " +
-			"and choose <b>Import tag tab</b>.</html>");
+		if (config.addTab()) {
+			exportStatus.setText("<html>Added to your bank tabs. <b>Close and reopen your bank</b> to see it.<br><br>" +
+				"'" + result.tag + "' is also copied, if you want to share it or use <b>Import tag tab</b>.</html>");
+		} else {
+			exportStatus.setText("<html>Copied '" + result.tag + "'. In your bank, right-click the + above the tag tabs " +
+				"and choose <b>Import tag tab</b>.</html>");
+		}
 		refresh();
 	}
 

@@ -63,10 +63,21 @@ public interface WikiGearConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "addTab",
+		name = "Add as bank tab",
+		description = "Add each new tag to your bank's tag tabs, so you don't need to import it.<br>" +
+			"The tab appears the next time you open your bank.",
+		position = 5
+	)
+	default boolean addTab() {
+		return true;
+	}
+
+	@ConfigItem(
 		keyName = "openTag",
 		name = "Open tag after creating",
 		description = "Open the new tag in your bank straight away, if your bank is open.",
-		position = 5
+		position = 6
 	)
 	default boolean openTag() {
 		return true;
