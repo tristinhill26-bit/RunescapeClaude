@@ -31,10 +31,21 @@ public interface WikiGearConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "fillEmptySlots",
+		name = "Fill empty slots",
+		description = "When the wiki recommends nothing you own for a slot, use your best item for the setup's combat style,<br>" +
+			"judged by its stats. For example an Amulet of glory when the wiki doesn't list a necklace.",
+		position = 2
+	)
+	default boolean fillEmptySlots() {
+		return true;
+	}
+
+	@ConfigItem(
 		keyName = "openTag",
 		name = "Open tag after creating",
 		description = "Open the new tag in your bank straight away, if your bank is open.",
-		position = 2
+		position = 3
 	)
 	default boolean openTag() {
 		return true;

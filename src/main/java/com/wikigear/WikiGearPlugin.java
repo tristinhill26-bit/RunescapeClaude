@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +23,9 @@ import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.game.ItemEquipmentStats;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.ItemStats;
 import net.runelite.client.game.ItemVariationMapping;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDependency;
@@ -80,7 +83,7 @@ public class WikiGearPlugin extends Plugin {
 	{
 		public final GearSetup setup;
 		public final String tag;
-		public final Map<GearSlot, GearPicker.Pick> picks;
+		public final GearPicker.Result result;
 	}
 
 	@Provides
@@ -130,12 +133,12 @@ public class WikiGearPlugin extends Plugin {
 
 			var results = new ArrayList<LoadoutResult>();
 			for (var setup : setups) {
-				var picks = GearPicker.pick(setup, owned);
+				var result = GearPicker.pick(setup, owned, config.fillEmptySlots());
 				if (!config.includeSpecial())
-					picks.remove(GearSlot.SPECIAL);
+					result.picks.remove(GearSlot.SPECIAL);
 				String tag = tagName(monster, setup);
-				saveTag(tag, picks);
-				results.add(new LoadoutResult(setup, tag, picks));
+				saveTag(tag, result.picks);
+				results.add(new LoadoutResult(setup, tag, result));
 			}
 
 			if (config.openTag() && !results.isEmpty() && isBankOpen())
@@ -160,8 +163,30 @@ public class WikiGearPlugin extends Plugin {
 			int baseId = ItemVariationMapping.map(item.getId());
 			if (baseId != item.getId())
 				baseName = itemManager.getItemComposition(baseId).getName();
-			owned.add(item.getId(), composition.getName(), baseName);
+			owned.add(item.getId(), composition.getName(), baseName, getBonuses(item.getId()));
 		}
+	}
+
+	@Nullable
+	private ItemBonuses getBonuses(int itemId) {
+		ItemStats stats = itemManager.getItemStats(itemId);
+		if (stats == null || !stats.isEquipable() || stats.getEquipment() == null)
+			return null;
+		ItemEquipmentStats e = stats.getEquipment();
+		return ItemBonuses.builder()
+			.slot(e.getSlot())
+			.twoHanded(e.isTwoHanded())
+			.stab(e.getAstab())
+			.slash(e.getAslash())
+			.crush(e.getAcrush())
+			.magic(e.getAmagic())
+			.ranged(e.getArange())
+			.strength(e.getStr())
+			.rangedStrength(e.getRstr())
+			.magicDamage(e.getMdmg())
+			.prayer(e.getPrayer())
+			.defence(e.getDstab() + e.getDslash() + e.getDcrush() + e.getDmagic() + e.getDrange())
+			.build();
 	}
 
 	private String tagName(String monster, GearSetup setup) {

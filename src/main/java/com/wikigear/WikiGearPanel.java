@@ -310,24 +310,37 @@ class WikiGearPanel extends PluginPanel {
 
 	private static String describe(List<WikiGearPlugin.LoadoutResult> results) {
 		var text = new StringBuilder();
-		for (var result : results) {
+		for (var loadout : results) {
 			if (text.length() > 0)
 				text.append("\n\n");
-			text.append(result.setup.getLabel()).append(" -> tag '").append(result.tag).append("'\n");
+			text.append(loadout.setup.getLabel()).append(" -> tag '").append(loadout.tag).append("'\n");
+			var picks = loadout.result.picks;
 			for (var slot : GearSlot.values()) {
-				if (result.setup.getRanks(slot).isEmpty())
+				var pick = picks.get(slot);
+				if (pick == null && loadout.setup.getRanks(slot).isEmpty())
 					continue;
-				var pick = result.picks.get(slot);
 				text.append(slot.getDisplayName()).append(": ");
 				if (pick == null) {
 					text.append("nothing owned");
 				} else {
-					text.append(pick.wikiName);
-					if (pick.rank > 1)
-						text.append(" (#").append(pick.rank).append(" of ").append(pick.rankCount).append(')');
+					text.append(pick.name);
+					switch (pick.source) {
+						case WIKI:
+							if (pick.rank > 1)
+								text.append(" (#").append(pick.rank).append(" of ").append(pick.rankCount).append(')');
+							break;
+						case SET:
+							text.append(" (completes set)");
+							break;
+						case FILLED:
+							text.append(" (your best, not on the wiki's list)");
+							break;
+					}
 				}
 				text.append('\n');
 			}
+			for (var note : loadout.result.notes)
+				text.append(note).append('\n');
 		}
 		text.append("\nTip: search 'tag:<name>' in your bank, or add it as a tab, to use a tag later.");
 		return text.toString();
