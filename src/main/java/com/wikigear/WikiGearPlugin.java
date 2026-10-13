@@ -17,9 +17,12 @@ import javax.inject.Inject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.EnumComposition;
+import net.runelite.api.EnumID;
 import net.runelite.api.GameState;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
+import net.runelite.api.ScriptID;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.client.callback.ClientThread;
@@ -151,6 +154,7 @@ public class WikiGearPlugin extends Plugin {
 			addOwned(owned, bank);
 			addOwned(owned, client.getItemContainer(InventoryID.WORN));
 			addOwned(owned, client.getItemContainer(InventoryID.INV));
+			addPotionStore(owned);
 
 			var results = new ArrayList<LoadoutResult>();
 			for (var setup : setups) {
@@ -216,6 +220,40 @@ public class WikiGearPlugin extends Plugin {
 			if (item.getName().equalsIgnoreCase(name))
 				return healOf(item.getId(), cache);
 		return 0;
+	}
+
+	/**
+	 * Add potions kept in the bank's potion store, which aren't part of the bank's item container.
+	 * This reads the store the same way RuneLite's Bank Tags does, using the game's own potion store scripts.
+	 */
+	private void addPotionStore(GearPicker.OwnedItems owned) {
+		for (int listId : new int[] { EnumID.POTIONSTORE_POTIONS, EnumID.POTIONSTORE_UNFINISHED_POTIONS }) {
+			EnumComposition list = client.getEnum(listId);
+			if (list == null)
+				continue;
+			for (int potionEnumId : list.getIntVals()) {
+				EnumComposition potion = client.getEnum(potionEnumId);
+				if (potion == null)
+					continue;
+				client.runScript(ScriptID.POTIONSTORE_DOSES, potionEnumId);
+				int doses = client.getIntStack()[0];
+				if (doses <= 0)
+					continue;
+
+				// Use the 4 dose version, matching how the wiki lists potions. Bank Tags' layouts show any
+				// dose of a potion from the store in its place.
+				int itemId = potion.getIntValue(4);
+				if (itemId <= 0) {
+					client.runScript(ScriptID.POTIONSTORE_WITHDRAW_DOSES, potionEnumId);
+					itemId = potion.getIntValue(client.getIntStack()[0]);
+				}
+				if (itemId <= 0)
+					continue;
+
+				String name = itemManager.getItemComposition(itemId).getName();
+				owned.add(itemId, name, null, null, Math.max(1, doses / 4));
+			}
+		}
 	}
 
 	@Nullable
