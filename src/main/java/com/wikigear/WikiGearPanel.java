@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -42,6 +44,8 @@ class WikiGearPanel extends PluginPanel {
 	private final JLabel statusLabel = new JLabel();
 	private final JPanel setupsPanel = new JPanel();
 	private final JButton createButton = new JButton("Create bank tags");
+	private final JPanel exportPanel = new JPanel();
+	private final JLabel exportStatus = new JLabel();
 	private final JTextArea summary = new JTextArea();
 
 	private final List<JCheckBox> setupBoxes = new ArrayList<>();
@@ -130,6 +134,16 @@ class WikiGearPanel extends PluginPanel {
 		createButton.setEnabled(false);
 		createButton.addActionListener(e -> createTags());
 		monsterPanel.add(createButton);
+		monsterPanel.add(Box.createVerticalStrut(6));
+
+		exportPanel.setLayout(new BoxLayout(exportPanel, BoxLayout.Y_AXIS));
+		exportPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		exportPanel.setAlignmentX(LEFT_ALIGNMENT);
+		monsterPanel.add(exportPanel);
+
+		exportStatus.setForeground(ColorScheme.BRAND_ORANGE);
+		exportStatus.setAlignmentX(LEFT_ALIGNMENT);
+		monsterPanel.add(exportStatus);
 		monsterPanel.add(Box.createVerticalStrut(6));
 
 		summary.setEditable(false);
@@ -229,6 +243,7 @@ class WikiGearPanel extends PluginPanel {
 		setups = new ArrayList<>();
 		setupBoxes.clear();
 		setupsPanel.removeAll();
+		clearExport();
 		summary.setText("");
 		createButton.setEnabled(false);
 		monsterLabel.setText(selected.name);
@@ -276,6 +291,38 @@ class WikiGearPanel extends PluginPanel {
 		refresh();
 	}
 
+	/**
+	 * Offer each new tag as text for Bank Tags' "Import tag tab", which creates the tab with its layout.
+	 * The first one is copied straight away.
+	 */
+	private void showExport(List<WikiGearPlugin.LoadoutResult> results) {
+		clearExport();
+		if (results.isEmpty())
+			return;
+
+		for (var result : results) {
+			var button = new JButton("Copy '" + result.tag + "'");
+			button.setAlignmentX(LEFT_ALIGNMENT);
+			button.setToolTipText("Copy this tag so you can import it as a bank tag tab");
+			button.addActionListener(e -> copyExport(result));
+			exportPanel.add(button);
+			exportPanel.add(Box.createVerticalStrut(4));
+		}
+		copyExport(results.get(0));
+	}
+
+	private void copyExport(WikiGearPlugin.LoadoutResult result) {
+		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(result.importText), null);
+		exportStatus.setText("<html>Copied '" + result.tag + "'. In your bank, right-click the + above the tag tabs " +
+			"and choose <b>Import tag tab</b>.</html>");
+		refresh();
+	}
+
+	private void clearExport() {
+		exportPanel.removeAll();
+		exportStatus.setText("");
+	}
+
 	private void updateCreateButton() {
 		createButton.setEnabled(setupBoxes.stream().anyMatch(JCheckBox::isSelected));
 	}
@@ -290,12 +337,14 @@ class WikiGearPanel extends PluginPanel {
 
 		int id = requestId;
 		createButton.setEnabled(false);
+		clearExport();
 		summary.setText("Creating tags...");
 		plugin.createLoadouts(target.name, selected,
 			results -> SwingUtilities.invokeLater(() -> {
 				if (id != requestId)
 					return;
 				summary.setText(describe(results));
+				showExport(results);
 				updateCreateButton();
 				refresh();
 			}),
@@ -360,7 +409,7 @@ class WikiGearPanel extends PluginPanel {
 			for (var note : loadout.result.notes)
 				text.append(note).append('\n');
 		}
-		text.append("\nTip: search 'tag:<name>' in your bank, or add it as a tab, to use a tag later.");
+		text.append("\nTip: use the Copy buttons above to import a tag as a bank tab, or search 'tag:<name>' in your bank.");
 		return text.toString();
 	}
 

@@ -93,6 +93,10 @@ public class WikiGearPlugin extends Plugin {
 		public final GearSetup setup;
 		public final String tag;
 		public final GearPicker.Result result;
+		/**
+		 * Text for Bank Tags' "Import tag tab", which creates the tab with this layout
+		 */
+		public final String importText;
 	}
 
 	@Provides
@@ -156,8 +160,10 @@ public class WikiGearPlugin extends Plugin {
 					result.substitutions.clear();
 				}
 				String tag = tagName(monster, setup);
-				saveTag(tag, result);
-				results.add(new LoadoutResult(setup, tag, result));
+				int[] layout = TagExport.layout(result);
+				saveTag(tag, result, layout);
+				String importText = TagExport.toImportText(tag, TagExport.iconItem(result, layout), layout);
+				results.add(new LoadoutResult(setup, tag, result, importText));
 			}
 
 			if (config.openTag() && !results.isEmpty() && isBankOpen())
@@ -230,29 +236,17 @@ public class WikiGearPlugin extends Plugin {
 
 	private String tagName(String monster, GearSetup setup) {
 		String name = config.tagPrefix().trim() + " " + monster + " " + setup.getLabel();
-		// Tags are stored comma separated
-		return Text.standardize(name.replace(',', ' ').replaceAll("\\s+", " "));
+		// Use a name that survives Bank Tags' import unchanged
+		return Text.standardize(TagExport.cleanTagName(name));
 	}
 
-	private void saveTag(String tag, GearPicker.Result result) {
+	private void saveTag(String tag, GearPicker.Result result, int[] layout) {
 		// Replace any previous version of this tag
 		tagManager.removeTag(tag);
-
-		int[] positions = new int[GearSlot.BANK_COLUMNS * GearSlot.LAYOUT_ROWS];
-		Arrays.fill(positions, -1);
-		for (var pick : result.picks.values()) {
-			tagManager.addTag(pick.itemId, tag, false);
-			positions[pick.slot.getLayoutPosition()] = pick.itemId;
-		}
-		// Items can fill several inventory slots, like potions, and are shown in each of them
-		for (int slot = 0; slot < result.inventory.length; slot++) {
-			int itemId = result.inventory[slot];
-			if (itemId == -1)
-				continue;
-			tagManager.addTag(itemId, tag, false);
-			positions[GearSlot.inventoryLayoutPosition(slot)] = itemId;
-		}
-		layoutManager.saveLayout(new Layout(tag, positions));
+		for (int itemId : layout)
+			if (itemId != -1)
+				tagManager.addTag(itemId, tag, false);
+		layoutManager.saveLayout(new Layout(tag, layout));
 	}
 
 	private boolean isBankOpen() {
