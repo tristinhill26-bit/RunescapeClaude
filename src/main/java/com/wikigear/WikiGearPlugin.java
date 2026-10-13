@@ -9,7 +9,6 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -136,8 +135,12 @@ public class WikiGearPlugin extends Plugin {
 				var result = GearPicker.pick(setup, owned, config.fillEmptySlots());
 				if (!config.includeSpecial())
 					result.picks.remove(GearSlot.SPECIAL);
+				if (!config.includeInventory()) {
+					Arrays.fill(result.inventory, -1);
+					result.missingInventory.clear();
+				}
 				String tag = tagName(monster, setup);
-				saveTag(tag, result.picks);
+				saveTag(tag, result);
 				results.add(new LoadoutResult(setup, tag, result));
 			}
 
@@ -195,15 +198,23 @@ public class WikiGearPlugin extends Plugin {
 		return Text.standardize(name.replace(',', ' ').replaceAll("\\s+", " "));
 	}
 
-	private void saveTag(String tag, Map<GearSlot, GearPicker.Pick> picks) {
+	private void saveTag(String tag, GearPicker.Result result) {
 		// Replace any previous version of this tag
 		tagManager.removeTag(tag);
 
-		int[] positions = new int[GearSlot.BANK_COLUMNS * 5];
+		int[] positions = new int[GearSlot.BANK_COLUMNS * GearSlot.LAYOUT_ROWS];
 		Arrays.fill(positions, -1);
-		for (var pick : picks.values()) {
+		for (var pick : result.picks.values()) {
 			tagManager.addTag(pick.itemId, tag, false);
 			positions[pick.slot.getLayoutPosition()] = pick.itemId;
+		}
+		// Items can fill several inventory slots, like potions, and are shown in each of them
+		for (int slot = 0; slot < result.inventory.length; slot++) {
+			int itemId = result.inventory[slot];
+			if (itemId == -1)
+				continue;
+			tagManager.addTag(itemId, tag, false);
+			positions[GearSlot.inventoryLayoutPosition(slot)] = itemId;
 		}
 		layoutManager.saveLayout(new Layout(tag, positions));
 	}

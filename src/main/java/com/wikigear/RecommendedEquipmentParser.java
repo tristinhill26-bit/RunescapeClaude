@@ -20,6 +20,7 @@ import javax.annotation.Nullable;
 public class RecommendedEquipmentParser
 {
 	private static final Pattern TEMPLATE_START = Pattern.compile("\\{\\{\\s*recommended[ _]equipment\\s*(?=\\||}})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern INVENTORY_START = Pattern.compile("\\{\\{\\s*inventory\\s*(?=\\||}})", Pattern.CASE_INSENSITIVE);
 	private static final Pattern SLOT_PARAM = Pattern.compile("^([a-z0-9]+?)(\\d+)$", Pattern.CASE_INSENSITIVE);
 	private static final Pattern HEADING = Pattern.compile("(?m)^(={2,6})\\s*([^=].*?)\\s*\\1\\s*$");
 	private static final Pattern TAB_LABEL = Pattern.compile("(?:<tabber>|\\|-\\|)\\s*([^=\\n|<]+?)\\s*=");
@@ -32,6 +33,7 @@ public class RecommendedEquipmentParser
 	public static List<GearSetup> parse(String wikitext) {
 		var setups = new ArrayList<GearSetup>();
 		var contexts = new ArrayList<String>();
+		var positions = new ArrayList<Integer>();
 		if (wikitext == null)
 			return setups;
 
@@ -54,9 +56,89 @@ public class RecommendedEquipmentParser
 			String label = style != null ? style : context != null ? context : "Setup " + (setups.size() + 1);
 			setups.add(new GearSetup(label, slots));
 			contexts.add(context);
+			positions.add(start);
 		}
 
+		attachInventories(wikitext, setups, positions);
 		return disambiguate(setups, contexts);
+	}
+
+	/**
+	 * Attach each {{Inventory}} to the equipment table it follows, usually in the same tab or section.
+	 * An inventory before any equipment table goes with the first one, and a page's only inventory is
+	 * shared by every setup.
+	 */
+	private static void attachInventories(String wikitext, List<GearSetup> setups, List<Integer> positions) {
+		if (setups.isEmpty())
+			return;
+
+		var inventories = new ArrayList<List<String>>();
+		Matcher matcher = INVENTORY_START.matcher(wikitext);
+		int searchFrom = 0;
+		while (matcher.find(searchFrom)) {
+			int start = matcher.start();
+			int end = findClosing(wikitext, start, "{{", "}}");
+			if (end < 0)
+				break;
+			searchFrom = end;
+
+			var inventory = parseInventory(wikitext.substring(start + 2, end - 2));
+			if (inventory.stream().allMatch(item -> item == null))
+				continue;
+			inventories.add(inventory);
+
+			int owner = 0;
+			for (int i = 0; i < positions.size(); i++)
+				if (positions.get(i) < start)
+					owner = i;
+			if (!setups.get(owner).hasInventory())
+				setups.set(owner, setups.get(owner).withInventory(inventory));
+		}
+
+		if (inventories.size() == 1) {
+			for (int i = 0; i < setups.size(); i++)
+				if (!setups.get(i).hasInventory())
+					setups.set(i, setups.get(i).withInventory(inventories.get(0)));
+		}
+	}
+
+	/**
+	 * Read the items of an {{Inventory}} by slot. Items can carry an amount after a backslash, like "Blood rune\\500",
+	 * and options after a semicolon, like ";n" for noted items.
+	 */
+	static List<String> parseInventory(String body) {
+		var inventory = new ArrayList<String>();
+		for (int i = 0; i < GearSetup.INVENTORY_SIZE; i++)
+			inventory.add(null);
+
+		var parts = splitTopLevel(body);
+		int position = 0;
+		for (int i = 1; i < parts.size(); i++) {
+			String part = parts.get(i);
+			int slot;
+			int equals = part.indexOf('=');
+			if (equals >= 0) {
+				String key = part.substring(0, equals).trim();
+				if (!key.matches("\\d+"))
+					continue; // A setting like align=right
+				slot = Integer.parseInt(key) - 1;
+				part = part.substring(equals + 1);
+			} else {
+				slot = position++;
+			}
+			if (slot < 0 || slot >= GearSetup.INVENTORY_SIZE)
+				continue;
+
+			String item = part;
+			int semicolon = item.indexOf(';');
+			if (semicolon >= 0)
+				item = item.substring(0, semicolon);
+			int backslash = item.indexOf('\\');
+			if (backslash >= 0)
+				item = item.substring(0, backslash);
+			inventory.set(slot, cleanText(item));
+		}
+		return inventory;
 	}
 
 	/**

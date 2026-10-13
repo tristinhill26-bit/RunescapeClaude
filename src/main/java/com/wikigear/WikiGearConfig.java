@@ -31,11 +31,21 @@ public interface WikiGearConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "includeInventory",
+		name = "Include inventory",
+		description = "Also add the wiki's recommended inventory, laid out to the right of the gear.",
+		position = 2
+	)
+	default boolean includeInventory() {
+		return true;
+	}
+
+	@ConfigItem(
 		keyName = "fillEmptySlots",
 		name = "Fill empty slots",
 		description = "When the wiki recommends nothing you own for a slot, use your best item for the setup's combat style,<br>" +
 			"judged by its stats. For example an Amulet of glory when the wiki doesn't list a necklace.",
-		position = 2
+		position = 3
 	)
 	default boolean fillEmptySlots() {
 		return true;
@@ -45,7 +55,7 @@ public interface WikiGearConfig extends Config
 		keyName = "openTag",
 		name = "Open tag after creating",
 		description = "Open the new tag in your bank straight away, if your bank is open.",
-		position = 3
+		position = 4
 	)
 	default boolean openTag() {
 		return true;

@@ -36,7 +36,8 @@ descriptions, and you can set your own names per code.
 **Wiki Gear Loadouts** adds a side panel where you search for a monster or activity, such as Barrows, a raid or a
 minigame (with its wiki picture), tick the combat
 styles you want, and it creates a bank tag per style, e.g. `gear vorkath ranged`. Each tag holds the best gear you own
-for every slot, as ranked by the wiki's Recommended equipment tables, laid out like the equipment screen.
+for every slot, as ranked by the wiki's Recommended equipment tables, laid out like the equipment screen, with the
+page's recommended inventory in a 4 by 7 grid beside it.
 Gear that only works as a full set, like Void, is only used when you own every piece. Slots the wiki leaves empty
 are filled with your best item for the setup's combat style, judged by its stats.
 Open your bank once per session first, so the plugin can see what you own.

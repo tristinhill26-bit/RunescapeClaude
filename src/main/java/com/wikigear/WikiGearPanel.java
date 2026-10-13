@@ -339,6 +339,22 @@ class WikiGearPanel extends PluginPanel {
 				}
 				text.append('\n');
 			}
+			if (loadout.setup.hasInventory()) {
+				int owned = 0, total = 0;
+				for (int slot = 0; slot < GearSetup.INVENTORY_SIZE; slot++) {
+					if (loadout.setup.getInventoryItem(slot) == null)
+						continue;
+					total++;
+					if (loadout.result.inventory[slot] != -1)
+						owned++;
+				}
+				if (owned > 0 || !loadout.result.missingInventory.isEmpty()) {
+					text.append("Inventory: ").append(owned).append(" of ").append(total).append(" slots");
+					if (!loadout.result.missingInventory.isEmpty())
+						text.append(", missing ").append(String.join(", ", loadout.result.missingInventory));
+					text.append('\n');
+				}
+			}
 			for (var note : loadout.result.notes)
 				text.append(note).append('\n');
 		}

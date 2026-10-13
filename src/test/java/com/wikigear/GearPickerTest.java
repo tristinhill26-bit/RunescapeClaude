@@ -171,4 +171,35 @@ public class GearPickerTest {
 		assertNull(result.picks.get(GearSlot.SHIELD));
 		assertNull(result.picks.get(GearSlot.WEAPON));
 	}
+
+	@Test
+	public void matchesInventoryItemsAtAnyDose() {
+		var owned = new GearPicker.OwnedItems();
+		owned.add(40, "Prayer potion(3)", null);
+		owned.add(41, "Shark", null);
+
+		var inventory = new java.util.ArrayList<String>(java.util.Collections.nCopies(GearSetup.INVENTORY_SIZE, (String) null));
+		inventory.set(0, "Prayer potion(4)");
+		inventory.set(1, "Prayer potion(4)");
+		inventory.set(2, "Shark");
+		inventory.set(3, "Saradomin brew(4)");
+		var result = GearPicker.pick(new GearSetup("Magic", GearSetup.emptySlots(), inventory), owned, false);
+
+		assertEquals(40, result.inventory[0]);
+		assertEquals(40, result.inventory[1]);
+		assertEquals(41, result.inventory[2]);
+		assertEquals(-1, result.inventory[3]);
+		assertEquals(-1, result.inventory[4]);
+		assertEquals(List.of("Saradomin brew(4)"), result.missingInventory);
+	}
+
+	@Test
+	public void layoutKeepsTheInventoryGridBesideTheGear() {
+		assertEquals(4, GearSlot.inventoryLayoutPosition(0));
+		assertEquals(7, GearSlot.inventoryLayoutPosition(3));
+		assertEquals(12, GearSlot.inventoryLayoutPosition(4));
+		assertEquals(6 * 8 + 7, GearSlot.inventoryLayoutPosition(27));
+		for (var slot : GearSlot.values())
+			assertTrue(slot.getColumn() < GearSlot.INVENTORY_COLUMN);
+	}
 }

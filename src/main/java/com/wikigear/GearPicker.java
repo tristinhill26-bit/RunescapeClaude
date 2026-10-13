@@ -27,6 +27,10 @@ public class GearPicker
 	 * Charges, doses, imbues and ornament kits, e.g. "Amulet of glory(4)", "Slayer helmet (i)" or "Dharok's helm 100"
 	 */
 	private static final Pattern VARIANT_SUFFIX = Pattern.compile("(?:\\s*\\([^)]*\\)|\\s+\\d+)$");
+	/**
+	 * Potion doses and jewellery charges, e.g. "Prayer potion(4)" or "Amulet of glory(6)"
+	 */
+	private static final Pattern DOSES = Pattern.compile("\\s*\\(\\d+\\)$");
 
 	/**
 	 * Slots which can be filled from the player's own items. Ammo is left out since it has to suit the weapon.
@@ -79,6 +83,14 @@ public class GearPicker
 		public final List<String> notes;
 		@Nullable
 		public final CombatStyle style;
+		/**
+		 * Owned item for each inventory slot, or -1 if the slot is empty or the item isn't owned
+		 */
+		public final int[] inventory;
+		/**
+		 * Recommended inventory items the player doesn't own
+		 */
+		public final List<String> missingInventory;
 	}
 
 	@RequiredArgsConstructor
@@ -121,6 +133,20 @@ public class GearPicker
 			String name = normalize(wikiName);
 			OwnedItem item = exact.get(name);
 			return item != null ? item : loose.get(name);
+		}
+
+		/**
+		 * Like {@link #findItem}, but also matches any dose or charge count, e.g. Prayer potion(3) for Prayer potion(4).
+		 * Imbues and other variants still have to match.
+		 */
+		@Nullable
+		public OwnedItem findAnyDose(String wikiName) {
+			OwnedItem item = findItem(wikiName);
+			if (item != null)
+				return item;
+			String withoutDoses = DOSES.matcher(normalize(wikiName)).replaceFirst("");
+			item = exact.get(withoutDoses);
+			return item != null ? item : loose.get(withoutDoses);
 		}
 
 		@Nullable
@@ -179,7 +205,22 @@ public class GearPicker
 		if (fillEmptySlots && style != null)
 			fillEmptySlots(picks, owned, style, excluded);
 
-		return new Result(picks, notes, style);
+		int[] inventory = new int[GearSetup.INVENTORY_SIZE];
+		var missing = new ArrayList<String>();
+		for (int slot = 0; slot < inventory.length; slot++) {
+			inventory[slot] = -1;
+			String name = setup.getInventoryItem(slot);
+			if (name == null)
+				continue;
+			var item = owned.findAnyDose(name);
+			if (item != null) {
+				inventory[slot] = item.itemId;
+			} else if (!missing.contains(name)) {
+				missing.add(name);
+			}
+		}
+
+		return new Result(picks, notes, style, inventory, missing);
 	}
 
 	private static Map<GearSlot, Pick> pickFromWiki(GearSetup setup, OwnedItems owned, Set<String> excluded) {

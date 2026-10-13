@@ -75,4 +75,50 @@ public class RecommendedEquipmentParserTest {
 		assertTrue(RecommendedEquipmentParser.parse("Vorkath is a dragon.").isEmpty());
 		assertTrue(RecommendedEquipmentParser.parse(null).isEmpty());
 	}
+
+	@Test
+	public void readsInventorySlotsAmountsAndNotes() {
+		var inventory = RecommendedEquipmentParser.parseInventory(
+			"Inventory|align=right|Prayer potion(4)|Shark\\3||Blood rune\\500;n|28=Teleport to house");
+		assertEquals(GearSetup.INVENTORY_SIZE, inventory.size());
+		assertEquals("Prayer potion(4)", inventory.get(0));
+		assertEquals("Shark", inventory.get(1));
+		assertNull(inventory.get(2));
+		assertEquals("Blood rune", inventory.get(3));
+		assertEquals("Teleport to house", inventory.get(27));
+	}
+
+	@Test
+	public void attachesInventoriesToTheirSetups() {
+		String page = String.join("\n",
+			"<tabber>",
+			"Magic=",
+			"{{Recommended equipment|style=Magic|head1={{plink|Ahrim's hood}}}}",
+			"{{Inventory|Trident of the seas|Prayer potion(4)}}",
+			"|-|",
+			"Melee=",
+			"{{Recommended equipment|style=Melee|head1={{plink|Neitiznot faceguard}}}}",
+			"{{Inventory|Super combat potion(4)}}",
+			"</tabber>",
+			"{{Inventory license}}"
+		);
+		var setups = RecommendedEquipmentParser.parse(page);
+		assertEquals("Trident of the seas", setups.get(0).getInventoryItem(0));
+		assertEquals("Prayer potion(4)", setups.get(0).getInventoryItem(1));
+		assertEquals("Super combat potion(4)", setups.get(1).getInventoryItem(0));
+		assertNull(setups.get(1).getInventoryItem(1));
+	}
+
+	@Test
+	public void sharesASingleInventoryWithEverySetup() {
+		String page = String.join("\n",
+			"{{Recommended equipment|style=Magic|head1={{plink|Ahrim's hood}}}}",
+			"{{Recommended equipment|style=Ranged|head1={{plink|Karil's coif}}}}",
+			"==Inventory==",
+			"{{Inventory|Spade|Barrows teleport}}"
+		);
+		var setups = RecommendedEquipmentParser.parse(page);
+		assertEquals("Spade", setups.get(0).getInventoryItem(0));
+		assertEquals("Spade", setups.get(1).getInventoryItem(0));
+	}
 }
