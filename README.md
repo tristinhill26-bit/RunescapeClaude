@@ -29,6 +29,10 @@ It ships two plugins:
   - **Shortcut glint**: usable agility shortcuts nearby give off a faint twinkling light.
   - **Scene lights**: make torches, fires and other 117 HD lights brighter or reach further.
 
+It also includes **Fairy Ring Labels**, which adds the destination next to fairy ring codes in right-click menus,
+such as the Favorites list and Last-destination, e.g. `CIR - Farming Guild`. Names can be short or RuneLite's full
+descriptions, and you can set your own names per code.
+
 The overlays (beam, outline, dots, arrows) work on their own. The lighting needs 117 HD Enhanced running with
 *Dynamic lights* enabled.
 

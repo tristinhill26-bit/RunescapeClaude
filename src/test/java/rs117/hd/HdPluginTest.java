@@ -1,5 +1,6 @@
 package rs117.hd;
 
+import com.fairyringlabels.FairyRingLabelsPlugin;
 import java.io.InputStream;
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,7 @@ public class HdPluginTest
 		Props.set("rlhd.resource-path", "src/main/resources");
 		ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
 		useLatestPluginHub();
-		ExternalPluginManager.loadBuiltin(HdPlugin.class, InteractionLightsPlugin.class);
+		ExternalPluginManager.loadBuiltin(HdPlugin.class, InteractionLightsPlugin.class, FairyRingLabelsPlugin.class);
 		RuneLite.main(args);
 	}
 
