@@ -16,6 +16,7 @@ import net.runelite.api.events.*;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.PluginChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.input.KeyManager;
@@ -88,6 +89,9 @@ public class InteractionLightsPlugin extends Plugin implements ExternalLightProv
 	@Inject
 	private TargetScanner scanner;
 
+	@Inject
+	private HighVisibilityMode highVisibilityMode;
+
 	@Nullable
 	private LightManager attachedLightManager;
 
@@ -150,6 +154,13 @@ public class InteractionLightsPlugin extends Plugin implements ExternalLightProv
 		}
 	};
 
+	private final HotkeyListener highVisibilityHotkeyListener = new HotkeyListener(() -> config.highVisibilityKey()) {
+		@Override
+		public void hotkeyPressed() {
+			highVisibilityMode.toggle();
+		}
+	};
+
 	@Provides
 	InteractionLightsConfig provideConfig(ConfigManager configManager) {
 		return configManager.getConfig(InteractionLightsConfig.class);
@@ -160,6 +171,7 @@ public class InteractionLightsPlugin extends Plugin implements ExternalLightProv
 		now = System.nanoTime() / 1e9;
 		overlayManager.add(overlay);
 		keyManager.registerKeyListener(scanHotkeyListener);
+		keyManager.registerKeyListener(highVisibilityHotkeyListener);
 		clientThread.invoke(this::attachToHd);
 	}
 
@@ -167,6 +179,10 @@ public class InteractionLightsPlugin extends Plugin implements ExternalLightProv
 	protected void shutDown() {
 		overlayManager.remove(overlay);
 		keyManager.unregisterKeyListener(scanHotkeyListener);
+		keyManager.unregisterKeyListener(highVisibilityHotkeyListener);
+		// Don't leave the player stuck with the high visibility settings
+		if (highVisibilityMode.isActive())
+			highVisibilityMode.restore();
 		clientThread.invoke(() -> {
 			if (attachedLightManager != null)
 				attachedLightManager.setExternalLightProvider(null);
@@ -201,6 +217,18 @@ public class InteractionLightsPlugin extends Plugin implements ExternalLightProv
 	public void onPluginChanged(PluginChanged event) {
 		if (event.getPlugin() instanceof HdPlugin)
 			clientThread.invoke(this::attachToHd);
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event) {
+		// Apply changes to the high visibility preset straight away while it's on
+		if (event.getGroup().equals(InteractionLightsConfig.CONFIG_GROUP) &&
+			event.getKey().startsWith("highVisibility") &&
+			!event.getKey().equals("highVisibilityKey") &&
+			!event.getKey().equals("highVisibilityActive") &&
+			!event.getKey().equals("highVisibilitySaved") &&
+			highVisibilityMode.isActive())
+			highVisibilityMode.apply();
 	}
 
 	@Subscribe

@@ -9,6 +9,8 @@ import net.runelite.client.config.ConfigSection;
 import net.runelite.client.config.Keybind;
 import net.runelite.client.config.Range;
 import net.runelite.client.config.Units;
+import rs117.hd.config.ColorFilter;
+import rs117.hd.config.ShadowMode;
 
 import static rs117.hd.interaction.InteractionLightsConfig.*;
 
@@ -536,12 +538,118 @@ public interface InteractionLightsConfig extends Config
 		return 40;
 	}
 
+	/*====== High visibility ======*/
+
+	@ConfigSection(
+		name = "High visibility",
+		description = "A key which switches the whole game to easier to see settings, and back again",
+		position = 7
+	)
+	String highVisibilitySection = "highVisibilitySection";
+
+	@ConfigItem(
+		keyName = "highVisibilityKey",
+		name = "Toggle key",
+		description = "Press to switch 117 HD to the settings below, and press again to restore your own settings.",
+		position = 0,
+		section = highVisibilitySection
+	)
+	default Keybind highVisibilityKey() {
+		return Keybind.NOT_SET;
+	}
+
+	@Range(min = -500, max = 500)
+	@Units(Units.PERCENT)
+	@ConfigItem(
+		keyName = "highVisibilityContrast",
+		name = "Contrast",
+		description = "Contrast while high visibility is on. 117 HD's default is 100%.",
+		position = 1,
+		section = highVisibilitySection
+	)
+	default int highVisibilityContrast() {
+		return 125;
+	}
+
+	@Range(min = 25, max = 400)
+	@Units(Units.PERCENT)
+	@ConfigItem(
+		keyName = "highVisibilityBrightness",
+		name = "Brightness",
+		description = "Brightness while high visibility is on. 117 HD's default is 100%.",
+		position = 2,
+		section = highVisibilitySection
+	)
+	default int highVisibilityBrightness() {
+		return 130;
+	}
+
+	@Range(min = -500, max = 500)
+	@Units(Units.PERCENT)
+	@ConfigItem(
+		keyName = "highVisibilitySaturation",
+		name = "Saturation",
+		description = "Colour saturation while high visibility is on. 117 HD's default is 100%.",
+		position = 3,
+		section = highVisibilitySection
+	)
+	default int highVisibilitySaturation() {
+		return 115;
+	}
+
+	@Range(max = 300)
+	@Units(Units.PERCENT)
+	@ConfigItem(
+		keyName = "highVisibilityNightBrightness",
+		name = "Night brightness",
+		description = "How much dark areas and night time are brightened while high visibility is on.",
+		position = 4,
+		section = highVisibilitySection
+	)
+	default int highVisibilityNightBrightness() {
+		return 200;
+	}
+
+	@ConfigItem(
+		keyName = "highVisibilityShadows",
+		name = "Shadows",
+		description = "117 HD's shadows while high visibility is on. Turning them off removes dark patches,<br>" +
+			"which can make the game's own markings on the ground easier to spot.",
+		position = 5,
+		section = highVisibilitySection
+	)
+	default ShadowMode highVisibilityShadows() {
+		return ShadowMode.OFF;
+	}
+
+	@ConfigItem(
+		keyName = "highVisibilityRemoveFog",
+		name = "Remove fog",
+		description = "Turn off distance fog and ground fog while high visibility is on.",
+		position = 6,
+		section = highVisibilitySection
+	)
+	default boolean highVisibilityRemoveFog() {
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "highVisibilityColorFilter",
+		name = "Colour filter",
+		description = "Colour filter while high visibility is on. 'High contrast' can make dark areas stand out more.",
+		position = 7,
+		section = highVisibilitySection
+	)
+	default ColorFilter highVisibilityColorFilter() {
+		return ColorFilter.NONE;
+	}
+
 	/*====== Scene lights ======*/
 
 	@ConfigSection(
 		name = "Scene lights",
 		description = "Adjust 117 HD's regular lights, such as torches and fires",
-		position = 7
+		position = 8
 	)
 	String sceneLightsSection = "sceneLightsSection";
 

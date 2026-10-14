@@ -28,6 +28,8 @@ It ships two plugins:
     Object Markers, and other resources like the one you last interacted with (e.g. every Evergreen tree).
   - **Shortcut glint**: usable agility shortcuts nearby give off a faint twinkling light.
   - **Scene lights**: make torches, fires and other 117 HD lights brighter or reach further.
+  - **High visibility**: a key that switches the whole game to easier to see settings (higher contrast and
+    brightness, no fog, no shadows, an optional colour filter) and back to your own settings on the second press.
 
 It also includes **Fairy Ring Labels**, which adds the destination next to fairy ring codes in right-click menus,
 such as the Favorites list and Last-destination, e.g. `CIR - Farming Guild`. Names can be short or RuneLite's full
