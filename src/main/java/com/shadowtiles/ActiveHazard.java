@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.shadowtiles;
+package com.shadowtiles;
 
 import lombok.Value;
 import net.runelite.api.coords.LocalPoint;

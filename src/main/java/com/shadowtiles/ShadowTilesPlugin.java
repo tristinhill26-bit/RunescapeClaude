@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.shadowtiles;
+package com.shadowtiles;
 
 import com.google.inject.Provides;
 import java.util.ArrayList;

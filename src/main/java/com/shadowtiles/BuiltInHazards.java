@@ -1,9 +1,10 @@
-package net.runelite.client.plugins.shadowtiles;
+package com.shadowtiles;
 
-import static net.runelite.client.plugins.shadowtiles.HazardType.GRAPHIC;
-import static net.runelite.client.plugins.shadowtiles.HazardType.NPC;
-import static net.runelite.client.plugins.shadowtiles.HazardType.OBJECT;
-import static net.runelite.client.plugins.shadowtiles.HazardType.PROJECTILE;
+import static com.shadowtiles.HazardType.ANIM;
+import static com.shadowtiles.HazardType.GRAPHIC;
+import static com.shadowtiles.HazardType.NPC;
+import static com.shadowtiles.HazardType.OBJECT;
+import static com.shadowtiles.HazardType.PROJECTILE;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -93,6 +94,28 @@ enum BuiltInHazards
 		HazardDefinition.of(PROJECTILE, 1598, 1, "Bomb") // VERZIK_ACIDBOMB_PROJANIM
 	)),
 
+	/**
+	 * Its falling debris uses the *_DARK shadows in FALLING_SHADOWS. The sweeps are aimed to one
+	 * side, but we can only highlight a square, so the whole ring around it lights up.
+	 */
+	MAD_ANGEL(ShadowTilesConfig::madAngel, Arrays.asList(
+		HazardDefinition.of(GRAPHIC, 4011, 1, "Smite"), // VFX_MAD_ANGEL_ATTACK_SMITE
+		HazardDefinition.of(GRAPHIC, 4012, 1, "Smite"), // VFX_MAD_ANGEL_ATTACK_SMITE_ENRAGED
+		HazardDefinition.of(PROJECTILE, 4015, 1, "Bomb"), // VFX_MAD_ANGEL_ATTACK_BOMB_THROW_PROJECTILE
+		sweep(14429), // NPC_MAD_ANGEL_ATTACK_SWEEP_RIGHT_01
+		sweep(14430), // NPC_MAD_ANGEL_ATTACK_SWEEP_RIGHT_02
+		sweep(14431), // NPC_MAD_ANGEL_ATTACK_SWEEP_RIGHT_LEFT
+		sweep(14433), // NPC_MAD_ANGEL_ATTACK_SWEEP_LEFT_01
+		sweep(14434), // NPC_MAD_ANGEL_ATTACK_SWEEP_LEFT_02
+		sweep(14435), // NPC_MAD_ANGEL_ATTACK_SWEEP_LEFT_RIGHT
+		sweep(14437), // NPC_MAD_ANGEL_ATTACK_SWEEP_RIGHT_ENRAGED_01
+		sweep(14438), // NPC_MAD_ANGEL_ATTACK_SWEEP_RIGHT_ENRAGED_02
+		sweep(14439), // NPC_MAD_ANGEL_ATTACK_SWEEP_RIGHT_LEFT_ENRAGED
+		sweep(14440), // NPC_MAD_ANGEL_ATTACK_SWEEP_LEFT_ENRAGED_01
+		sweep(14441), // NPC_MAD_ANGEL_ATTACK_SWEEP_LEFT_ENRAGED_02
+		sweep(14442) // NPC_MAD_ANGEL_ATTACK_SWEEP_LEFT_RIGHT_ENRAGED
+	)),
+
 	MUSPAH(ShadowTilesConfig::muspah, Arrays.asList(
 		HazardDefinition.of(GRAPHIC, 2335, 0, "Spike"), // VFX_MUSPAH_SPIKE_WARNING_01
 		HazardDefinition.of(GRAPHIC, 2336, 0, "Spike") // VFX_MUSPAH_SPIKE_WARNING_02
@@ -100,4 +123,9 @@ enum BuiltInHazards
 
 	private final Predicate<ShadowTilesConfig> enabled;
 	private final List<HazardDefinition> definitions;
+
+	private static HazardDefinition sweep(int animation)
+	{
+		return HazardDefinition.of(ANIM, animation, 1, "Sweep");
+	}
 }

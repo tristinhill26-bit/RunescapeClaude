@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.shadowtiles;
+package com.shadowtiles;
 
 import java.awt.Color;
 import net.runelite.client.config.Alpha;
@@ -139,11 +139,23 @@ public interface ShadowTilesConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "madAngel",
+		name = "Mad Angel",
+		description = "Smites, thrown bombs and sweeps (its falling debris is under Falling debris shadows)",
+		section = builtInSection,
+		position = 8
+	)
+	default boolean madAngel()
+	{
+		return true;
+	}
+
+	@ConfigItem(
 		keyName = "muspah",
 		name = "Phantom Muspah",
 		description = "Spike warnings",
 		section = builtInSection,
-		position = 8
+		position = 9
 	)
 	default boolean muspah()
 	{
@@ -163,9 +175,8 @@ public interface ShadowTilesConfig extends Config
 	{
 		return "# type, id, radius, label, color, ticks\n"
 			+ "# Use the ID finder section to get IDs, then remove the # to enable a line.\n"
-			+ "# Mad Angel (replace the ids with your server's):\n"
-			+ "# graphic, 0, 1, Mad Angel, #B000FF\n"
-			+ "# anim, 0, 2, Mad Angel slam, #B000FF, 3\n";
+			+ "# Example: make Mad Angel's bomb purple and 5x5\n"
+			+ "# projectile, 4015, 2, Bomb, #B000FF\n";
 	}
 
 	@Alpha

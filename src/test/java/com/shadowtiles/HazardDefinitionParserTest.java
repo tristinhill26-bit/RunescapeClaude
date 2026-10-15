@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.shadowtiles;
+package com.shadowtiles;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;

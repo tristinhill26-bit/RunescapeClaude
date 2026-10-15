@@ -1,4 +1,4 @@
-package net.runelite.client.plugins.shadowtiles;
+package com.shadowtiles;
 
 import java.awt.BasicStroke;
 import java.awt.Color;

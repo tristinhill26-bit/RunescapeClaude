@@ -49,13 +49,35 @@ New tags are added to your bank's tag tabs automatically (they appear the next t
 works even with plugins that hide the tag tab + button. Each tag also gets a **Copy** button for Bank Tags'
 *Import tag tab*, or for sharing.
 
+**Shadow Tiles** highlights the tiles an attack is about to hit, so telegraphs are easy to see:
+the ground shadows before rocks and debris land, where projectiles will land (with a tick countdown),
+acid pools and poison clouds, dangerous NPCs like rolling boulders, and the area around a boss while
+it winds up a sweep or slam. It comes with Ba-Ba, Mad Angel, the shared falling debris shadows,
+Great Olm, Vorkath, Alchemical Hydra, Zulrah, Cerberus, Verzik and Phantom Muspah, each with its own
+toggle. To add another boss, turn on **ID finder > Log nearby IDs**, fight it, and add the IDs it
+prints in the chatbox to **Custom attacks**, one per line:
+
+```
+# type, id, radius, label, color, ticks
+graphic, 2250, 1, Rock
+projectile, 4015, 2, Bomb, #B000FF
+anim, 14429, 1, Sweep, , 3
+```
+
+`type` is `graphic`, `projectile`, `object`, `npc` or `anim`, and `radius` is extra tiles around it
+(0 = one tile, 1 = 3x3, 2 = 5x5). Only `type` and `id` are required, and a line with the same type and
+id as a built-in replaces it, which is how to fix a built-in's size or colour.
+The built-in IDs are from RuneLite's `gameval` lists, but the sizes are estimates, so check them
+against the real attacks.
+
 The overlays (beam, outline, dots, arrows) work on their own. The lighting needs 117 HD Enhanced running with
 *Dynamic lights* enabled.
 
 ## Development
 
-Run `rs117.hd.HdPluginTest` (or `./gradlew run`) to start RuneLite with both plugins loaded.
-The interaction lighting lives in [`src/main/java/rs117/hd/interaction`](src/main/java/rs117/hd/interaction).
+Run `rs117.hd.HdPluginTest` (or `./gradlew run`) to start RuneLite with all of the plugins loaded.
+The interaction lighting lives in [`src/main/java/rs117/hd/interaction`](src/main/java/rs117/hd/interaction),
+Shadow Tiles in [`src/main/java/com/shadowtiles`](src/main/java/com/shadowtiles).
 
 To pull in upstream 117 HD changes:
 
