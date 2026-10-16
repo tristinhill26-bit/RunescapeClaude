@@ -1,6 +1,7 @@
 package rs117.hd;
 
 import com.fairyringlabels.FairyRingLabelsPlugin;
+import com.madangel.MadAngelPlugin;
 import com.shadowtiles.ShadowTilesPlugin;
 import com.wikigear.WikiGearPlugin;
 import java.io.InputStream;
@@ -28,7 +29,7 @@ public class HdPluginTest
 		ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
 		useLatestPluginHub();
 		ExternalPluginManager.loadBuiltin(HdPlugin.class, InteractionLightsPlugin.class, FairyRingLabelsPlugin.class, WikiGearPlugin.class,
-			ShadowTilesPlugin.class);
+			ShadowTilesPlugin.class, MadAngelPlugin.class);
 		RuneLite.main(args);
 	}
 

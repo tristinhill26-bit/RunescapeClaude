@@ -52,7 +52,7 @@ works even with plugins that hide the tag tab + button. Each tag also gets a **C
 **Shadow Tiles** highlights the tiles an attack is about to hit, so telegraphs are easy to see:
 the ground shadows before rocks and debris land, where projectiles will land (with a tick countdown),
 acid pools and poison clouds, dangerous NPCs like rolling boulders, and the area around a boss while
-it winds up a sweep or slam. It comes with Ba-Ba, Mad Angel, the shared falling debris shadows,
+it winds up a slam. It comes with Ba-Ba, Mad Angel's smite, the shared falling debris shadows,
 Great Olm, Vorkath, Alchemical Hydra, Zulrah, Cerberus, Verzik and Phantom Muspah, each with its own
 toggle. To add another boss, turn on **ID finder > Log nearby IDs**, fight it, and add the IDs it
 prints in the chatbox to **Custom attacks**, one per line:
@@ -60,8 +60,8 @@ prints in the chatbox to **Custom attacks**, one per line:
 ```
 # type, id, radius, label, color, ticks
 graphic, 2250, 1, Rock
-projectile, 4015, 2, Bomb, #B000FF
-anim, 14429, 1, Sweep, , 3
+projectile, 1481, 2, Firebomb, #B000FF
+anim, 12345, 2, Slam, , 3
 ```
 
 `type` is `graphic`, `projectile`, `object`, `npc` or `anim`, and `radius` is extra tiles around it
@@ -70,6 +70,20 @@ id as a built-in replaces it, which is how to fix a built-in's size or colour.
 The built-in IDs are from RuneLite's `gameval` lists, but the sizes are estimates, so check them
 against the real attacks.
 
+**Mad Angel Helper** shows where to go during Mad Angel's two "move here" attacks:
+
+- **Sweep:** when she draws her sword, the tile to click is marked green (**CLICK**), beside her on the
+  side away from the sword. Dodging there gives the bonus (next attack 100% accurate, raised minimum hit).
+  The tile behind her, also safe but with no bonus, is yellow (**BEHIND**), and the cleave area is shaded
+  red. The marks move each time the sword swaps sides. If the dodge tile is a wall, her own edge tile on
+  that side is marked instead, which still walks you to the dodge side.
+- **Exploding Light:** the tile the ball will land on is marked (**STAND**). Standing on it bounces the
+  ball back at her.
+
+Which side counts as "left" and "right" comes from the animation names, worked out from the wiki's
+description rather than tested in a fight. If the **CLICK** tile ever shows up on the sword's side, turn
+on **Flip left/right**.
+
 The overlays (beam, outline, dots, arrows) work on their own. The lighting needs 117 HD Enhanced running with
 *Dynamic lights* enabled.
 
@@ -77,7 +91,8 @@ The overlays (beam, outline, dots, arrows) work on their own. The lighting needs
 
 Run `rs117.hd.HdPluginTest` (or `./gradlew run`) to start RuneLite with all of the plugins loaded.
 The interaction lighting lives in [`src/main/java/rs117/hd/interaction`](src/main/java/rs117/hd/interaction),
-Shadow Tiles in [`src/main/java/com/shadowtiles`](src/main/java/com/shadowtiles).
+Shadow Tiles in [`src/main/java/com/shadowtiles`](src/main/java/com/shadowtiles), and
+Mad Angel Helper in [`src/main/java/com/madangel`](src/main/java/com/madangel).
 
 To pull in upstream 117 HD changes:
 

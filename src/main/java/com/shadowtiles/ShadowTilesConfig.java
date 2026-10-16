@@ -141,7 +141,7 @@ public interface ShadowTilesConfig extends Config
 	@ConfigItem(
 		keyName = "madAngel",
 		name = "Mad Angel",
-		description = "Smites, thrown bombs and sweeps (its falling debris is under Falling debris shadows)",
+		description = "Smites (its falling debris is under Falling debris shadows; the Mad Angel Helper plugin covers the sweep and Exploding Light)",
 		section = builtInSection,
 		position = 8
 	)
@@ -175,8 +175,8 @@ public interface ShadowTilesConfig extends Config
 	{
 		return "# type, id, radius, label, color, ticks\n"
 			+ "# Use the ID finder section to get IDs, then remove the # to enable a line.\n"
-			+ "# Example: make Mad Angel's bomb purple and 5x5\n"
-			+ "# projectile, 4015, 2, Bomb, #B000FF\n";
+			+ "# Example: make Vorkath's firebomb purple and 5x5\n"
+			+ "# projectile, 1481, 2, Firebomb, #B000FF\n";
 	}
 
 	@Alpha
