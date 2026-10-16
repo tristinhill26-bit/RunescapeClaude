@@ -171,19 +171,29 @@ public class ToaHelperPlugin extends Plugin
 			return;
 		}
 
-		boolean atMe = projectile.getTargetActor() == me;
+		Actor targetActor = projectile.getTargetActor();
 		LocalPoint target = event.getPosition();
 		LocalPoint mine = me.getLocalLocation();
-		if (!atMe && target != null && mine != null)
+		boolean atMe = targetActor == me;
+		if (targetActor == null && target != null && mine != null)
 		{
-			// Split rocks are aimed at your tile rather than at you.
-			atMe = (target.getX() >> 7) == (mine.getX() >> 7) && (target.getY() >> 7) == (mine.getY() >> 7);
+			atMe = landsNextTo(target.getX() >> 7, target.getY() >> 7, mine.getX() >> 7, mine.getY() >> 7);
 		}
 
 		if (atMe)
 		{
 			incoming.put(projectile, style);
 		}
+	}
+
+	/**
+	 * Whether a projectile aimed at a tile (rather than at someone) will land on or next to you.
+	 * Zebak's rocks are thrown at the ground and break into fragments, so they don't land exactly
+	 * on your tile.
+	 */
+	static boolean landsNextTo(int targetX, int targetY, int myX, int myY)
+	{
+		return Math.abs(targetX - myX) <= 1 && Math.abs(targetY - myY) <= 1;
 	}
 
 	private void updateStandingThreat()

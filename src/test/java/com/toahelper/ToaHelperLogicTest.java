@@ -42,6 +42,26 @@ public class ToaHelperLogicTest
 	}
 
 	@Test
+	public void zebakRangedRocksAreTracked()
+	{
+		assertEquals(AttackStyle.RANGED, ToaIds.PROJECTILE_STYLES.get(2178)); // the big rock
+		assertEquals(AttackStyle.RANGED, ToaIds.PROJECTILE_STYLES.get(2185)); // the split
+		for (int fragment = 2187; fragment <= 2190; fragment++)
+		{
+			assertEquals(AttackStyle.RANGED, ToaIds.PROJECTILE_STYLES.get(fragment));
+		}
+		assertEquals(AttackStyle.MAGIC, ToaIds.PROJECTILE_STYLES.get(2186));
+	}
+
+	@Test
+	public void tileAimedRocksCountWhenTheyLandOnOrNextToYou()
+	{
+		assertTrue(ToaHelperPlugin.landsNextTo(10, 10, 10, 10));
+		assertTrue(ToaHelperPlugin.landsNextTo(11, 9, 10, 10));
+		assertFalse(ToaHelperPlugin.landsNextTo(12, 10, 10, 10));
+	}
+
+	@Test
 	public void headIcons()
 	{
 		assertEquals(EnumSet.of(AttackStyle.MAGIC), AttackStyle.fromHeadIcon(2));
