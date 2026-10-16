@@ -175,6 +175,19 @@ public interface ShadowTilesConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "fallingRockSize",
+		name = "Falling rock size",
+		description = "Size of falling rock and debris shadows (Ba-Ba, Olm, Zebak and the shared debris shadows):"
+			+ " each attack's own size, just the tile the rock lands on, or a 3x3 around it",
+		section = builtInSection,
+		position = 11
+	)
+	default FallingRockSize fallingRockSize()
+	{
+		return FallingRockSize.PER_ATTACK;
+	}
+
+	@ConfigItem(
 		keyName = "customDefinitions",
 		name = "Custom attacks",
 		description = "One per line: type, id, radius, label, color, ticks<br>"

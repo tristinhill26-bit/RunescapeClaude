@@ -5,7 +5,9 @@ import static com.shadowtiles.HazardType.NPC;
 import static com.shadowtiles.HazardType.OBJECT;
 import static com.shadowtiles.HazardType.PROJECTILE;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Predicate;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -123,6 +125,22 @@ enum BuiltInHazards
 		HazardDefinition.of(GRAPHIC, 2336, 0, "Spike") // VFX_MUSPAH_SPIKE_WARNING_02
 	));
 
+	/**
+	 * Falling rock and debris graphics outside FALLING_SHADOWS, which the "Falling rock size"
+	 * setting also resizes.
+	 */
+	private static final Set<Integer> OTHER_FALLING_ROCKS = new HashSet<>(Arrays.asList(
+		2250, 2251, 2252, // TOA_BABA_ROCK_FALL(_FASTER/_FASTEST)
+		1357, // OLM_CRYSTALROCK_FALLING
+		2195 // ZEBAK_ROCK_FALL
+	));
+
 	private final Predicate<ShadowTilesConfig> enabled;
 	private final List<HazardDefinition> definitions;
+
+	static boolean isFallingRock(HazardDefinition def)
+	{
+		return def.getType() == GRAPHIC
+			&& (OTHER_FALLING_ROCKS.contains(def.getId()) || FALLING_SHADOWS.definitions.contains(def));
+	}
 }

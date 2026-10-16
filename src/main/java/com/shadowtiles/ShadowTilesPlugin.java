@@ -358,7 +358,7 @@ public class ShadowTilesPlugin extends Plugin
 			{
 				for (HazardDefinition def : group.getDefinitions())
 				{
-					defs.put(def.key(), def);
+					defs.put(def.key(), config.fallingRockSize().apply(def));
 				}
 			}
 		}

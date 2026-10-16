@@ -69,6 +69,8 @@ anim, 12345, 2, Slam, , 3
 id as a built-in replaces it, which is how to fix a built-in's size or colour.
 The built-in IDs are from RuneLite's `gameval` lists, but the sizes are estimates, so check them
 against the real attacks.
+**Falling rock size** sets every falling rock and debris shadow (Ba-Ba, Olm, Zebak and the shared
+shadows) to just the tile it lands on, or a 3x3 around it. **Per attack** keeps each one's own size.
 
 **Mad Angel Helper** shows where to go during Mad Angel's two "move here" attacks:
 
