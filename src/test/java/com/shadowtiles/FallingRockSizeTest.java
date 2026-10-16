@@ -15,10 +15,13 @@ public class FallingRockSizeTest
 	public void babaRocksCanBeOneTileOr3x3()
 	{
 		HazardDefinition rock = find(BuiltInHazards.BA_BA, 2250);
-		assertEquals(1, rock.getRadius());
+		assertEquals(0, rock.getRadius());
 		assertEquals(0, FallingRockSize.SOURCE_TILE.apply(rock).getRadius());
 		assertEquals(1, FallingRockSize.THREE_BY_THREE.apply(rock).getRadius());
 		assertSame(rock, FallingRockSize.PER_ATTACK.apply(rock));
+
+		HazardDefinition crystal = find(BuiltInHazards.OLM, 1357);
+		assertEquals(0, FallingRockSize.SOURCE_TILE.apply(crystal).getRadius());
 	}
 
 	@Test

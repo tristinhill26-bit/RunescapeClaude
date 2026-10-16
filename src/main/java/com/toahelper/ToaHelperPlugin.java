@@ -6,12 +6,14 @@ import com.toahelper.StandingGeometry.Tile;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.inject.Inject;
 import lombok.Getter;
+import lombok.Value;
 import net.runelite.api.Actor;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
@@ -30,6 +32,8 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.events.GraphicsObjectCreated;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.NpcChanged;
+import net.runelite.api.events.NpcDespawned;
+import net.runelite.api.events.NpcSpawned;
 import net.runelite.api.events.ProjectileMoved;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -48,7 +52,15 @@ public class ToaHelperPlugin extends Plugin
 	/**
 	 * How long after Ba-Ba's rockfall to keep showing cover from her thrown rock.
 	 */
-	private static final int BABA_COVER_TICKS = 12;
+	private static final int BABA_COVER_TICKS = 8; // her boulder lands ~6 ticks after the rockfall
+	/**
+	 * How long a Lightning Skull's marks stay up.
+	 */
+	private static final int LIGHTNING_SKULL_TICKS = 8;
+	/**
+	 * Start warning this many percent above Ba-Ba's Rolling Stones thresholds.
+	 */
+	private static final double BABA_THRESHOLD_WARNING = 4;
 	/**
 	 * How long after a slam animation to keep showing the safe tile.
 	 */
@@ -58,6 +70,10 @@ public class ToaHelperPlugin extends Plugin
 	private static final String DEATH = "You have died";
 	private static final String ROOM_COMPLETE = "Challenge complete";
 	private static final String ROOM_FAILED = "Your party failed to complete";
+	private static final String AKKHA_MEMORY_BLAST = "Sections of the room start to glow";
+	private static final String AKKHA_TRAILING_ORBS = "Magical orbs begin to materialise around you";
+	private static final String AKKHA_TRAILING_ORBS_END = "The magical orbs stop materialising";
+	private static final String AKKHA_DETONATE = "You have been marked for detonation";
 
 	@Inject
 	private Client client;
@@ -92,6 +108,34 @@ public class ToaHelperPlugin extends Plugin
 	private String standingReason;
 	@Getter
 	private boolean zebakMeleeWarning;
+	@Getter
+	private boolean dungStrikeWarning;
+	@Getter
+	private boolean babaThresholdWarning;
+
+	@Getter
+	private int akkhaAttacksSinceSpecial;
+	/**
+	 * Advice for the special Akkha is doing right now, or null.
+	 */
+	@Getter
+	private String akkhaSpecialAdvice;
+	private int akkhaSpecialEndTick;
+
+	private NPC core;
+	private int coreSpawnTick;
+	private int coreExposureTicks;
+
+	@Value
+	static class SkullMark
+	{
+		Tile landing;
+		int worldView;
+		int tick;
+	}
+
+	@Getter
+	private final List<SkullMark> lightningSkulls = new ArrayList<>();
 
 	private int babaRockfallTick = -100;
 	private Slam slam;
@@ -196,11 +240,28 @@ public class ToaHelperPlugin extends Plugin
 		return Math.abs(targetX - myX) <= 1 && Math.abs(targetY - myY) <= 1;
 	}
 
+	private int threatPriority;
+
+	/**
+	 * Offers a standing threat; the lowest priority number wins.
+	 */
+	private void offer(int priority, AttackStyle style, String reason)
+	{
+		if (priority < threatPriority)
+		{
+			threatPriority = priority;
+			standingStyle = style;
+			standingReason = reason;
+		}
+	}
+
 	private void updateStandingThreat()
 	{
 		standingStyle = null;
 		standingReason = null;
+		threatPriority = Integer.MAX_VALUE;
 		zebakMeleeWarning = false;
+		babaThresholdWarning = false;
 
 		Player me = client.getLocalPlayer();
 		LocalPoint mine = me == null ? null : me.getLocalLocation();
@@ -209,36 +270,51 @@ public class ToaHelperPlugin extends Plugin
 			return;
 		}
 		Tile myTile = new Tile(mine.getX() >> 7, mine.getY() >> 7);
+		dungStrikeWarning = me.hasSpotAnim(ToaIds.KEPHRI_DUNG_MARK);
 
-		int priority = Integer.MAX_VALUE;
 		for (NPC npc : client.getNpcs())
 		{
 			int id = npc.getId();
-			if (id == ToaIds.KEPHRI_GUARDIAN_MAGE && npc.hasSpotAnim(ToaIds.KEPHRI_MAGE_CHARGE) && priority > 0)
+			if (id == ToaIds.KEPHRI_GUARDIAN_MAGE && npc.hasSpotAnim(ToaIds.KEPHRI_MAGE_CHARGE))
 			{
-				priority = 0;
-				standingStyle = AttackStyle.MAGIC;
-				standingReason = "Arcane Scarab charging";
+				offer(0, AttackStyle.MAGIC, "Arcane Scarab charging");
 			}
-			else if (id == ToaIds.BABA && inMeleeReach(npc, myTile) && priority > 1)
+			else if (id == ToaIds.AKKHA_MELEE || id == ToaIds.AKKHA_RANGE || id == ToaIds.AKKHA_MAGE)
 			{
-				priority = 1;
-				standingStyle = AttackStyle.MELEE;
-				standingReason = "In Ba-Ba's reach";
+				// His damage is decided when he fires, so be on the right prayer before he attacks.
+				offer(1, id == ToaIds.AKKHA_MELEE ? AttackStyle.MELEE
+					: id == ToaIds.AKKHA_RANGE ? AttackStyle.RANGED : AttackStyle.MAGIC, "Akkha's form");
 			}
-			else if (priority > 2 && (id == ToaIds.AKKHA_MELEE || id == ToaIds.AKKHA_RANGE || id == ToaIds.AKKHA_MAGE))
+			else if (id == ToaIds.BABA)
 			{
-				priority = 2;
-				standingStyle = id == ToaIds.AKKHA_MELEE ? AttackStyle.MELEE
-					: id == ToaIds.AKKHA_RANGE ? AttackStyle.RANGED : AttackStyle.MAGIC;
-				standingReason = "Akkha's form";
+				offer(2, AttackStyle.MELEE, "Ba-Ba only uses melee");
+				double hp = ToaMechanics.healthPercent(npc.getHealthRatio(), npc.getHealthScale());
+				babaThresholdWarning = ToaMechanics.babaNearRollingStones(hp, BABA_THRESHOLD_WARNING);
 			}
-			else if (priority > 3 && (ToaIds.BABOON_MELEE.contains(id) || id == ToaIds.KEPHRI_GUARDIAN_MELEE)
+			else if (ToaIds.TUMEKEN_P2.contains(id))
+			{
+				offer(3, AttackStyle.MELEE, "Tumeken's Warden closes in; its melee can't be reacted to");
+			}
+			else if (ToaIds.WARDENS_P2.contains(id) && inMeleeReach(npc, myTile))
+			{
+				offer(3, AttackStyle.MELEE, "In the Warden's melee reach");
+			}
+			else if (id == ToaIds.KEPHRI_GUARDIAN_RANGED)
+			{
+				offer(4, AttackStyle.RANGED, "Spitting Scarab alive");
+			}
+			else if ((ToaIds.BABOON_MELEE.contains(id) || id == ToaIds.KEPHRI_GUARDIAN_MELEE)
 				&& npc.getInteracting() == me && inMeleeReach(npc, myTile))
 			{
-				priority = 3;
-				standingStyle = AttackStyle.MELEE;
-				standingReason = id == ToaIds.KEPHRI_GUARDIAN_MELEE ? "Soldier Scarab next to you" : "Brawler next to you";
+				offer(5, AttackStyle.MELEE, id == ToaIds.KEPHRI_GUARDIAN_MELEE ? "Soldier Scarab next to you" : "Brawler next to you");
+			}
+			else if (ToaIds.KEPHRI.contains(id))
+			{
+				offer(6, AttackStyle.MAGIC, "Kephri's fireballs (blocks ~66%)");
+			}
+			else if (id == ToaIds.SCABARAS_PUZZLE_SCARAB)
+			{
+				offer(7, AttackStyle.RANGED, "Puzzle scarabs use ranged");
 			}
 
 			if (ToaIds.ZEBAK.contains(id) && ToaIds.ZEBAK_MELEE_ANIMATIONS.contains(npc.getAnimation())
@@ -246,6 +322,11 @@ public class ToaHelperPlugin extends Plugin
 			{
 				zebakMeleeWarning = true;
 			}
+		}
+
+		if (room == ToaIds.Room.APMEKEN)
+		{
+			offer(8, AttackStyle.MELEE, "Wiki: keep Protect from Melee on in Apmeken");
 		}
 	}
 
@@ -326,6 +407,12 @@ public class ToaHelperPlugin extends Plugin
 		{
 			babaRockfallTick = client.getTickCount();
 		}
+		else if (graphic.getLocation() != null && parseIds(config.lightningSkullIds()).contains(graphic.getId()))
+		{
+			LocalPoint at = graphic.getLocation();
+			lightningSkulls.add(new SkullMark(new Tile(at.getX() >> 7, at.getY() >> 7), at.getWorldView(),
+				client.getTickCount()));
+		}
 	}
 
 	@Subscribe
@@ -337,6 +424,11 @@ public class ToaHelperPlugin extends Plugin
 		}
 
 		NPC npc = (NPC) event.getActor();
+		if (ToaIds.AKKHA_ATTACK_ANIMATIONS.contains(npc.getAnimation()))
+		{
+			akkhaAttacksSinceSpecial++;
+			return;
+		}
 		if (!ToaIds.WARDENS_P3.contains(npc.getId()))
 		{
 			return;
@@ -382,6 +474,60 @@ public class ToaHelperPlugin extends Plugin
 	}
 
 	@Subscribe
+	public void onNpcSpawned(NpcSpawned event)
+	{
+		NPC npc = event.getNpc();
+		if (!ToaIds.WARDEN_CORES.contains(npc.getId()))
+		{
+			return;
+		}
+
+		double hp = 100;
+		for (NPC other : client.getNpcs())
+		{
+			if (ToaIds.WARDENS_P2_EXPOSED.contains(other.getId()) || ToaIds.WARDENS_P2.contains(other.getId()))
+			{
+				double h = ToaMechanics.healthPercent(other.getHealthRatio(), other.getHealthScale());
+				if (h >= 0)
+				{
+					hp = h;
+				}
+			}
+		}
+		core = npc;
+		coreSpawnTick = client.getTickCount();
+		coreExposureTicks = ToaMechanics.coreExposureTicks(hp);
+	}
+
+	@Subscribe
+	public void onNpcDespawned(NpcDespawned event)
+	{
+		if (event.getNpc() == core)
+		{
+			core = null;
+		}
+	}
+
+	/**
+	 * Ticks left before the Warden's core goes back in, or -1 if it isn't out.
+	 */
+	int getCoreTicksLeft()
+	{
+		if (core == null)
+		{
+			return -1;
+		}
+		return Math.max(0, coreExposureTicks - (client.getTickCount() - coreSpawnTick));
+	}
+
+	private void akkhaSpecial(String advice, int ticks)
+	{
+		akkhaAttacksSinceSpecial = 0;
+		akkhaSpecialAdvice = advice;
+		akkhaSpecialEndTick = client.getTickCount() + ticks;
+	}
+
+	@Subscribe
 	public void onChatMessage(ChatMessage event)
 	{
 		if (event.getType() != ChatMessageType.GAMEMESSAGE)
@@ -397,6 +543,22 @@ public class ToaHelperPlugin extends Plugin
 		else if (!inRaid())
 		{
 			return;
+		}
+		else if (message.startsWith(AKKHA_MEMORY_BLAST))
+		{
+			akkhaSpecial("Memory Blast: follow the glowing markers, one quadrant at a time", 12);
+		}
+		else if (message.startsWith(AKKHA_TRAILING_ORBS))
+		{
+			akkhaSpecial("Trailing Orbs: stand still, or step around the orbs", 30);
+		}
+		else if (message.startsWith(AKKHA_TRAILING_ORBS_END))
+		{
+			akkhaSpecialAdvice = null;
+		}
+		else if (message.startsWith(AKKHA_DETONATE))
+		{
+			akkhaSpecial("Detonate: don't share a row or column with anyone", 8);
 		}
 		else if (message.startsWith(DEATH))
 		{
@@ -427,6 +589,18 @@ public class ToaHelperPlugin extends Plugin
 		raidLevel = client.getVarbitValue(ToaIds.RAID_LEVEL_VARBIT);
 		updateStandingThreat();
 
+		int tick = client.getTickCount();
+		if (akkhaSpecialAdvice != null && tick > akkhaSpecialEndTick)
+		{
+			akkhaSpecialAdvice = null;
+		}
+		if (room != ToaIds.Room.AKKHA)
+		{
+			akkhaAttacksSinceSpecial = 0;
+			akkhaSpecialAdvice = null;
+		}
+		lightningSkulls.removeIf(m -> tick - m.getTick() > LIGHTNING_SKULL_TICKS);
+
 		if (slamWarden != null && (slamWarden.isDead() || client.getTickCount() - slamTick > SLAM_TICKS))
 		{
 			slamWarden = null;
@@ -443,10 +617,36 @@ public class ToaHelperPlugin extends Plugin
 			incoming.clear();
 			slamWarden = null;
 			slam = null;
+			core = null;
+			lightningSkulls.clear();
 		}
 	}
 
 	// ---- Helpers shared with the overlays ----
+
+	/**
+	 * Parses a comma separated list of IDs, skipping anything that isn't a number.
+	 */
+	static Set<Integer> parseIds(String text)
+	{
+		Set<Integer> ids = new HashSet<>();
+		if (text == null)
+		{
+			return ids;
+		}
+		for (String part : text.split("[,\\s]+"))
+		{
+			try
+			{
+				ids.add(Integer.parseInt(part.trim()));
+			}
+			catch (NumberFormatException e)
+			{
+				// skip
+			}
+		}
+		return ids;
+	}
 
 	static int size(NPC npc)
 	{

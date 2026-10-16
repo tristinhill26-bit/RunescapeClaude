@@ -58,9 +58,10 @@ enum BuiltInHazards
 	)),
 
 	BA_BA(ShadowTilesConfig::baba, Arrays.asList(
-		HazardDefinition.of(GRAPHIC, 2250, 1, "Rock"), // TOA_BABA_ROCK_FALL
-		HazardDefinition.of(GRAPHIC, 2251, 1, "Rock"), // TOA_BABA_ROCK_FALL_FASTER
-		HazardDefinition.of(GRAPHIC, 2252, 1, "Rock"), // TOA_BABA_ROCK_FALL_FASTEST
+		// The wiki: rocks only deal heavy damage to players standing directly under the shadow.
+		HazardDefinition.of(GRAPHIC, 2250, 0, "Rock"), // TOA_BABA_ROCK_FALL
+		HazardDefinition.of(GRAPHIC, 2251, 0, "Rock"), // TOA_BABA_ROCK_FALL_FASTER
+		HazardDefinition.of(GRAPHIC, 2252, 0, "Rock"), // TOA_BABA_ROCK_FALL_FASTEST
 		HazardDefinition.of(NPC, 11782, 0, "Boulder"), // TOA_BABA_BOULDER
 		HazardDefinition.of(NPC, 11783, 0, "Boulder") // TOA_BABA_BOULDER_WEAK
 	)),
@@ -117,7 +118,11 @@ enum BuiltInHazards
 		HazardDefinition.of(NPC, 11742, 0, "Blood"), // TOA_ZEBAK_BLOOD_CLOUD
 		HazardDefinition.of(NPC, 11743, 0, "Blood"), // TOA_ZEBAK_BLOOD_CLOUD_SMALL
 		HazardDefinition.of(NPC, 11738, 0, null), // TOA_ZEBAK_WAVE
-		HazardDefinition.of(NPC, 11739, 0, null) // TOA_ZEBAK_WAVE_BLOODY
+		HazardDefinition.of(NPC, 11739, 0, null), // TOA_ZEBAK_WAVE_BLOODY
+		HazardDefinition.of(NPC, 11716, 1, "Volatile"), // TOA_PATH_APMEKEN_BABOON_ZOMBIE: explodes in a 3x3
+		HazardDefinition.of(NPC, 11728, 1, "Egg"), // KEPHRI_EGG_EXPLODE: explodes in a 3x3 if left
+		HazardDefinition.of(NPC, 11729, 1, "Egg"), // KEPHRI_EGG_HATCH
+		HazardDefinition.of(NPC, 11708, 0, null) // TOA_HET_ORB: Orbs of Darkness in the Het puzzle
 	)),
 
 	MUSPAH(ShadowTilesConfig::muspah, Arrays.asList(

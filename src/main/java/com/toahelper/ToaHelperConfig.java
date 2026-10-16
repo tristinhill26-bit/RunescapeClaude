@@ -75,6 +75,30 @@ public interface ToaHelperConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "akkhaSpecials",
+		name = "Akkha special countdown",
+		description = "Count Akkha's regular attacks until his next special, and remind you how to handle each special",
+		section = prayerSection,
+		position = 4
+	)
+	default boolean akkhaSpecials()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "stayVigilant",
+		name = "Stay Vigilant on",
+		description = "Turn on if the Stay Vigilant invocation is active: Akkha specials every 6 attacks instead of 7",
+		section = prayerSection,
+		position = 5
+	)
+	default boolean stayVigilant()
+	{
+		return false;
+	}
+
+	@ConfigItem(
 		keyName = "showTarget",
 		name = "Show target info",
 		description = "Show what your target is praying, what to hit it with, its points multiplier and a wiki tip",
@@ -89,7 +113,8 @@ public interface ToaHelperConfig extends Config
 	@ConfigItem(
 		keyName = "priorityTargets",
 		name = "Highlight priority targets",
-		description = "Mark Ba-Ba's cracked boulder, Het's seal while it's open and Kephri's Arcane Scarab",
+		description = "Mark Ba-Ba's cracked boulder, Het's open seal, Kephri's Arcane Scarab and eggs,"
+			+ " the Warden's core and Energy Siphons",
 		section = damageSection,
 		position = 1
 	)
@@ -109,6 +134,31 @@ public interface ToaHelperConfig extends Config
 	default Color priorityColor()
 	{
 		return new Color(0, 200, 255, 90);
+	}
+
+	@ConfigItem(
+		keyName = "baboonKillOrder",
+		name = "Baboon kill order",
+		description = "Number Apmeken's baboons in the wiki's kill order: mages and shamans, throwers, cursed, then"
+			+ " brawlers and thralls",
+		section = damageSection,
+		position = 3
+	)
+	default boolean baboonKillOrder()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "coreTimer",
+		name = "Wardens core timer",
+		description = "Count down how long the Warden's core stays out (21, 29 or 37 ticks, by the Warden's health)",
+		section = damageSection,
+		position = 4
+	)
+	default boolean coreTimer()
+	{
+		return true;
 	}
 
 	@ConfigItem(
@@ -170,6 +220,82 @@ public interface ToaHelperConfig extends Config
 	default Color safeColor()
 	{
 		return new Color(0, 255, 0, 70);
+	}
+
+	@ConfigItem(
+		keyName = "zebakJugSplash",
+		name = "Zebak jug splash",
+		description = "Show the area a jug's water covers when it breaks, which clears acid pools",
+		section = standingSection,
+		position = 5
+	)
+	default boolean zebakJugSplash()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "upsetStomach",
+		name = "Upset Stomach on",
+		description = "Turn on if the Upset Stomach invocation is active: jugs splash 3x3 instead of 5x5",
+		section = standingSection,
+		position = 6
+	)
+	default boolean upsetStomach()
+	{
+		return false;
+	}
+
+	@Alpha
+	@ConfigItem(
+		keyName = "splashColor",
+		name = "Jug splash colour",
+		description = "Colour of a jug's splash area",
+		section = standingSection,
+		position = 7
+	)
+	default Color splashColor()
+	{
+		return new Color(0, 140, 255, 40);
+	}
+
+	@ConfigItem(
+		keyName = "babaThresholds",
+		name = "Ba-Ba threshold warning",
+		description = "Warn when Ba-Ba is close to 66%/33%, where she knocks everyone to the bottom of the arena",
+		section = standingSection,
+		position = 8
+	)
+	default boolean babaThresholds()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "lightningSkullIds",
+		name = "Lightning Skull IDs",
+		description = "Graphic IDs that mark where the Wardens' Lightning Skulls land, comma separated. Find them with"
+			+ " Shadow Tiles' ID finder. The 7x7 around each is marked, with the safe tiles two out in each"
+			+ " straight direction.",
+		section = standingSection,
+		position = 9
+	)
+	default String lightningSkullIds()
+	{
+		return "";
+	}
+
+	@Alpha
+	@ConfigItem(
+		keyName = "dangerColor",
+		name = "Danger tile colour",
+		description = "Colour of tiles to stay off",
+		section = standingSection,
+		position = 10
+	)
+	default Color dangerColor()
+	{
+		return new Color(255, 0, 0, 45);
 	}
 
 	@ConfigItem(

@@ -10,6 +10,7 @@ import com.toahelper.StandingGeometry.Tile;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.Test;
@@ -91,6 +92,98 @@ public class ToaHelperLogicTest
 		assertEquals(EnumSet.of(AttackStyle.MELEE, AttackStyle.RANGED), advice.getBlocked());
 		assertEquals(EnumSet.of(AttackStyle.MAGIC), advice.getUse());
 		assertEquals(2.0, advice.getPointsFactor(), 0);
+	}
+
+	@Test
+	public void akkhaFinalStandIsMeleeOnly()
+	{
+		TargetAdvisor.Advice advice = TargetAdvisor.advise(11795, EnumSet.noneOf(AttackStyle.class));
+		assertEquals(EnumSet.of(AttackStyle.MELEE), advice.getUse());
+		assertEquals(AttackStyle.MELEE, advice.getBest());
+	}
+
+	@Test
+	public void akkhaProjectilesAreLeftToHisForm()
+	{
+		// His damage is decided at launch, so a countdown to impact would be too late.
+		assertNull(ToaIds.PROJECTILE_STYLES.get(2253));
+		assertNull(ToaIds.PROJECTILE_STYLES.get(2255));
+	}
+
+	@Test
+	public void wikiWeaknesses()
+	{
+		Set<AttackStyle> none = EnumSet.noneOf(AttackStyle.class);
+		assertEquals(AttackStyle.MELEE, TargetAdvisor.advise(11720, none).getBest()); // Kephri: stab
+		assertEquals(AttackStyle.MAGIC, TargetAdvisor.advise(11709, none).getBest()); // brawler
+		assertEquals(AttackStyle.MELEE, TargetAdvisor.advise(11713, none).getBest()); // thrower
+		assertEquals(AttackStyle.RANGED, TargetAdvisor.advise(11711, none).getBest()); // mage
+		assertEquals(AttackStyle.RANGED, TargetAdvisor.advise(ToaIds.BABOON_SHAMAN, none).getBest());
+		assertEquals(AttackStyle.RANGED, TargetAdvisor.advise(11751, none).getBest()); // obelisk
+		assertEquals(AttackStyle.MELEE, TargetAdvisor.advise(11770, none).getBest()); // core
+		assertEquals(EnumSet.of(AttackStyle.MELEE), TargetAdvisor.advise(ToaIds.WARDENS_SIPHON, none).getUse());
+	}
+
+	@Test
+	public void baboonKillOrder()
+	{
+		assertEquals(1, TargetAdvisor.baboonKillOrder(ToaIds.BABOON_SHAMAN));
+		assertEquals(1, TargetAdvisor.baboonKillOrder(11714)); // mage
+		assertEquals(2, TargetAdvisor.baboonKillOrder(11710)); // thrower
+		assertEquals(3, TargetAdvisor.baboonKillOrder(ToaIds.BABOON_CURSED));
+		assertEquals(4, TargetAdvisor.baboonKillOrder(11712)); // brawler
+		assertEquals(0, TargetAdvisor.baboonKillOrder(ToaIds.BABOON_VOLATILE));
+	}
+
+	@Test
+	public void akkhaSpecialCountdown()
+	{
+		assertEquals(7, ToaMechanics.akkhaAttacksUntilSpecial(0, false));
+		assertEquals(6, ToaMechanics.akkhaAttacksUntilSpecial(0, true));
+		assertEquals(0, ToaMechanics.akkhaAttacksUntilSpecial(7, false));
+		assertEquals(0, ToaMechanics.akkhaAttacksUntilSpecial(9, true));
+	}
+
+	@Test
+	public void coreExposureByWardenHealth()
+	{
+		assertEquals(21, ToaMechanics.coreExposureTicks(100));
+		assertEquals(21, ToaMechanics.coreExposureTicks(80));
+		assertEquals(29, ToaMechanics.coreExposureTicks(79.9));
+		assertEquals(29, ToaMechanics.coreExposureTicks(60));
+		assertEquals(37, ToaMechanics.coreExposureTicks(59.9));
+	}
+
+	@Test
+	public void babaThresholds()
+	{
+		assertTrue(ToaMechanics.babaNearRollingStones(69, 4));
+		assertTrue(ToaMechanics.babaNearRollingStones(35, 4));
+		assertFalse(ToaMechanics.babaNearRollingStones(66, 4)); // already past it
+		assertFalse(ToaMechanics.babaNearRollingStones(80, 4));
+		assertFalse(ToaMechanics.babaNearRollingStones(-1, 4)); // no health bar
+		assertEquals(50.0, ToaMechanics.healthPercent(15, 30), 1e-9);
+		assertEquals(-1, ToaMechanics.healthPercent(-1, 30), 1e-9);
+	}
+
+	@Test
+	public void lightningSkullSafeTiles()
+	{
+		ToaMechanics.LightningSkull skull = ToaMechanics.lightningSkull(new Tile(20, 20));
+		assertEquals(8, skull.getSafe().size());
+		assertTrue(skull.getSafe().contains(new Tile(22, 20)));
+		assertTrue(skull.getSafe().contains(new Tile(20, 19)));
+		assertFalse(skull.getSafe().contains(new Tile(21, 21))); // diagonals aren't safe
+		assertEquals(49 - 8, skull.getDanger().size());
+		assertTrue(skull.getDanger().contains(new Tile(20, 20)));
+		assertTrue(skull.getDanger().contains(new Tile(23, 20)));
+	}
+
+	@Test
+	public void parsesIdLists()
+	{
+		assertEquals(new HashSet<>(Arrays.asList(12, 34)), ToaHelperPlugin.parseIds(" 12, x,34 "));
+		assertTrue(ToaHelperPlugin.parseIds("").isEmpty());
 	}
 
 	// ---- Points ----

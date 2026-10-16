@@ -153,7 +153,8 @@ public interface ShadowTilesConfig extends Config
 	@ConfigItem(
 		keyName = "toa",
 		name = "Tombs of Amascut",
-		description = "Wardens lightning and entomb, Zebak's rockfall, blood clouds and waves, Akkha's unstable orbs",
+		description = "Wardens lightning and entomb, Zebak's rockfall, blood clouds and waves, Akkha's unstable orbs,"
+			+ " Volatile Baboons and Kephri's eggs (3x3 explosions), Het's Orbs of Darkness",
 		section = builtInSection,
 		position = 9
 	)

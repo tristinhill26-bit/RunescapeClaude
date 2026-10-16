@@ -86,29 +86,61 @@ Which side counts as "left" and "right" comes from the animation names, worked o
 description rather than tested in a fight. If the **CLICK** tile ever shows up on the sword's side, turn
 on **Flip left/right**.
 
-**ToA Helper** is for the Tombs of Amascut. It shows up only inside the raid.
+**ToA Helper** is for the Tombs of Amascut. It shows up only inside the raid, and follows the wiki's
+[Tombs of Amascut/Strategies](https://oldschool.runescape.wiki/w/Tombs_of_Amascut/Strategies) page.
 
 - **Prayers:** the protection prayer to click is highlighted in your prayer book (a thin green frame
   once it's on). A panel shows what to pray and how many ticks until the attack lands, plus what's
-  coming after it. It reads every ToA projectile aimed at you: Akkha's, Zebak's rocks, the Wardens'
-  prayer orbs, Ba-Ba's, the baboons' and the scarabs'. Between attacks it advises from the standing
-  threat: Akkha's current form, being in Ba-Ba's or a Brawler's reach, or an Arcane Scarab charging.
-  It also warns you to step out of Zebak's melee, which hits through prayer.
-- **Damage:** for whatever you're attacking, it shows what it's praying (read from its overhead, or
-  Akkha's form), which style gets through, its points multiplier and a wiki tip. Ba-Ba's cracked
-  boulder (guaranteed max hit), Het's seal while it's open, and Kephri's Arcane Scarab (kill first)
-  are marked.
-- **Where to stand:** the tiles behind Zebak's rocks that block his roar, the tiles next to debris
-  and sarcophagi after Ba-Ba's rockfall (her thrown rock can't hit you there), and the nearest safe
-  tile on your row during the Wardens' phase 3 floor slams. If the slam tile ever shows up on the
-  raised side, turn on **Flip slam sides**.
+  coming after it: Zebak's rocks and orbs, the Wardens' skulls and Divine Projectiles, and the
+  baboons' and scarabs' attacks. Between attacks it advises from the standing threat, most urgent
+  first:
+  1. An Arcane Scarab charging: Magic.
+  2. Akkha's form. His damage is decided when he fires, so this is the prayer to be on before he
+     attacks, not a countdown.
+  3. Ba-Ba: Melee (it's her only attack).
+  4. Tumeken's Warden in phase 2 (it closes in), or any phase 2 Warden next to you: Melee.
+  5. A Spitting Scarab alive: Missiles.
+  6. A Soldier Scarab or Brawler next to you: Melee.
+  7. Kephri's fireballs: Magic (blocks about 66%).
+  8. The Scabaras puzzle scarabs: Missiles.
+  9. Anywhere in Apmeken: Melee, the wiki's easy strategy.
+- **Warnings:**
+  - Step out of Zebak's melee, which hits through prayer.
+  - A Dung Strike is aimed at you.
+  - Ba-Ba is nearly at 66% or 33%, where she knocks everyone to the bottom (deadly with Mind the Gap!).
+  - Akkha's special countdown (every 7 regular attacks, 6 with **Stay Vigilant on**), and what to do
+    in each special: stand still for Trailing Orbs, follow the markers for Memory Blast, spread out
+    for Detonate.
+  - How long the Warden's core stays out (21, 29 or 37 ticks, depending on the Warden's health).
+- **Damage:** for whatever you're attacking, it shows:
+  - what it's praying (from its overhead icon, or Akkha's form, or always Melee for the P2 Wardens),
+  - which style gets through, and the style it's weak to: Kephri stab, each baboon its counter style,
+    the obelisk ranged, the core and siphons melee, Akkha's final stand melee only,
+  - its points multiplier and a wiki tip.
+
+  On screen it marks Ba-Ba's cracked boulder, Het's open seal, the Arcane Scarab, Kephri's eggs (you
+  always max-hit them), the Warden's core (5x damage) and the Energy Siphons (melee only). Apmeken's
+  baboons are numbered in the wiki's kill order: mages and shamans, then throwers, cursed, and
+  brawlers and thralls last.
+- **Where to stand:**
+  - The tiles behind Zebak's rocks that block his roar, and the 5x5 a jug's water covers when it
+    breaks (3x3 with **Upset Stomach on**), which clears acid pools.
+  - After Ba-Ba's rockfall, the tiles next to debris, sarcophagi and her baboons. Her thrown boulder
+    can't hit you there; it lands about 6 ticks later.
+  - The nearest safe tile on your row during the Wardens' phase 3 floor slams. If it ever shows up
+    on the raised side, turn on **Flip slam sides**.
+  - The Wardens' Lightning Skulls: the 7x7 they hit, and the safe tiles two out in each straight
+    direction. These need their graphic ID in **Lightning Skull IDs**; get it with Shadow Tiles'
+    ID finder.
 - **Points:** your estimated room and raid points, using the wiki's per-NPC multipliers and room caps,
   what a death would cost, and your purple chance at the current raid level. The MVP bonus can't be
   seen from the client, so it isn't counted, and in a team the purple chance is based on your own
   points only.
 
-Shadow Tiles' new **Tombs of Amascut** toggle marks the tiles to step off: Wardens lightning and
-entomb, Zebak's rockfall, blood clouds and waves, and Akkha's unstable orbs.
+Shadow Tiles' **Tombs of Amascut** toggle marks the tiles to step off: Wardens lightning and
+entomb, Zebak's rockfall, blood clouds and waves, Akkha's unstable orbs, Het's Orbs of Darkness, and
+the 3x3 explosions of Volatile Baboons and Kephri's eggs. Ba-Ba's rockfall is one tile, since the
+wiki says only the player directly under a shadow is hurt.
 
 The overlays (beam, outline, dots, arrows) work on their own. The lighting needs 117 HD Enhanced running with
 *Dynamic lights* enabled.

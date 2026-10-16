@@ -55,6 +55,7 @@ class ToaInfoOverlay extends OverlayPanel
 		{
 			addPrayer();
 		}
+		addWarnings();
 		if (config.showTarget())
 		{
 			addTarget();
@@ -87,10 +88,43 @@ class ToaInfoOverlay extends OverlayPanel
 			PrayerAdvisor.Incoming next = queue.get(i);
 			line("  then " + next.getStyle().getDisplayName(), next.getTicks() + "t", Color.LIGHT_GRAY);
 		}
+	}
 
+	private void addWarnings()
+	{
 		if (plugin.isZebakMeleeWarning())
 		{
 			line("Step out of Zebak's melee", "", BAD);
+		}
+		if (plugin.isDungStrikeWarning())
+		{
+			line("Dung strike on you: knockback + stun", "", BAD);
+		}
+		if (config.babaThresholds() && plugin.isBabaThresholdWarning())
+		{
+			line("Ba-Ba threshold soon: go to the top or sides", "", BAD);
+		}
+
+		if (config.akkhaSpecials() && plugin.getRoom() == ToaIds.Room.AKKHA)
+		{
+			if (plugin.getAkkhaSpecialAdvice() != null)
+			{
+				panelComponent.getChildren().add(LineComponent.builder()
+					.left(plugin.getAkkhaSpecialAdvice())
+					.leftColor(BAD)
+					.build());
+			}
+			else
+			{
+				int left = ToaMechanics.akkhaAttacksUntilSpecial(plugin.getAkkhaAttacksSinceSpecial(), config.stayVigilant());
+				line("Akkha special", left == 0 ? "NEXT" : "in " + left, left <= 1 ? BAD : Color.WHITE);
+			}
+		}
+
+		int core = plugin.getCoreTicksLeft();
+		if (config.coreTimer() && core >= 0)
+		{
+			line("Core out", core + "t", core <= 5 ? BAD : GOOD);
 		}
 	}
 

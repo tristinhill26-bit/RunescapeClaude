@@ -26,9 +26,9 @@ final class ToaIds
 	static
 	{
 		Map<Integer, AttackStyle> m = new HashMap<>();
-		// Akkha
-		m.put(2253, MAGIC); // AKKHA_MAGIC_TRAVEL
-		m.put(2255, RANGED); // AKKHA_RANGED_TRAVEL
+		// Not Akkha's projectiles (AKKHA_MAGIC_TRAVEL 2253, AKKHA_RANGED_TRAVEL 2255): the wiki says his
+		// damage is decided when the projectile spawns, so a countdown to impact is too late. His
+		// form decides the prayer instead (see the standing threats in ToaHelperPlugin).
 		// Zebak: a big rock that splits into smaller ones aimed at each player
 		m.put(2175, MELEE); // ZEBAK_MELEE_PROJANIM_INITIAL
 		m.put(2180, MELEE); // ZEBAK_MELEE_PROJANIM_SPLIT
@@ -49,6 +49,7 @@ final class ToaIds
 		m.put(2206, RANGED); // TOA_WARDENS_PRAYER_RANGED_TRAVEL
 		m.put(2208, MAGIC); // TOA_WARDENS_PRAYER_MAGIC_TRAVEL
 		m.put(3027, MAGIC); // TOA_WARDENS_PRAYER_MAGIC_TRAVEL_SMALL
+		m.put(2241, RANGED); // PROJECTILE_WARDEN_RANGED01: phase 2 Warden's ranged skull
 		// Ba-Ba and the Apmeken baboons
 		m.put(2244, RANGED); // TOA_BABA_RANGED_TRAVEL
 		m.put(2242, RANGED); // TOA_BABOON_RANGED_TRAVEL_1
@@ -67,12 +68,18 @@ final class ToaIds
 	static final int AKKHA_MELEE = 11790;
 	static final int AKKHA_RANGE = 11791;
 	static final int AKKHA_MAGE = 11792;
+	// Final stand: prays Magic and Missiles at once, so only melee hurts him.
+	static final Set<Integer> AKKHA_ENRAGE = set(11793, 11794, 11795, 11796);
+	// NPC_AKKHA_ATTACK_{MELEE,RANGED,MAGIC}_{SPEAR,SWORD}: his regular attacks, counted for specials
+	static final Set<Integer> AKKHA_ATTACK_ANIMATIONS = set(9770, 9771, 9772, 9773, 9774, 9775);
 
 	static final int BABA = 11778; // TOA_BABA
 	static final int BABA_BOULDER_WEAK = 11783; // TOA_BABA_BOULDER_WEAK: the cracked one, guaranteed max hit
+	// The wiki: standing next to debris, an unopened sarcophagus or a baboon blocks her thrown boulder.
 	static final Set<Integer> BABA_COVER = set(
 		11784, 11785, 11786, 11787, // TOA_BABA_RUBBLE(_2/_3/_4)
-		11788 // TOA_BABA_SARC_NPC
+		11788, // TOA_BABA_SARC_NPC
+		11781 // TOA_BABA_BABOON
 	);
 	static final Set<Integer> BABA_ROCKFALL_GRAPHICS = set(2250, 2251, 2252); // TOA_BABA_ROCK_FALL(_FASTER/_FASTEST)
 
@@ -85,10 +92,17 @@ final class ToaIds
 	static final int KEPHRI_GUARDIAN_RANGED = 11725; // spitting scarab
 	static final int KEPHRI_GUARDIAN_MAGE = 11726; // arcane scarab
 	static final int KEPHRI_MAGE_CHARGE = 2149; // TOA_KEPHRI_MAGE_CHARGE: arcane scarab charging its big magic attack
+	static final Set<Integer> KEPHRI = set(11719, 11720, 11721); // TOA_KEPHRI_BOSS_{SHIELDED,WEAK,ENRAGE}
+	static final int KEPHRI_SWARM = 11723; // TOA_KEPHRI_SHIELD_SCARAB
+	static final Set<Integer> KEPHRI_EGGS = set(11728, 11729); // KEPHRI_EGG_{EXPLODE,HATCH}
+	static final int SCABARAS_PUZZLE_SCARAB = 11697; // TOA_SCABARAS_SCARAB: ranged pests in the puzzle rooms
+	static final int KEPHRI_DUNG_MARK = 2146; // KEPHRI_INDICATE_PLAYER_FOR_DUNG: scarabs circling the dung target
 
 	static final int HET_SEAL_VULNERABLE = 11707; // TOA_HET_GOAL_VULNERABLE
 
 	static final Set<Integer> WARDENS_P2 = set(11753, 11754, 11756, 11757); // TOA_WARDEN_{ELIDINIS,TUMEKEN}_PHASE2_{MAGE,RANGE}
+	static final Set<Integer> TUMEKEN_P2 = set(11756, 11757);
+	static final int WARDENS_SIPHON = 11769; // TOA_WARDENS_ENERGY: Energy Siphon, melee only
 	static final Set<Integer> WARDENS_P2_EXPOSED = set(11755, 11758);
 	static final Set<Integer> WARDENS_P3 = set(11761, 11762, 11763, 11764); // TOA_WARDEN_*_PHASE3(_CHARGING)
 
@@ -97,7 +111,19 @@ final class ToaIds
 	static final Set<Integer> WARDEN_SLAM_RIGHT = set(9676, 9677);
 	static final Set<Integer> WARDEN_SLAM_BOTH = set(9678, 9679);
 
-	static final Set<Integer> BABOON_MELEE = set(11709, 11712);
+	// Apmeken baboons (TOA_PATH_APMEKEN_BABOON_*)
+	static final Set<Integer> BABOON_MELEE = set(11709, 11712); // brawlers
+	static final Set<Integer> BABOON_RANGED = set(11710, 11713); // throwers
+	static final Set<Integer> BABOON_MAGIC = set(11711, 11714); // mages
+	static final int BABOON_SHAMAN = 11715;
+	static final int BABOON_VOLATILE = 11716; // _ZOMBIE
+	static final int BABOON_CURSED = 11717;
+	static final int BABOON_THRALL = 11718;
+
+	static final Set<Integer> ZEBAK_JUGS = set(11735, 11736); // TOA_ZEBAK_JUG(_ROLLING)
+
+	static final Set<Integer> OBELISKS = set(11750, 11751, 11752); // TOA_WARDENS_P{1,2}_OBELISK_NPC
+	static final Set<Integer> WARDEN_CORES = set(11770, 11771); // TOA_WARDEN_{TUMEKEN,ELIDINIS}_CORE
 
 	// ---- Points: room points per damage, from the wiki's Chest (Tombs of Amascut) table ----
 

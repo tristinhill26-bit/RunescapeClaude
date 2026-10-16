@@ -63,6 +63,14 @@ class ToaSceneOverlay extends Overlay
 		for (NPC npc : npcs)
 		{
 			int id = npc.getId();
+			if (config.zebakJugSplash() && ToaIds.ZEBAK_JUGS.contains(id))
+			{
+				renderSplash(graphics, npc);
+			}
+			if (config.baboonKillOrder())
+			{
+				renderKillOrder(graphics, npc);
+			}
 			if (ToaIds.ZEBAK.contains(id))
 			{
 				zebak = npc;
@@ -94,7 +102,55 @@ class ToaSceneOverlay extends Overlay
 		{
 			renderSlam(graphics);
 		}
+		renderLightningSkulls(graphics);
 		return null;
+	}
+
+	private void renderSplash(Graphics2D graphics, NPC jug)
+	{
+		LocalPoint at = jug.getLocalLocation();
+		if (at == null)
+		{
+			return;
+		}
+		// Wiki: a broken jug's water covers 5x5, or 3x3 with Upset Stomach.
+		int radius = config.upsetStomach() ? 1 : 2;
+		Tile center = new Tile(at.getX() >> 7, at.getY() >> 7);
+		for (Tile tile : ToaMechanics.square(center, radius))
+		{
+			drawTile(graphics, tile, at.getWorldView(), config.splashColor(), THIN, null);
+		}
+	}
+
+	private void renderKillOrder(Graphics2D graphics, NPC npc)
+	{
+		int order = TargetAdvisor.baboonKillOrder(npc.getId());
+		if (order == 0)
+		{
+			return;
+		}
+		String text = String.valueOf(order);
+		Point at = npc.getCanvasTextLocation(graphics, text, npc.getLogicalHeight() + 40);
+		if (at != null)
+		{
+			OverlayUtil.renderTextLocation(graphics, at, text, order == 1 ? Color.RED : Color.WHITE);
+		}
+	}
+
+	private void renderLightningSkulls(Graphics2D graphics)
+	{
+		for (ToaHelperPlugin.SkullMark mark : plugin.getLightningSkulls())
+		{
+			ToaMechanics.LightningSkull skull = ToaMechanics.lightningSkull(mark.getLanding());
+			for (Tile tile : skull.getDanger())
+			{
+				drawTile(graphics, tile, mark.getWorldView(), config.dangerColor(), THIN, null);
+			}
+			for (Tile tile : skull.getSafe())
+			{
+				drawTile(graphics, tile, mark.getWorldView(), config.safeColor(), THICK, null);
+			}
+		}
 	}
 
 	private void renderShelter(Graphics2D graphics, NPC zebak, List<NPC> rocks)
@@ -174,8 +230,23 @@ class ToaSceneOverlay extends Overlay
 			case ToaIds.KEPHRI_GUARDIAN_MAGE:
 				label = "KILL FIRST";
 				break;
+			case ToaIds.WARDENS_SIPHON:
+				label = "MELEE";
+				break;
 			default:
-				return;
+				if (ToaIds.KEPHRI_EGGS.contains(npc.getId()))
+				{
+					label = "EGG";
+				}
+				else if (ToaIds.WARDEN_CORES.contains(npc.getId()))
+				{
+					label = "CORE x5";
+				}
+				else
+				{
+					return;
+				}
+				break;
 		}
 
 		Polygon poly = npc.getCanvasTilePoly();
