@@ -103,6 +103,21 @@ enum BuiltInHazards
 		HazardDefinition.of(GRAPHIC, 4012, 1, "Smite") // VFX_MAD_ANGEL_ATTACK_SMITE_ENRAGED
 	)),
 
+	/**
+	 * Tombs of Amascut hazards to step away from. Where to stand instead is handled by the
+	 * ToA Helper plugin.
+	 */
+	TOMBS_OF_AMASCUT(ShadowTilesConfig::toa, Arrays.asList(
+		HazardDefinition.of(GRAPHIC, 2198, 0, "Lightning"), // WARDENS_LIGHTNING_WARN
+		HazardDefinition.of(GRAPHIC, 2195, 0, "Rock"), // ZEBAK_ROCK_FALL
+		HazardDefinition.of(PROJECTILE, 2210, 0, "Entomb"), // TOA_WARDENS_ENTOMB_TRAVEL
+		HazardDefinition.of(NPC, 11804, 0, "Orb"), // AKKHA_ENRAGE_ORB
+		HazardDefinition.of(NPC, 11742, 0, "Blood"), // TOA_ZEBAK_BLOOD_CLOUD
+		HazardDefinition.of(NPC, 11743, 0, "Blood"), // TOA_ZEBAK_BLOOD_CLOUD_SMALL
+		HazardDefinition.of(NPC, 11738, 0, null), // TOA_ZEBAK_WAVE
+		HazardDefinition.of(NPC, 11739, 0, null) // TOA_ZEBAK_WAVE_BLOODY
+	)),
+
 	MUSPAH(ShadowTilesConfig::muspah, Arrays.asList(
 		HazardDefinition.of(GRAPHIC, 2335, 0, "Spike"), // VFX_MUSPAH_SPIKE_WARNING_01
 		HazardDefinition.of(GRAPHIC, 2336, 0, "Spike") // VFX_MUSPAH_SPIKE_WARNING_02

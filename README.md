@@ -84,6 +84,30 @@ Which side counts as "left" and "right" comes from the animation names, worked o
 description rather than tested in a fight. If the **CLICK** tile ever shows up on the sword's side, turn
 on **Flip left/right**.
 
+**ToA Helper** is for the Tombs of Amascut. It shows up only inside the raid.
+
+- **Prayers:** the protection prayer to click is highlighted in your prayer book (a thin green frame
+  once it's on). A panel shows what to pray and how many ticks until the attack lands, plus what's
+  coming after it. It reads every ToA projectile aimed at you: Akkha's, Zebak's rocks, the Wardens'
+  prayer orbs, Ba-Ba's, the baboons' and the scarabs'. Between attacks it advises from the standing
+  threat: Akkha's current form, being in Ba-Ba's or a Brawler's reach, or an Arcane Scarab charging.
+  It also warns you to step out of Zebak's melee, which hits through prayer.
+- **Damage:** for whatever you're attacking, it shows what it's praying (read from its overhead, or
+  Akkha's form), which style gets through, its points multiplier and a wiki tip. Ba-Ba's cracked
+  boulder (guaranteed max hit), Het's seal while it's open, and Kephri's Arcane Scarab (kill first)
+  are marked.
+- **Where to stand:** the tiles behind Zebak's rocks that block his roar, the tiles next to debris
+  and sarcophagi after Ba-Ba's rockfall (her thrown rock can't hit you there), and the nearest safe
+  tile on your row during the Wardens' phase 3 floor slams. If the slam tile ever shows up on the
+  raised side, turn on **Flip slam sides**.
+- **Points:** your estimated room and raid points, using the wiki's per-NPC multipliers and room caps,
+  what a death would cost, and your purple chance at the current raid level. The MVP bonus can't be
+  seen from the client, so it isn't counted, and in a team the purple chance is based on your own
+  points only.
+
+Shadow Tiles' new **Tombs of Amascut** toggle marks the tiles to step off: Wardens lightning and
+entomb, Zebak's rockfall, blood clouds and waves, and Akkha's unstable orbs.
+
 The overlays (beam, outline, dots, arrows) work on their own. The lighting needs 117 HD Enhanced running with
 *Dynamic lights* enabled.
 
@@ -92,7 +116,8 @@ The overlays (beam, outline, dots, arrows) work on their own. The lighting needs
 Run `rs117.hd.HdPluginTest` (or `./gradlew run`) to start RuneLite with all of the plugins loaded.
 The interaction lighting lives in [`src/main/java/rs117/hd/interaction`](src/main/java/rs117/hd/interaction),
 Shadow Tiles in [`src/main/java/com/shadowtiles`](src/main/java/com/shadowtiles), and
-Mad Angel Helper in [`src/main/java/com/madangel`](src/main/java/com/madangel).
+Mad Angel Helper in [`src/main/java/com/madangel`](src/main/java/com/madangel), and
+ToA Helper in [`src/main/java/com/toahelper`](src/main/java/com/toahelper).
 
 To pull in upstream 117 HD changes:
 

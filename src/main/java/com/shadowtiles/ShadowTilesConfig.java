@@ -151,11 +151,23 @@ public interface ShadowTilesConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "toa",
+		name = "Tombs of Amascut",
+		description = "Wardens lightning and entomb, Zebak's rockfall, blood clouds and waves, Akkha's unstable orbs",
+		section = builtInSection,
+		position = 9
+	)
+	default boolean toa()
+	{
+		return true;
+	}
+
+	@ConfigItem(
 		keyName = "muspah",
 		name = "Phantom Muspah",
 		description = "Spike warnings",
 		section = builtInSection,
-		position = 9
+		position = 10
 	)
 	default boolean muspah()
 	{
