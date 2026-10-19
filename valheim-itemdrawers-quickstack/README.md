@@ -1,7 +1,7 @@
 # ItemDrawers × Quick Stack: quick stacking into the drawers
 
-Patch for **ItemDrawers-Ymiron 0.5.0** so that the quick stack of **Quick Stack - Store - Sort - Trash - Restock
-1.4.16** (goldenrevolver) also puts items into the drawers, not only into the chests.
+Patch for **ItemDrawers-Ymiron 0.5.0** so that the quick stack and Store all of **Quick Stack - Store - Sort -
+Trash - Restock 1.4.16** (goldenrevolver) also put items into the drawers, not only into the chests.
 
 ## Why it did not work
 
@@ -16,27 +16,34 @@ The two mods store items in completely different ways:
   go through the drawer's own RPC (`ymiron_drawer_change`) so two players can't duplicate items.
 
 So Quick Stack never finds the drawers, and even if it did, it could not put anything into them with
-`Inventory.AddItem`. The other buttons can't apply to drawers either: **Store all**, **Sort** and **Take all**
-only work on the chest you have open, and a drawer has no window to open.
+`Inventory.AddItem`. **Sort** and **Take all** can't apply to drawers: they work on the chest you have open, and a
+drawer has no window to open.
 
 ## What changed in the drawer mod
 
 Two changes, both in the ItemDrawers project:
 
-1. **New file [`src/QuickStackStore_Compat.cs`](src/QuickStackStore_Compat.cs).** It has two Harmony patches on
-   Quick Stack's own methods, found by name, so the drawer mod still has no hard dependency on it:
-   - `QuickStackModule.DoQuickStack`: when Quick Stack does an **area** quick stack (the same check it uses itself,
-     `ShouldAreaQuickStack`), every item it would quick stack goes into the drawers within its
-     `QuickStackToNearbyRange` that are already set to that item. It uses the mod's existing
-     `DrawerNetwork.Deposit(..., useFree: false, Delivery.Return)`, the same call as the Ledger's *Store all* and the
-     ground pickup. So it uses the same network-safe path, never starts a new compartment, and sends back whatever
-     doesn't fit.
+1. **New file [`src/QuickStackStore_Compat.cs`](src/QuickStackStore_Compat.cs).** Harmony patches on Quick Stack's
+   own methods, found by name, so the drawer mod still has no hard dependency on it:
+   - `QuickStackModule.DoQuickStack`: on **every** quick stack (to the open chest or to the nearby ones, button or
+     hotkey), the items it would quick stack also go into the drawers within `Range` that are already set to that
+     item. It uses the mod's existing `DrawerNetwork.Deposit(..., useFree: false, Delivery.Return)`, the same call
+     as the Ledger's *Store all* and the ground pickup. So it uses the same network-safe path, never starts a new
+     compartment, and sends back whatever doesn't fit.
    - `QuickStackModule.ReportQuickStackResult`: holds back Quick Stack's "Quick stacked N items" message until the
      drawers have had their turn, then shows one message with the chests and drawers added together.
+   - `StoreTakeAllModule.StoreAllItemsInOrder`: before *Store all* fills the open chest, the drawers take the items
+     they already hold. The message says how many stacks went into the drawers.
 
-   It uses Quick Stack's own `ShouldQuickStackItem`, so **favorited items and slots stay put**, and the hotbar
-   follows Quick Stack's `QuickStackIncludesHotkeyBar` / `OverrideHotkeyBarBehavior` settings. Drawers inside a ward
-   you can't open are skipped, the same as for crafting.
+   It uses Quick Stack's own `ShouldQuickStackItem` / `ShouldStoreItem`, so **favorited items and slots stay put**,
+   and the hotbar follows Quick Stack's settings. Drawers inside a ward you can't open are skipped, the same as for
+   crafting.
+
+   The drawers deliberately do **not** follow Quick Stack's rules for nearby chests. Quick Stack turns nearby
+   stacking off in multiplayer (`AllowAreaStackingInMultiplayerWithoutMUC = false`, which also counts a world
+   started with "Start server") and, by default, while a chest is open. Those rules protect chests; every change to
+   a drawer is already a request to its owner. The first version of this patch followed them, which is why it did
+   nothing in those cases.
 
 2. **One attribute on `ItemDrawersPlugin`** (`ItemDrawersPlugin.cs`), so BepInEx loads Quick Stack first when it is
    installed. Otherwise its types might not be loaded yet when the patches are looked up:
@@ -54,12 +61,16 @@ This section only appears when Quick Stack is installed.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `Enabled` | `true` | Quick stacking to nearby containers also fills the drawers. |
-| `DrawersFirst` | `true` | `true`: drawers fill up before the chests. `false`: chests that already hold an item get it first, and the drawers take the rest. |
+| `Enabled` | `true` | Quick stacking also fills the drawers. |
+| `StoreAll` | `true` | *Store all* (with a chest open) first puts into the drawers what they already hold; the rest goes into the chest. |
+| `DrawersFirst` | `true` | Quick stack: `true` = drawers fill up before the chests; `false` = chests that already hold an item get it first, and the drawers take the rest. |
+| `Range` | `20` | Drawers within this many meters of you are filled (2 to 100). |
 
-The range is Quick Stack's own `QuickStackToNearbyRange` (default 10 m). If that is 0, or Quick Stack is set
-to only stack into the open chest (`QuickStackHotkeyBehaviorWhenContainerOpen`), the drawers are left alone, the
-same as nearby chests.
+## Checking that it works
+
+`BepInEx/LogOutput.log` says at startup either `Quick Stack - Store - Sort - Trash - Restock found: its quick
+stack and Store all also fill the drawers.` or why not. Each quick stack or Store all then writes a line such as
+`Quick stack: 3 drawers within 20 m, 5 kinds of item to put away, 240 items went into the drawers.`
 
 ## Install
 
@@ -76,14 +87,14 @@ and nothing about the drawers' network data changed.
 There is no game install here, so `tools/build.sh` compiles `src/QuickStackStore_Compat.cs` against small stand-ins
 for `assembly_valheim` and `BepInEx` (`tools/stubs`) and against the original `ItemDrawers.dll`. Then it copies
 the new classes and the attribute into the original dll with Mono.Cecil (`tools/patcher`). Nothing else in the
-dll changes: decompiling the result gives the original code, the three new classes and the extra
+dll changes: decompiling the result gives the original code, the four new classes and the extra
 `BepInDependency`.
 
 The stand-ins prove nothing on their own, so the last step checks that **every game, BepInEx and Harmony member
 the new code calls is one the original ItemDrawers.dll or Quick Stack Store already calls**. Those two dlls are
-known to work in the game. Result: 772 references, 0 problems, no new assembly references.
+known to work in the game. Result: 773 references, 0 problems, no new assembly references.
 
 If you have the ItemDrawers source, the simpler route is to add `src/QuickStackStore_Compat.cs` to the project,
 add the attribute above and build it normally.
 
-**Not yet tested in game.** Check that it works before you rely on it.
+**Not yet tested in game.** The first version did nothing in game (see above); if this one does not work either, the log lines above show where it stops.

@@ -1,7 +1,10 @@
 // Reference-only stand-ins: only the members the compat code touches, with the game's exact signatures.
 using System.Collections.Generic;
 using UnityEngine;
-public class Character : MonoBehaviour { public bool IsTeleporting() { throw null; } }
+public class Character : MonoBehaviour {
+  public bool IsTeleporting() { throw null; }
+  public void Message(MessageHud.MessageType type, string msg, int amount, Sprite icon, bool flag) { } }
+public class MessageHud : MonoBehaviour { public enum MessageType { TopLeft = 1, Center = 2 } }
 public class Humanoid : Character { public Inventory GetInventory() { throw null; } }
 public class Player : Humanoid { public static Player m_localPlayer; public long GetPlayerID() { throw null; } }
 public class Inventory {
