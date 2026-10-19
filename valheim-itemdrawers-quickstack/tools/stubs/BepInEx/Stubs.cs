@@ -2,8 +2,9 @@ using System;
 using UnityEngine;
 namespace BepInEx { public abstract class BaseUnityPlugin : MonoBehaviour { } }
 namespace BepInEx.Configuration {
-  public abstract class ConfigEntryBase { public object BoxedValue { get { throw null; } set { } } }
-  public sealed class ConfigEntry<T> : ConfigEntryBase { public T Value { get { throw null; } set { } } }
+  // Virtual-ness matters too: the compiler emits call (not callvirt) on non-virtual members after ?. and the like.
+  public abstract class ConfigEntryBase { public abstract object BoxedValue { get; set; } }
+  public sealed class ConfigEntry<T> : ConfigEntryBase { public T Value { get { throw null; } set { } } public override object BoxedValue { get { throw null; } set { } } }
   public abstract class AcceptableValueBase { }
   public class AcceptableValueRange<T> : AcceptableValueBase where T : IComparable { public AcceptableValueRange(T minValue, T maxValue) { } }
   public class ConfigDescription { public ConfigDescription(string description, AcceptableValueBase acceptableValues = null, params object[] tags) { } }

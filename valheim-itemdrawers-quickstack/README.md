@@ -103,7 +103,7 @@ dll changes: decompiling the result gives the original code, the four new classe
 
 The stand-ins prove nothing on their own, so the last step checks that **every game, BepInEx and Harmony member
 the new code calls is one the original ItemDrawers.dll or Quick Stack Store already calls**. Those two dlls are
-known to work in the game. Result: 773 references, 0 problems, no new assembly references.
+known to work in the game. Result: 773 references, 0 problems, no new assembly references. It also checks that every non-virtual call into the game or BepInEx is one those dlls make too: a stand-in that got a member's virtual-ness wrong once produced a call the game rejected ("Bad IL format").
 
 If you have the ItemDrawers source, the simpler route is to add `src/QuickStackStore_Compat.cs` to the project,
 add the attribute above and build it normally.

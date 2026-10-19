@@ -282,6 +282,26 @@ static class Program
             if (why != null) { bad++; Console.WriteLine("BAD  [" + scope + "] " + r.FullName + " : " + why); }
             else { ok++; Console.WriteLine("NEW  [" + scope + "] " + r.FullName + " : resolves"); }
         }
+        // A stand-in that gets a member's virtual-ness wrong makes the compiler pick call where the game needs
+        // callvirt (Mono: "Bad IL format" on an abstract one). A non-virtual call into the game or BepInEx must be one
+        // a known-good dll makes too.
+        var goodCalls = new HashSet<string>();
+        foreach (var k in known)
+            foreach (var t in ModuleDefinition.ReadModule(k, rp).GetTypes())
+                foreach (var me in t.Methods.Where(x => x.HasBody))
+                    foreach (var ins in me.Body.Instructions.Where(i => i.OpCode == OpCodes.Call && i.Operand is MethodReference))
+                        goodCalls.Add(((MethodReference)ins.Operand).FullName);
+        foreach (var t in merged.GetTypes())
+            foreach (var me in t.Methods.Where(x => x.HasBody))
+                foreach (var ins in me.Body.Instructions.Where(i => i.OpCode == OpCodes.Call && i.Operand is MethodReference))
+                {
+                    var mr = (MethodReference)ins.Operand;
+                    if (mr.HasThis && Checked.Contains(Scope(mr.DeclaringType)) && !goodCalls.Contains(mr.FullName))
+                    {
+                        bad++;
+                        Console.WriteLine("BAD  non-virtual call in " + me.FullName + " to " + mr.FullName);
+                    }
+                }
         foreach (var r in merged.GetTypeReferences())
         {
             if (Checked.Contains(r.Scope.Name) && !goodTypes.Contains(r.Scope.Name + "|" + r.FullName)) { bad++; Console.WriteLine("BAD  type " + r.FullName); }
