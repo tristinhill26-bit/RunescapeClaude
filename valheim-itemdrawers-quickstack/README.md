@@ -74,9 +74,20 @@ stack and Store all also fill the drawers.` or why not. Each quick stack or Stor
 
 ## Install
 
-- **r2modman / Thunderstore Mod Manager:** remove the old ItemDrawers_Ymiron, then *Settings > Import local mod*
-  and pick [`dist/ItemDrawers_Ymiron-0.5.0-quickstack.zip`](dist/ItemDrawers_Ymiron-0.5.0-quickstack.zip).
-- **By hand:** replace `BepInEx/plugins/ItemDrawers.dll` with [`dist/ItemDrawers.dll`](dist/ItemDrawers.dll).
+> **Warning:** never load a world while the drawer mod is missing or failed to load. Valheim permanently
+> deletes every drawer (and everything inside it) in the area you load, and the ledger with them
+> (`Destroyed invalid prefab ZDO` in the log). Back up your `worlds_local` folder first, and check the log for
+> the `ItemDrawers-Ymiron 0.5.0 loaded.` line before you load a world.
+
+Install it wherever your game actually loads mods from. The first lines of `BepInEx/LogOutput.log` show which
+BepInEx folder that is:
+
+- **BepInEx in the game folder** (e.g. `C:\Program Files (x86)\Steam\steamapps\common\Valheim\BepInEx`):
+  replace `BepInEx\plugins\ItemDrawers.dll` with [`dist/ItemDrawers.dll`](dist/ItemDrawers.dll). Overwrite
+  the file; don't delete the old one first and launch.
+- **r2modman / Thunderstore Mod Manager** (the game is started from the manager): *Settings > Import local mod*
+  with [`dist/ItemDrawers_Ymiron-0.5.0-quickstack.zip`](dist/ItemDrawers_Ymiron-0.5.0-quickstack.zip), in the
+  profile you play with, then check that it is listed and enabled before you remove the old one.
 
 Quick stacking runs on your own game, so each player who wants it needs the patched dll. The server doesn't
 need it. The plugin version stays **0.5.0** on purpose: players with the unpatched 0.5.0 get no version warning,
