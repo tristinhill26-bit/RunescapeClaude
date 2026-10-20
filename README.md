@@ -66,6 +66,7 @@ The overlays (beam, outline, dots, arrows) work on their own. The lighting needs
 ## Development
 
 Run `rs117.hd.HdPluginTest` (or `./gradlew run`) to start RuneLite with both plugins loaded.
+On Windows, `start-runelite.bat` pulls the latest changes first, then builds and opens RuneLite.
 The interaction lighting lives in [`src/main/java/rs117/hd/interaction`](src/main/java/rs117/hd/interaction).
 
 [`com.wikigear.dps`](src/main/java/com/wikigear/dps) is translated from
