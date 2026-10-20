@@ -107,12 +107,12 @@ and nothing about the drawers' network data changed.
 There is no game install here, so `tools/build.sh` compiles the files in `src/` against small stand-ins
 for `assembly_valheim` and `BepInEx` (`tools/stubs`) and against the original `ItemDrawers.dll`. Then it copies
 the new classes and the attribute into the original dll with Mono.Cecil (`tools/patcher`). Nothing else in the
-dll changes: decompiling the result gives the original code, the four new classes and the extra
+dll changes: decompiling the result gives the original code, the five new classes and the extra
 `BepInDependency`.
 
 The stand-ins prove nothing on their own, so the last step checks that **every game, BepInEx and Harmony member
 the new code calls is one the original ItemDrawers.dll or Quick Stack Store already calls**. Those two dlls are
-known to work in the game. Result: 773 references, 0 problems, no new assembly references. It also checks that every non-virtual call into the game or BepInEx is one those dlls make too: a stand-in that got a member's virtual-ness wrong once produced a call the game rejected ("Bad IL format").
+known to work in the game. Result: 777 references, 0 problems, no new assembly references. It also checks that every non-virtual call into the game or BepInEx is one those dlls make too: a stand-in that got a member's virtual-ness wrong once produced a call the game rejected ("Bad IL format").
 
 If you have the ItemDrawers source, the simpler route is to add the files in `src/` to the project,
 add the attribute above and build it normally.
