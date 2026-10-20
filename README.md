@@ -148,6 +148,12 @@ The overlays (beam, outline, dots, arrows) work on their own. The lighting needs
 ## Development
 
 Run `rs117.hd.HdPluginTest` (or `./gradlew run`) to start RuneLite with all of the plugins loaded.
+On Windows, `Launch-RuneLite.bat` updates to the latest version (`git pull`) and then starts it. To get a
+desktop shortcut for it, run this once from the repo folder:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\Create-Desktop-Shortcut.ps1
+```
 The interaction lighting lives in [`src/main/java/rs117/hd/interaction`](src/main/java/rs117/hd/interaction),
 Shadow Tiles in [`src/main/java/com/shadowtiles`](src/main/java/com/shadowtiles), and
 Mad Angel Helper in [`src/main/java/com/madangel`](src/main/java/com/madangel), and
