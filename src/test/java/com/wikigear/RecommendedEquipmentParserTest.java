@@ -110,6 +110,45 @@ public class RecommendedEquipmentParserTest {
 	}
 
 	@Test
+	public void givesEveryTableAnInventoryWhenTheyAllComeFirst() {
+		// Like Zulrah: the equipment tables, then an inventory section with a few options
+		String page = String.join("\n",
+			"==Equipment==",
+			"{{Recommended equipment|style=Magic|head1={{plink|Ahrim's hood}}}}",
+			"{{Recommended equipment|style=Ranged|head1={{plink|Karil's coif}}}}",
+			"==Inventory==",
+			"<tabber>",
+			"Budget=",
+			"{{Inventory|Toxic blowpipe|Shark}}",
+			"|-|",
+			"Max=",
+			"{{Inventory|Twisted bow|Anglerfish}}",
+			"</tabber>"
+		);
+		var setups = RecommendedEquipmentParser.parse(page);
+		assertEquals("Toxic blowpipe", setups.get(0).getInventoryItem(0));
+		assertEquals("Toxic blowpipe", setups.get(1).getInventoryItem(0));
+	}
+
+	@Test
+	public void matchesInventoriesToTabsOfTheSameName() {
+		String page = String.join("\n",
+			"{{Recommended equipment|style=Magic|head1={{plink|Ahrim's hood}}}}",
+			"{{Recommended equipment|style=Ranged|head1={{plink|Karil's coif}}}}",
+			"<tabber>",
+			"Magic=",
+			"{{Inventory|Trident of the seas}}",
+			"|-|",
+			"Ranged=",
+			"{{Inventory|Toxic blowpipe}}",
+			"</tabber>"
+		);
+		var setups = RecommendedEquipmentParser.parse(page);
+		assertEquals("Trident of the seas", setups.get(0).getInventoryItem(0));
+		assertEquals("Toxic blowpipe", setups.get(1).getInventoryItem(0));
+	}
+
+	@Test
 	public void sharesASingleInventoryWithEverySetup() {
 		String page = String.join("\n",
 			"{{Recommended equipment|style=Magic|head1={{plink|Ahrim's hood}}}}",

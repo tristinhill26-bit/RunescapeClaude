@@ -53,6 +53,7 @@ class WikiGearPanel extends PluginPanel {
 	private final JComboBox<MonsterChoice> monsterBox = new JComboBox<>();
 	private final JLabel dpsStatus = new JLabel();
 	private final JCheckBox slayerBox = new JCheckBox("On a slayer task");
+	private final JCheckBox combineBox = new JCheckBox("Combine into one tag with switches");
 	private final JButton createButton = new JButton("Create bank tags");
 	private final JPanel exportPanel = new JPanel();
 	private final JLabel exportStatus = new JLabel();
@@ -141,6 +142,14 @@ class WikiGearPanel extends PluginPanel {
 		setupsPanel.setAlignmentX(LEFT_ALIGNMENT);
 		monsterPanel.add(setupsPanel);
 		monsterPanel.add(Box.createVerticalStrut(6));
+
+		combineBox.setSelected(config.combineStyles());
+		combineBox.setToolTipText("<html>Wear the first ticked style, and put the other styles' gear in the inventory<br>" +
+			"as switches, e.g. Magic and Ranged for Zulrah</html>");
+		styleCheckBox(combineBox);
+		combineBox.setVisible(false);
+		combineBox.addActionListener(e -> plugin.setCombineStyles(combineBox.isSelected()));
+		monsterPanel.add(combineBox);
 
 		buildDpsPanel();
 		monsterPanel.add(dpsPanel);
@@ -428,7 +437,10 @@ class WikiGearPanel extends PluginPanel {
 	}
 
 	private void updateCreateButton() {
-		createButton.setEnabled(setupBoxes.stream().anyMatch(JCheckBox::isSelected));
+		long ticked = setupBoxes.stream().filter(JCheckBox::isSelected).count();
+		createButton.setEnabled(ticked > 0);
+		combineBox.setVisible(ticked > 1);
+		refresh();
 	}
 
 	private void createTags() {
@@ -451,7 +463,7 @@ class WikiGearPanel extends PluginPanel {
 			dpsRequest = new WikiGearPlugin.DpsRequest(choice.monster, slayerBox.isSelected());
 
 		summary.setText(dpsRequest != null ? "Working out the highest DPS gear..." : "Creating tags...");
-		plugin.createLoadouts(target.name, selected, wilderness, dpsRequest,
+		plugin.createLoadouts(target.name, selected, wilderness, dpsRequest, selected.size() > 1 && combineBox.isSelected(),
 			results -> SwingUtilities.invokeLater(() -> {
 				if (id != requestId)
 					return;

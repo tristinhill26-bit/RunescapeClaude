@@ -49,6 +49,10 @@ New tags are added to your bank's tag tabs automatically (they appear the next t
 works even with plugins that hide the tag tab + button. Each tag also gets a **Copy** button for Bank Tags'
 *Import tag tab*, or for sharing.
 
+For fights where you switch styles, like Magic and Ranged at Zulrah, tick both styles and **Combine into one tag with
+switches**. The tag wears the first ticked style and puts the other style's gear at the top of the inventory, followed by
+the recommended inventory (leaving out gear the switches replace).
+
 With **Highest DPS** ticked (the default), the worn gear is chosen by real DPS instead of the wiki's order, using a Java
 translation of the [OSRS Wiki DPS calculator](https://tools.runescape.wiki/osrs-dps/). Pick the monster (and version)
 from the list under the styles, and tick *On a slayer task* if you are. It tries every weapon and combat style you own,

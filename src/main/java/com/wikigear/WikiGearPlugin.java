@@ -177,9 +177,10 @@ public class WikiGearPlugin extends Plugin {
 	 * Create a bank tag for each setup with the best gear the player owns, then call back on the client thread.
 	 *
 	 * @param dpsRequest choose gear for the highest DPS against this monster, or null to follow the wiki's order
+	 * @param combine    make one tag wearing the first setup, with the others' gear as switches in the inventory
 	 */
 	void createLoadouts(String monster, List<GearSetup> setups, boolean wilderness, @Nullable DpsRequest dpsRequest,
-		Consumer<List<LoadoutResult>> onDone, Consumer<String> onError) {
+		boolean combine, Consumer<List<LoadoutResult>> onDone, Consumer<String> onError) {
 		clientThread.invoke(() -> {
 			if (client.getGameState() != GameState.LOGGED_IN) {
 				onError.accept("Log in first.");
@@ -210,7 +211,7 @@ public class WikiGearPlugin extends Plugin {
 				results.add(GearPicker.pick(setup, owned, config.fillEmptySlots(), substitutes));
 
 			if (dpsRequest == null) {
-				saveLoadouts(monster, setups, results, new ArrayList<>(), onDone);
+				saveLoadouts(monster, setups, results, new ArrayList<>(), combine, owned, onDone);
 				return;
 			}
 
@@ -226,7 +227,7 @@ public class WikiGearPlugin extends Plugin {
 					clientThread.invoke(() -> onError.accept("The DPS calculation failed: " + ex.getMessage()));
 					return;
 				}
-				clientThread.invoke(() -> saveLoadouts(monster, setups, results, dps, onDone));
+				clientThread.invoke(() -> saveLoadouts(monster, setups, results, dps, combine, owned, onDone));
 			});
 		});
 	}
@@ -292,11 +293,8 @@ public class WikiGearPlugin extends Plugin {
 	}
 
 	private void saveLoadouts(String monster, List<GearSetup> setups, List<GearPicker.Result> picked,
-		List<DpsOptimizer.Result> dps, Consumer<List<LoadoutResult>> onDone) {
-		var results = new ArrayList<LoadoutResult>();
-		for (int i = 0; i < setups.size(); i++) {
-			var setup = setups.get(i);
-			var result = picked.get(i);
+		List<DpsOptimizer.Result> dps, boolean combine, GearPicker.OwnedItems owned, Consumer<List<LoadoutResult>> onDone) {
+		for (var result : picked) {
 			if (!config.includeSpecial())
 				result.picks.remove(GearSlot.SPECIAL);
 			if (!config.includeInventory()) {
@@ -304,6 +302,29 @@ public class WikiGearPlugin extends Plugin {
 				result.missingInventory.clear();
 				result.substitutions.clear();
 			}
+		}
+
+		var tagSetups = new ArrayList<>(setups);
+		var tagResults = new ArrayList<>(picked);
+		var tagDps = new ArrayList<>(dps);
+		if (combine && setups.size() > 1) {
+			var labels = new ArrayList<String>();
+			for (var setup : setups)
+				labels.add(setup.getLabel());
+			var merged = HybridLoadout.merge(picked, labels, owned);
+			for (int i = 1; i < dps.size(); i++)
+				if (dps.get(i) != null)
+					merged.notes.add(String.format("%s switches: DPS %.2f, max hit %.0f.", labels.get(i), dps.get(i).dps, dps.get(i).maxHit));
+			tagSetups = new ArrayList<>(List.of(setups.get(0).withLabel(String.join(" and ", labels))));
+			tagResults = new ArrayList<>(List.of(merged));
+			tagDps = new ArrayList<>();
+			tagDps.add(dps.isEmpty() ? null : dps.get(0));
+		}
+
+		var results = new ArrayList<LoadoutResult>();
+		for (int i = 0; i < tagSetups.size(); i++) {
+			var setup = tagSetups.get(i);
+			var result = tagResults.get(i);
 			String tag = tagName(monster, setup);
 			int[] layout = TagExport.layout(result);
 			saveTag(tag, result, layout);
@@ -311,13 +332,17 @@ public class WikiGearPlugin extends Plugin {
 			if (config.addTab())
 				addTagTab(tag, iconItemId);
 			String importText = TagExport.toImportText(tag, iconItemId, layout);
-			results.add(new LoadoutResult(setup, tag, result, importText, i < dps.size() ? dps.get(i) : null));
+			results.add(new LoadoutResult(setup, tag, result, importText, i < tagDps.size() ? tagDps.get(i) : null));
 		}
 
 		if (config.openTag() && !results.isEmpty() && isBankOpen())
 			bankTagsService.openBankTag(results.get(0).tag, BankTagsService.OPTION_ALLOW_MODIFICATIONS);
 
 		onDone.accept(results);
+	}
+
+	void setCombineStyles(boolean combine) {
+		configManager.setConfiguration(WikiGearConfig.CONFIG_GROUP, "combineStyles", combine);
 	}
 
 	private void addOwned(GearPicker.OwnedItems owned, ItemContainer container, boolean allowBlighted) {

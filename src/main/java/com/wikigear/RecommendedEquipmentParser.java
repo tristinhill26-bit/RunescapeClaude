@@ -64,15 +64,17 @@ public class RecommendedEquipmentParser
 	}
 
 	/**
-	 * Attach each {{Inventory}} to the equipment table it follows, usually in the same tab or section.
-	 * An inventory before any equipment table goes with the first one, and a page's only inventory is
-	 * shared by every setup.
+	 * Attach each {{Inventory}} to its equipment table: the table in the tab or section of the same name, e.g. an
+	 * inventory under "Magic" goes with the Magic table, or else the table it follows. Tables still without an
+	 * inventory then take the nearest one, preferring the first one after them, since pages often list every
+	 * table first and the inventories after, like a Magic and a Ranged table followed by an Inventory section.
 	 */
 	private static void attachInventories(String wikitext, List<GearSetup> setups, List<Integer> positions) {
 		if (setups.isEmpty())
 			return;
 
 		var inventories = new ArrayList<List<String>>();
+		var inventoryPositions = new ArrayList<Integer>();
 		Matcher matcher = INVENTORY_START.matcher(wikitext);
 		int searchFrom = 0;
 		while (matcher.find(searchFrom)) {
@@ -86,19 +88,38 @@ public class RecommendedEquipmentParser
 			if (inventory.stream().allMatch(item -> item == null))
 				continue;
 			inventories.add(inventory);
+			inventoryPositions.add(start);
 
-			int owner = 0;
-			for (int i = 0; i < positions.size(); i++)
-				if (positions.get(i) < start)
-					owner = i;
+			int owner = -1;
+			String context = findContext(wikitext, start);
+			if (context != null) {
+				for (int i = 0; i < setups.size(); i++)
+					if (setups.get(i).getLabel().equalsIgnoreCase(context) && !setups.get(i).hasInventory())
+						owner = i;
+			}
+			if (owner < 0) {
+				owner = 0;
+				for (int i = 0; i < positions.size(); i++)
+					if (positions.get(i) < start)
+						owner = i;
+			}
 			if (!setups.get(owner).hasInventory())
 				setups.set(owner, setups.get(owner).withInventory(inventory));
 		}
+		if (inventories.isEmpty())
+			return;
 
-		if (inventories.size() == 1) {
-			for (int i = 0; i < setups.size(); i++)
-				if (!setups.get(i).hasInventory())
-					setups.set(i, setups.get(i).withInventory(inventories.get(0)));
+		for (int i = 0; i < setups.size(); i++) {
+			if (setups.get(i).hasInventory())
+				continue;
+			int nearest = inventories.size() - 1;
+			for (int j = 0; j < inventories.size(); j++) {
+				if (inventoryPositions.get(j) > positions.get(i)) {
+					nearest = j;
+					break;
+				}
+			}
+			setups.set(i, setups.get(i).withInventory(inventories.get(nearest)));
 		}
 	}
 

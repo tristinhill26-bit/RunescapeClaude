@@ -115,4 +115,15 @@ public interface WikiGearConfig extends Config
 	default boolean assumeAnyPotion() {
 		return false;
 	}
+
+	@ConfigItem(
+		keyName = "combineStyles",
+		name = "Combine ticked styles",
+		description = "When you tick more than one style, make a single tag that wears the first one and puts the<br>" +
+			"others' gear in the inventory as switches, like Magic and Ranged at Zulrah.",
+		position = 10
+	)
+	default boolean combineStyles() {
+		return false;
+	}
 }
