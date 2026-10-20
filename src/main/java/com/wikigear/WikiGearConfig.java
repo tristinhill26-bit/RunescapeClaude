@@ -93,4 +93,26 @@ public interface WikiGearConfig extends Config
 	default boolean openTag() {
 		return true;
 	}
+
+	@ConfigItem(
+		keyName = "optimiseDps",
+		name = "Highest DPS",
+		description = "Choose the gear with the highest DPS against the monster, using the OSRS Wiki DPS calculator's maths,<br>" +
+			"your levels, your best potions and the best prayers you've unlocked. Turn off to follow the wiki's order.",
+		position = 8
+	)
+	default boolean optimiseDps() {
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "assumeAnyPotion",
+		name = "Assume potions you don't own",
+		description = "For Highest DPS, assume Super combat, Ranging and Magic potions even if you don't own them.<br>" +
+			"Otherwise only potions in your bank, inventory or potion store count.",
+		position = 9
+	)
+	default boolean assumeAnyPotion() {
+		return false;
+	}
 }

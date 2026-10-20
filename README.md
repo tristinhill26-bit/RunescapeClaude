@@ -49,6 +49,17 @@ New tags are added to your bank's tag tabs automatically (they appear the next t
 works even with plugins that hide the tag tab + button. Each tag also gets a **Copy** button for Bank Tags'
 *Import tag tab*, or for sharing.
 
+With **Highest DPS** ticked (the default), the worn gear is chosen by real DPS instead of the wiki's order, using a Java
+translation of the [OSRS Wiki DPS calculator](https://tools.runescape.wiki/osrs-dps/). Pick the monster (and version)
+from the list under the styles, and tick *On a slayer task* if you are. It tries every weapon and combat style you own,
+then improves each slot until no swap helps, also trying sets like Void as a whole. It assumes your real levels, the
+best potions you own (bank, inventory or potion store; Overloads in Chambers of Xeric, Smelling salts in Tombs of
+Amascut) and the best prayers you've unlocked: Piety and Chivalry after Knight Waves, Rigour, Augury, Deadeye and Mystic
+Vigour once learned. For magic it picks the best spell you can cast (ancients need Desert Treasure I). The summary
+shows the DPS, max hit, accuracy and time to kill. The wiki's special attack weapon and inventory are kept, and wherever
+the wiki's pick is just as good it stays. The calculator data is downloaded from the wiki's DPS calculator once a day,
+with a bundled copy as a fallback. It doesn't know item level requirements, so it assumes you can wear what you own.
+
 The overlays (beam, outline, dots, arrows) work on their own. The lighting needs 117 HD Enhanced running with
 *Dynamic lights* enabled.
 
@@ -56,6 +67,12 @@ The overlays (beam, outline, dots, arrows) work on their own. The lighting needs
 
 Run `rs117.hd.HdPluginTest` (or `./gradlew run`) to start RuneLite with both plugins loaded.
 The interaction lighting lives in [`src/main/java/rs117/hd/interaction`](src/main/java/rs117/hd/interaction).
+
+[`com.wikigear.dps`](src/main/java/com/wikigear/dps) is translated from
+[weirdgloop/osrs-dps-calc](https://github.com/weirdgloop/osrs-dps-calc) (Copyright Jayden Bailey (Weird Gloop) and
+contributors), which is licensed under the GNU GPL v3, see [`licenses/osrs-dps-calc-GPL-3.0.txt`](licenses/osrs-dps-calc-GPL-3.0.txt).
+That's fine for personal use, but sharing a build that includes it means releasing it under the GPL v3 too.
+`PlayerVsNPCCalcFixtureTest` checks the translation against results recorded from the original calculator.
 
 To pull in upstream 117 HD changes:
 
