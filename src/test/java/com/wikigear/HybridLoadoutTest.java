@@ -84,4 +84,39 @@ public class HybridLoadoutTest
 		assertEquals(BLOWPIPE, merged.inventory[0]);
 		assertTrue(merged.notes.stream().anyMatch(n -> n.contains("No room left for Shark")));
 	}
+
+	@Test
+	public void startsSwitchesFromTheOwnedGearInTheInventory() {
+		int[] inventory = { VOID_RANGER_HELM, BLOWPIPE, SHARK };
+		var magic = result(inventory,
+			GearSlot.WEAPON, TRIDENT, "Trident of the swamp",
+			GearSlot.HEAD, ANCESTRAL_HAT, "Ancestral hat",
+			GearSlot.BODY, ANCESTRAL_TOP, "Ancestral robe top",
+			GearSlot.SPECIAL, TRIDENT, "Trident of the swamp");
+		var picks = HybridLoadout.switchStartingPicks(magic, owned());
+		assertEquals(VOID_RANGER_HELM, picks.get(GearSlot.HEAD).itemId);
+		assertEquals(BLOWPIPE, picks.get(GearSlot.WEAPON).itemId);
+		assertEquals("The body stays", ANCESTRAL_TOP, picks.get(GearSlot.BODY).itemId);
+		assertNull(picks.get(GearSlot.SPECIAL));
+	}
+
+	@Test
+	public void dropsMissingSwitchesWhenThereIsAReplacement() {
+		var magic = result(new int[] { SHARK }, GearSlot.WEAPON, TRIDENT, "Trident of the swamp");
+		magic.missingInventory.add("Toxic blowpipe");
+		magic.missingInventory.add("Necklace of anguish");
+		magic.missingInventory.add("Extended anti-venom+(4)");
+		var ranged = result(new int[0], GearSlot.WEAPON, MASORI_BODY, "Some bow");
+		var merged = HybridLoadout.merge(List.of(magic, ranged), List.of("Magic", "Ranged"), owned(),
+			name -> name.equals("Toxic blowpipe") ? Integer.valueOf(3) : name.equals("Necklace of anguish") ? Integer.valueOf(2) : null);
+		// There's a weapon switch now, but no necklace one
+		assertEquals(List.of("Necklace of anguish", "Extended anti-venom+(4)"), merged.missingInventory);
+	}
+
+	@Test
+	public void findsTheStylesALabelNames() {
+		assertEquals(List.of(CombatStyle.MAGIC, CombatStyle.RANGED), CombatStyle.mentioned("Void Mage and Ranged"));
+		assertEquals(List.of(CombatStyle.MAGIC, CombatStyle.RANGED), CombatStyle.mentioned("Max Magic & Ranged"));
+		assertEquals(List.of(CombatStyle.MAGIC), CombatStyle.mentioned("Magic (Diary kill)"));
+	}
 }

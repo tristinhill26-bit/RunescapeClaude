@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -220,8 +221,10 @@ public class WikiGearPlugin extends Plugin {
 			executor.execute(() -> {
 				var dps = new ArrayList<DpsOptimizer.Result>();
 				try {
-					for (var result : results)
-						dps.add(optimise(result, owned, state, dpsRequest, wilderness));
+					for (int i = 0; i < results.size(); i++) {
+						dps.add(optimise(results.get(i), owned, state, dpsRequest, wilderness));
+						results.set(i, addHybridSwitches(setups.get(i), results.get(i), owned, state, dpsRequest, wilderness));
+					}
 				} catch (RuntimeException ex) {
 					log.warn("DPS optimisation failed", ex);
 					clientThread.invoke(() -> onError.accept("The DPS calculation failed: " + ex.getMessage()));
@@ -269,6 +272,61 @@ public class WikiGearPlugin extends Plugin {
 		return best;
 	}
 
+	/**
+	 * For a setup that names two styles, like "Void Mage and Ranged", choose the highest DPS gear for the second style
+	 * too, starting from the switches the wiki carries that the player owns, and carry it in the inventory
+	 */
+	private GearPicker.Result addHybridSwitches(GearSetup setup, GearPicker.Result result, GearPicker.OwnedItems owned,
+		DpsPlanner.PlayerState state, DpsRequest request, boolean wilderness) {
+		var styles = CombatStyle.mentioned(setup.getLabel());
+		if (styles.size() < 2 || dpsData.get() == null)
+			return result;
+
+		var results = new ArrayList<GearPicker.Result>();
+		var labels = new ArrayList<String>();
+		var dpsNotes = new ArrayList<String>();
+		results.add(result);
+		labels.add(setup.getLabel());
+		for (var style : styles) {
+			if (style == result.style)
+				continue;
+			int[] noInventory = new int[GearSetup.INVENTORY_SIZE];
+			Arrays.fill(noInventory, -1);
+			var switches = new GearPicker.Result(HybridLoadout.switchStartingPicks(result, owned), new ArrayList<>(), style,
+				noInventory, new ArrayList<>(), new LinkedHashMap<>());
+			var best = optimise(switches, owned, state, request, wilderness);
+			if (best == null)
+				continue;
+			String label = Text.titleCase(style);
+			results.add(switches);
+			labels.add(label);
+			dpsNotes.add(String.format("%s switches: DPS %.2f, max hit %.0f.", label, best.dps, best.maxHit));
+		}
+		if (results.size() < 2)
+			return result;
+
+		var merged = HybridLoadout.merge(results, labels, owned, this::equipmentSlotOf);
+		merged.notes.addAll(dpsNotes);
+		return merged;
+	}
+
+	/**
+	 * The equipment slot of an item by its name, from the DPS calculator's data, or null if it isn't equipment
+	 */
+	@Nullable
+	private Integer equipmentSlotOf(String name) {
+		var data = dpsData.get();
+		if (data == null)
+			return null;
+		for (var piece : data.equipment) {
+			if (piece.name.equalsIgnoreCase(name)) {
+				var slot = GearSlot.fromWikiName(piece.slot);
+				return slot == null ? null : slot.getEquipmentSlot();
+			}
+		}
+		return null;
+	}
+
 	private DpsPlanner.PlayerState readPlayerState() {
 		var state = new DpsPlanner.PlayerState();
 		var s = state.skills;
@@ -311,7 +369,7 @@ public class WikiGearPlugin extends Plugin {
 			var labels = new ArrayList<String>();
 			for (var setup : setups)
 				labels.add(setup.getLabel());
-			var merged = HybridLoadout.merge(picked, labels, owned);
+			var merged = HybridLoadout.merge(picked, labels, owned, this::equipmentSlotOf);
 			for (int i = 1; i < dps.size(); i++)
 				if (dps.get(i) != null)
 					merged.notes.add(String.format("%s switches: DPS %.2f, max hit %.0f.", labels.get(i), dps.get(i).dps, dps.get(i).maxHit));

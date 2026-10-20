@@ -7,7 +7,10 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import javax.annotation.Nullable;
 
 /**
  * Combines several setups into one, for fights where you switch styles, like Magic and Ranged at Zulrah.
@@ -19,10 +22,53 @@ public class HybridLoadout
 	}
 
 	/**
-	 * @param results the picks for each setup, the one to wear first
-	 * @param labels  each setup's name, e.g. "Ranged", for the notes
+	 * Gear to start from when choosing one style's switches for a hybrid setup: the worn gear, with any owned gear
+	 * from the inventory put on, like the Void ranger helm a Void mage and ranged setup carries
 	 */
+	public static Map<GearSlot, GearPicker.Pick> switchStartingPicks(GearPicker.Result primary, GearPicker.OwnedItems owned) {
+		var picks = new EnumMap<GearSlot, GearPicker.Pick>(GearSlot.class);
+		picks.putAll(primary.picks);
+		picks.remove(GearSlot.SPECIAL);
+		for (int itemId : primary.inventory) {
+			var item = itemId == -1 ? null : owned.findById(itemId);
+			if (item == null || item.bonuses == null)
+				continue;
+			GearSlot slot = slotFor(item.bonuses);
+			if (slot == null || picks.containsKey(slot) && picks.get(slot).itemId == itemId)
+				continue;
+			if (slot == GearSlot.TWO_HANDED) {
+				picks.remove(GearSlot.WEAPON);
+				picks.remove(GearSlot.SHIELD);
+			} else if (slot == GearSlot.WEAPON || slot == GearSlot.SHIELD) {
+				picks.remove(GearSlot.TWO_HANDED);
+			}
+			picks.put(slot, new GearPicker.Pick(slot, itemId, item.name, 0, 0, GearPicker.Source.WIKI));
+		}
+		return picks;
+	}
+
+	@Nullable
+	private static GearSlot slotFor(ItemBonuses bonuses) {
+		if (bonuses.getSlot() == GearSlot.WEAPON.getEquipmentSlot())
+			return bonuses.isTwoHanded() ? GearSlot.TWO_HANDED : GearSlot.WEAPON;
+		for (var slot : GearSlot.values())
+			if (slot != GearSlot.TWO_HANDED && slot != GearSlot.SPECIAL && slot.getEquipmentSlot() == bonuses.getSlot())
+				return slot;
+		return null;
+	}
+
 	public static GearPicker.Result merge(List<GearPicker.Result> results, List<String> labels, GearPicker.OwnedItems owned) {
+		return merge(results, labels, owned, null);
+	}
+
+	/**
+	 * @param results    the picks for each setup, the one to wear first
+	 * @param labels     each setup's name, e.g. "Ranged", for the notes
+	 * @param slotOfName the equipment slot of an item by name, used to drop recommended switches the player doesn't
+	 *                   own once there's a switch of their own for that slot, or null to keep them all
+	 */
+	public static GearPicker.Result merge(List<GearPicker.Result> results, List<String> labels, GearPicker.OwnedItems owned,
+		@Nullable Function<String, Integer> slotOfName) {
 		var primary = results.get(0);
 		var picks = new EnumMap<GearSlot, GearPicker.Pick>(GearSlot.class);
 		picks.putAll(primary.picks);
@@ -89,6 +135,9 @@ public class HybridLoadout
 					missing.add(name);
 			result.substitutions.forEach(substitutions::putIfAbsent);
 		}
+
+		if (slotOfName != null)
+			missing.removeIf(name -> switchSlots.contains(slotOfName.apply(name)));
 
 		return new GearPicker.Result(picks, notes, primary.style, inventory, missing, substitutions);
 	}
