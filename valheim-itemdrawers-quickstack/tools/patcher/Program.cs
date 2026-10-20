@@ -117,7 +117,9 @@ static class Program
         var blob = new List<byte> { 1, 0, (byte)guid.Length };
         blob.AddRange(guid);
         blob.AddRange(new byte[] { 2, 0, 0, 0, 0, 0 });
-        plugin.CustomAttributes.Add(new CustomAttribute(jotunn.Constructor, blob.ToArray()));
+        // Merging into a dll that already has it (an earlier build) must not add it twice.
+        if (!plugin.CustomAttributes.Any(c => c.AttributeType.FullName == "BepInEx.BepInDependency" && c.GetBlob().SequenceEqual(blob)))
+            plugin.CustomAttributes.Add(new CustomAttribute(jotunn.Constructor, blob.ToArray()));
 
         var added = _target.AssemblyReferences.Select(a => a.FullName).Except(refsBefore).ToList();
         if (added.Count > 0) throw new Exception("New assembly references: " + string.Join("; ", added));

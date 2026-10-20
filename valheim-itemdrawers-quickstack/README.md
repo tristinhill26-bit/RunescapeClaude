@@ -55,6 +55,15 @@ Two changes, both in the ItemDrawers project:
 It is a soft dependency: without Quick Stack, nothing is patched and the drawers work as before. If a future
 Quick Stack version renames these methods, the log says so once and quick stacking just leaves the drawers alone.
 
+## Drawers that sat a quarter metre off (skewed walls)
+
+The original drawer had snap points on its four front corners and its four back corners. Because the drawer is
+0.5 m deep, a new drawer aimed at an existing one found front-to-front, front-to-back and back-to-back pairs at the
+same distance, so it often snapped half a depth in front of or behind its neighbour. A row that sticks out like
+that shows its top or underside and makes the wall look skewed. [`src/SnapPoints_Fix.cs`](src/SnapPoints_Fix.cs)
+removes the front snap points when the drawer pieces are built, so drawers can only snap back to back and always
+sit flush. Drawers that are already placed keep their position; remove and re-place the ones that stick out.
+
 ## New config (`ymiron.valheim.itemdrawers.cfg`, section `8 - Quick Stack`)
 
 This section only appears when Quick Stack is installed.
@@ -95,7 +104,7 @@ and nothing about the drawers' network data changed.
 
 ## How the dll was built
 
-There is no game install here, so `tools/build.sh` compiles `src/QuickStackStore_Compat.cs` against small stand-ins
+There is no game install here, so `tools/build.sh` compiles the files in `src/` against small stand-ins
 for `assembly_valheim` and `BepInEx` (`tools/stubs`) and against the original `ItemDrawers.dll`. Then it copies
 the new classes and the attribute into the original dll with Mono.Cecil (`tools/patcher`). Nothing else in the
 dll changes: decompiling the result gives the original code, the four new classes and the extra
@@ -105,7 +114,7 @@ The stand-ins prove nothing on their own, so the last step checks that **every g
 the new code calls is one the original ItemDrawers.dll or Quick Stack Store already calls**. Those two dlls are
 known to work in the game. Result: 773 references, 0 problems, no new assembly references. It also checks that every non-virtual call into the game or BepInEx is one those dlls make too: a stand-in that got a member's virtual-ness wrong once produced a call the game rejected ("Bad IL format").
 
-If you have the ItemDrawers source, the simpler route is to add `src/QuickStackStore_Compat.cs` to the project,
+If you have the ItemDrawers source, the simpler route is to add the files in `src/` to the project,
 add the attribute above and build it normally.
 
 **Not yet tested in game.** The first version did nothing in game (see above); if this one does not work either, the log lines above show where it stops.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Rebuilds dist/ItemDrawers.dll from an original ItemDrawers.dll and src/QuickStackStore_Compat.cs,
+# Rebuilds dist/ItemDrawers.dll from an original ItemDrawers.dll and the files in src/,
 # without the game installed: the compat code is compiled against small stand-ins for assembly_valheim
 # and BepInEx, then copied into the original dll with Mono.Cecil. Needs the .NET 8 SDK and nuget.org.
 #
@@ -41,7 +41,7 @@ mkdir -p "$WORK/compat"
 cat > "$WORK/compat/compat.csproj" <<EOF
 <Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>netstandard2.1</TargetFramework><AssemblyName>ItemDrawersQuickStack</AssemblyName><LangVersion>11.0</LangVersion><Nullable>disable</Nullable><ImplicitUsings>disable</ImplicitUsings><DebugType>none</DebugType></PropertyGroup>
 <ItemGroup>
-<Compile Include="$ROOT/src/QuickStackStore_Compat.cs" />
+<Compile Include="$ROOT/src/*.cs" />
 <Reference Include="UnityEngine.CoreModule"><HintPath>$UE</HintPath></Reference>
 <Reference Include="0Harmony"><HintPath>$HX</HintPath></Reference>
 <Reference Include="assembly_valheim"><HintPath>$WORK/assembly_valheim/out/assembly_valheim.dll</HintPath></Reference>
