@@ -149,6 +149,61 @@ public class RecommendedEquipmentParserTest {
 	}
 
 	@Test
+	public void readsLoadoutsLikeZulrahs() {
+		String page = String.join("\n",
+			"==Equipment==",
+			"<tabber>",
+			"Magic=",
+			"{{Recommended equipment|style = Magic|head1={{plink|Ancestral hat}}}}",
+			"|-|",
+			"Ranged=",
+			"{{Recommended equipment|style = Ranged|head1={{plink|Masori mask (f)}}}}",
+			"</tabber>",
+			"==Inventory Setups==",
+			"<tabber>",
+			"Max Magic & Ranged=",
+			"{{Loadout",
+			"|loadoutname = Zulrah (max hybrid)",
+			"|head = Ancestral hat",
+			"|weapon = Eye of Ayak",
+			"|torso = Ancestral robe top",
+			"|gloves = Confliction gauntlets",
+			"|1=Twisted bow",
+			"|2=Masori body (f)",
+			"|3={{Cheap food}}",
+			"|rune1 = Fire rune",
+			"}}",
+			"|-|",
+			"Magic Only=",
+			"{{Loadout",
+			"|head = Ahrim's hood",
+			"|1=Shark",
+			"|2=Cooked karambwan",
+			"}}",
+			"|-|",
+			"Ranged Only=",
+			"{{Loadout",
+			"|head = Karil's coif",
+			"|1=Toxic blowpipe",
+			"}}",
+			"</tabber>"
+		);
+		var setups = RecommendedEquipmentParser.parse(page);
+		assertEquals(3, setups.size());
+		assertEquals("Shark", setups.get(0).getInventoryItem(0));
+		assertEquals("Toxic blowpipe", setups.get(1).getInventoryItem(0));
+
+		// The hybrid loadout becomes a setup of its own; the single-style ones match the tables instead
+		var hybrid = setups.get(2);
+		assertEquals("Max Magic & Ranged", hybrid.getLabel());
+		assertEquals(List.of(List.of("Ancestral hat")), hybrid.getRanks(GearSlot.HEAD));
+		assertEquals(List.of(List.of("Ancestral robe top")), hybrid.getRanks(GearSlot.BODY));
+		assertEquals(List.of(List.of("Confliction gauntlets")), hybrid.getRanks(GearSlot.HANDS));
+		assertEquals("Twisted bow", hybrid.getInventoryItem(0));
+		assertEquals(InventorySubstitutes.ANY_FOOD, hybrid.getInventoryItem(2));
+	}
+
+	@Test
 	public void sharesASingleInventoryWithEverySetup() {
 		String page = String.join("\n",
 			"{{Recommended equipment|style=Magic|head1={{plink|Ahrim's hood}}}}",
