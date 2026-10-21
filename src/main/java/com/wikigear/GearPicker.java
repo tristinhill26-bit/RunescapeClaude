@@ -54,7 +54,11 @@ public class GearPicker
 		/**
 		 * Not recommended for this slot, but the best the player owns for the combat style
 		 */
-		FILLED
+		FILLED,
+		/**
+		 * Chosen by the DPS calculator as the highest DPS item the player owns
+		 */
+		DPS
 	}
 
 	@RequiredArgsConstructor
@@ -199,6 +203,11 @@ public class GearPicker
 					item = loose.get(withoutNote);
 			}
 			return item;
+		}
+
+		@Nullable
+		public OwnedItem findById(int itemId) {
+			return byId.get(itemId);
 		}
 
 		@Nullable

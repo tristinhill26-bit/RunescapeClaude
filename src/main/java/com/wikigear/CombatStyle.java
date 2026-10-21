@@ -1,5 +1,7 @@
 package com.wikigear;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -30,6 +32,22 @@ public enum CombatStyle
 				break;
 		}
 		return offence + bonuses.getPrayer() * .1 + bonuses.getDefence() * .005;
+	}
+
+	/**
+	 * The styles a setup's label names, in the order {@link #infer} prefers them, e.g. Magic then Ranged for
+	 * "Max Magic & Ranged". A hybrid setup names more than one.
+	 */
+	public static List<CombatStyle> mentioned(String label) {
+		String lower = label.toLowerCase(Locale.ROOT);
+		var styles = new ArrayList<CombatStyle>();
+		if (lower.contains("magic") || lower.contains("mage"))
+			styles.add(MAGIC);
+		if (lower.contains("rang"))
+			styles.add(RANGED);
+		if (lower.contains("melee") || lower.contains("stab") || lower.contains("slash") || lower.contains("crush"))
+			styles.add(MELEE);
+		return styles;
 	}
 
 	/**

@@ -1,5 +1,8 @@
 package com.wikigear;
 
+import com.wikigear.dps.Monster;
+import com.wikigear.dps.Potion;
+import com.wikigear.dps.Prayer;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -18,6 +21,7 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
@@ -44,6 +48,12 @@ class WikiGearPanel extends PluginPanel {
 	private final JLabel monsterLabel = new JLabel();
 	private final JLabel statusLabel = new JLabel();
 	private final JPanel setupsPanel = new JPanel();
+	private final JCheckBox dpsBox = new JCheckBox("Highest DPS from what you own");
+	private final JPanel dpsPanel = new JPanel();
+	private final JComboBox<MonsterChoice> monsterBox = new JComboBox<>();
+	private final JLabel dpsStatus = new JLabel();
+	private final JCheckBox slayerBox = new JCheckBox("On a slayer task");
+	private final JCheckBox combineBox = new JCheckBox("Combine into one tag with switches");
 	private final JButton createButton = new JButton("Create bank tags");
 	private final JPanel exportPanel = new JPanel();
 	private final JLabel exportStatus = new JLabel();
@@ -133,6 +143,18 @@ class WikiGearPanel extends PluginPanel {
 		monsterPanel.add(setupsPanel);
 		monsterPanel.add(Box.createVerticalStrut(6));
 
+		combineBox.setSelected(config.combineStyles());
+		combineBox.setToolTipText("<html>Wear the first ticked style, and put the other styles' gear in the inventory<br>" +
+			"as switches, e.g. Magic and Ranged for Zulrah</html>");
+		styleCheckBox(combineBox);
+		combineBox.setVisible(false);
+		combineBox.addActionListener(e -> plugin.setCombineStyles(combineBox.isSelected()));
+		monsterPanel.add(combineBox);
+
+		buildDpsPanel();
+		monsterPanel.add(dpsPanel);
+		monsterPanel.add(Box.createVerticalStrut(6));
+
 		createButton.setAlignmentX(LEFT_ALIGNMENT);
 		createButton.setEnabled(false);
 		createButton.addActionListener(e -> createTags());
@@ -157,6 +179,84 @@ class WikiGearPanel extends PluginPanel {
 		summary.setBorder(BorderFactory.createEmptyBorder());
 		summary.setAlignmentX(LEFT_ALIGNMENT);
 		monsterPanel.add(summary);
+	}
+
+	/**
+	 * A monster from the DPS calculator's data, as shown in the version list
+	 */
+	private static final class MonsterChoice
+	{
+		final Monster monster;
+
+		MonsterChoice(Monster monster) {
+			this.monster = monster;
+		}
+
+		@Override
+		public String toString() {
+			return monster.version == null || monster.version.isEmpty() ? monster.name : monster.name + " (" + monster.version + ")";
+		}
+	}
+
+	private void buildDpsPanel() {
+		dpsPanel.setLayout(new BoxLayout(dpsPanel, BoxLayout.Y_AXIS));
+		dpsPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		dpsPanel.setAlignmentX(LEFT_ALIGNMENT);
+
+		dpsBox.setSelected(config.optimiseDps());
+		dpsBox.setToolTipText("<html>Pick the gear with the highest DPS, using the OSRS Wiki DPS calculator's maths,<br>" +
+			"your levels, your best potions and the best prayers you've unlocked</html>");
+		styleCheckBox(dpsBox);
+		dpsBox.addActionListener(e -> {
+			plugin.setOptimiseDps(dpsBox.isSelected());
+			updateDpsOptions();
+		});
+		dpsPanel.add(dpsBox);
+
+		monsterBox.setAlignmentX(LEFT_ALIGNMENT);
+		monsterBox.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
+		monsterBox.setToolTipText("The monster, and version of it, to calculate DPS against");
+		dpsPanel.add(monsterBox);
+
+		styleCheckBox(slayerBox);
+		slayerBox.setToolTipText("Counts the slayer helmet and black mask bonus");
+		dpsPanel.add(slayerBox);
+
+		dpsStatus.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+		dpsStatus.setAlignmentX(LEFT_ALIGNMENT);
+		dpsPanel.add(dpsStatus);
+	}
+
+	private static void styleCheckBox(JCheckBox box) {
+		box.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		box.setForeground(Color.WHITE);
+		box.setAlignmentX(LEFT_ALIGNMENT);
+	}
+
+	private void fillMonsterChoices() {
+		monsterBox.removeAllItems();
+		if (target == null)
+			return;
+		for (Monster m : plugin.findDpsMonsters(target.name))
+			monsterBox.addItem(new MonsterChoice(m));
+		updateDpsOptions();
+	}
+
+	private void updateDpsOptions() {
+		boolean on = dpsBox.isSelected();
+		boolean found = monsterBox.getItemCount() > 0;
+		monsterBox.setVisible(on && found);
+		slayerBox.setVisible(on && found);
+		if (!on) {
+			dpsStatus.setText("");
+		} else if (!plugin.isDpsDataLoaded()) {
+			dpsStatus.setText("<html>The DPS data is still loading, try again in a moment.</html>");
+		} else if (!found) {
+			dpsStatus.setText("<html>The DPS calculator doesn't know this monster, so the wiki's order is used.</html>");
+		} else {
+			dpsStatus.setText("");
+		}
+		refresh();
 	}
 
 	private void search() {
@@ -247,6 +347,8 @@ class WikiGearPanel extends PluginPanel {
 		setups = new ArrayList<>();
 		setupBoxes.clear();
 		setupsPanel.removeAll();
+		monsterBox.removeAllItems();
+		dpsStatus.setText("");
 		clearExport();
 		summary.setText("");
 		createButton.setEnabled(false);
@@ -292,6 +394,7 @@ class WikiGearPanel extends PluginPanel {
 			setupBoxes.add(box);
 			setupsPanel.add(box);
 		}
+		fillMonsterChoices();
 		updateCreateButton();
 		refresh();
 	}
@@ -334,7 +437,10 @@ class WikiGearPanel extends PluginPanel {
 	}
 
 	private void updateCreateButton() {
-		createButton.setEnabled(setupBoxes.stream().anyMatch(JCheckBox::isSelected));
+		long ticked = setupBoxes.stream().filter(JCheckBox::isSelected).count();
+		createButton.setEnabled(ticked > 0);
+		combineBox.setVisible(ticked > 1);
+		refresh();
 	}
 
 	private void createTags() {
@@ -348,8 +454,16 @@ class WikiGearPanel extends PluginPanel {
 		int id = requestId;
 		createButton.setEnabled(false);
 		clearExport();
-		summary.setText("Creating tags...");
-		plugin.createLoadouts(target.name, selected, wilderness,
+		// The DPS data may have finished loading since the setups were shown
+		if (dpsBox.isSelected() && monsterBox.getItemCount() == 0)
+			fillMonsterChoices();
+		WikiGearPlugin.DpsRequest dpsRequest = null;
+		var choice = (MonsterChoice) monsterBox.getSelectedItem();
+		if (dpsBox.isSelected() && choice != null)
+			dpsRequest = new WikiGearPlugin.DpsRequest(choice.monster, slayerBox.isSelected());
+
+		summary.setText(dpsRequest != null ? "Working out the highest DPS gear..." : "Creating tags...");
+		plugin.createLoadouts(target.name, selected, wilderness, dpsRequest, selected.size() > 1 && combineBox.isSelected(),
 			results -> SwingUtilities.invokeLater(() -> {
 				if (id != requestId)
 					return;
@@ -373,6 +487,8 @@ class WikiGearPanel extends PluginPanel {
 			if (text.length() > 0)
 				text.append("\n\n");
 			text.append(loadout.setup.getLabel()).append(" -> tag '").append(loadout.tag).append("'\n");
+			if (loadout.dps != null)
+				describeDps(text, loadout.dps);
 			var picks = loadout.result.picks;
 			for (var slot : GearSlot.values()) {
 				var pick = picks.get(slot);
@@ -393,6 +509,9 @@ class WikiGearPanel extends PluginPanel {
 							break;
 						case FILLED:
 							text.append(" (your best, not on the wiki's list)");
+							break;
+						case DPS:
+							text.append(" (highest DPS)");
 							break;
 					}
 				}
@@ -426,6 +545,26 @@ class WikiGearPanel extends PluginPanel {
 		}
 		text.append("\nTip: use the Copy buttons above to import a tag as a bank tab, or search 'tag:<name>' in your bank.");
 		return text.toString();
+	}
+
+	private static void describeDps(StringBuilder text, DpsOptimizer.Result dps) {
+		text.append(String.format("DPS %.2f, max hit %.0f, %.0f%% accuracy", dps.dps, dps.maxHit, dps.accuracy * 100));
+		if (Double.isFinite(dps.ttk) && dps.ttk > 0)
+			text.append(String.format(", about %.0fs per kill", dps.ttk));
+		text.append('\n');
+		text.append("Attack style: ").append(dps.style.name);
+		if (dps.style.stance != null && !dps.style.stance.equals(dps.style.name))
+			text.append(" (").append(dps.style.stance).append(')');
+		if (dps.spell != null)
+			text.append(", casting ").append(dps.spell.name);
+		text.append('\n');
+		var assumes = new ArrayList<String>();
+		for (Prayer p : dps.prayers)
+			assumes.add(p.displayName);
+		for (Potion p : dps.potions)
+			assumes.add(p.displayName);
+		if (!assumes.isEmpty())
+			text.append("Assumes ").append(String.join(", ", assumes)).append('\n');
 	}
 
 	private static JLabel message(String text) {

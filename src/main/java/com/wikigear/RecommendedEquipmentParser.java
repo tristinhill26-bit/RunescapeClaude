@@ -2,10 +2,12 @@ package com.wikigear;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -20,7 +22,15 @@ import javax.annotation.Nullable;
 public class RecommendedEquipmentParser
 {
 	private static final Pattern TEMPLATE_START = Pattern.compile("\\{\\{\\s*recommended[ _]equipment\\s*(?=\\||}})", Pattern.CASE_INSENSITIVE);
-	private static final Pattern INVENTORY_START = Pattern.compile("\\{\\{\\s*inventory\\s*(?=\\||}})", Pattern.CASE_INSENSITIVE);
+	private static final Pattern INVENTORY_START = Pattern.compile("\\{\\{\\s*(inventory|loadout)\\s*(?=\\||}})", Pattern.CASE_INSENSITIVE);
+	/**
+	 * Equipment parameters of {{Loadout}}, which shows a whole setup with its inventory
+	 */
+	private static final String[][] LOADOUT_SLOTS = {
+		{ "head", "head" }, { "cape", "cape" }, { "neck", "neck" }, { "ammo", "ammo" }, { "weapon", "weapon" },
+		{ "shield", "shield" }, { "torso", "body" }, { "body", "body" }, { "legs", "legs" }, { "gloves", "hands" },
+		{ "hands", "hands" }, { "boots", "feet" }, { "feet", "feet" }, { "ring", "ring" },
+	};
 	private static final Pattern SLOT_PARAM = Pattern.compile("^([a-z0-9]+?)(\\d+)$", Pattern.CASE_INSENSITIVE);
 	private static final Pattern HEADING = Pattern.compile("(?m)^(={2,6})\\s*([^=].*?)\\s*\\1\\s*$");
 	private static final Pattern TAB_LABEL = Pattern.compile("(?:<tabber>|\\|-\\|)\\s*([^=\\n|<]+?)\\s*=");
@@ -59,20 +69,39 @@ public class RecommendedEquipmentParser
 			positions.add(start);
 		}
 
-		attachInventories(wikitext, setups, positions);
+		var inventories = findInventories(wikitext);
+		attachInventories(setups, positions, inventories);
+		addLoadoutSetups(setups, contexts, inventories);
 		return disambiguate(setups, contexts);
 	}
 
 	/**
-	 * Attach each {{Inventory}} to the equipment table it follows, usually in the same tab or section.
-	 * An inventory before any equipment table goes with the first one, and a page's only inventory is
-	 * shared by every setup.
+	 * An {{Inventory}}, or the inventory of a {{Loadout}} along with its worn gear
 	 */
-	private static void attachInventories(String wikitext, List<GearSetup> setups, List<Integer> positions) {
-		if (setups.isEmpty())
-			return;
+	private static final class InventorySource
+	{
+		final List<String> items;
+		final int position;
+		/**
+		 * The tab or section it's in, e.g. "Magic Only"
+		 */
+		@Nullable
+		final String context;
+		/**
+		 * The worn gear, for a {{Loadout}}
+		 */
+		final Map<GearSlot, List<List<String>>> slots;
 
-		var inventories = new ArrayList<List<String>>();
+		InventorySource(List<String> items, int position, @Nullable String context, Map<GearSlot, List<List<String>>> slots) {
+			this.items = items;
+			this.position = position;
+			this.context = context;
+			this.slots = slots;
+		}
+	}
+
+	private static List<InventorySource> findInventories(String wikitext) {
+		var sources = new ArrayList<InventorySource>();
 		Matcher matcher = INVENTORY_START.matcher(wikitext);
 		int searchFrom = 0;
 		while (matcher.find(searchFrom)) {
@@ -82,23 +111,133 @@ public class RecommendedEquipmentParser
 				break;
 			searchFrom = end;
 
-			var inventory = parseInventory(wikitext.substring(start + 2, end - 2));
-			if (inventory.stream().allMatch(item -> item == null))
+			String body = wikitext.substring(start + 2, end - 2);
+			var items = parseInventory(body);
+			if (items.stream().allMatch(item -> item == null))
 				continue;
-			inventories.add(inventory);
-
-			int owner = 0;
-			for (int i = 0; i < positions.size(); i++)
-				if (positions.get(i) < start)
-					owner = i;
-			if (!setups.get(owner).hasInventory())
-				setups.set(owner, setups.get(owner).withInventory(inventory));
+			var slots = matcher.group(1).equalsIgnoreCase("loadout") ? parseLoadoutSlots(parseParams(body)) : GearSetup.emptySlots();
+			sources.add(new InventorySource(items, start, findContext(wikitext, start), slots));
 		}
+		return sources;
+	}
 
-		if (inventories.size() == 1) {
-			for (int i = 0; i < setups.size(); i++)
-				if (!setups.get(i).hasInventory())
-					setups.set(i, setups.get(i).withInventory(inventories.get(0)));
+	/**
+	 * The worn gear of a {{Loadout}}, each slot holding a single item, like head = Ahrim's hood
+	 */
+	private static Map<GearSlot, List<List<String>>> parseLoadoutSlots(Map<String, String> params) {
+		var slots = GearSetup.emptySlots();
+		for (String[] mapping : LOADOUT_SLOTS) {
+			String value = params.get(mapping[0]);
+			if (value == null || value.isEmpty())
+				continue;
+			var items = value.contains("{{") || value.contains("[[") ? extractItems(value) : new ArrayList<String>();
+			if (items.isEmpty()) {
+				String item = cleanText(value);
+				if (item != null && !item.isEmpty())
+					items.add(item);
+			}
+			if (items.isEmpty())
+				continue;
+			GearSlot slot = GearSlot.fromWikiName(mapping[1]);
+			slots.computeIfAbsent(slot, k -> new ArrayList<>()).add(items);
+		}
+		return slots;
+	}
+
+	/**
+	 * The combat styles a name mentions, e.g. {magic, ranged} for "Max Magic & Ranged"
+	 */
+	private static Set<String> stylesIn(@Nullable String text) {
+		var styles = new HashSet<String>();
+		if (text == null)
+			return styles;
+		String lower = text.toLowerCase(Locale.ROOT);
+		if (lower.contains("magic") || lower.contains("mage"))
+			styles.add("magic");
+		if (lower.contains("rang"))
+			styles.add("ranged");
+		if (lower.contains("melee") || lower.contains("stab") || lower.contains("slash") || lower.contains("crush"))
+			styles.add("melee");
+		return styles;
+	}
+
+	/**
+	 * How well an inventory's tab or section suits a setup: 3 for the same name, like "Magic" and "Magic Only",
+	 * 2 for the same styles, like "Magic (Diary kill)" and "Magic Only", 1 for a hybrid including the style, and 0
+	 * for no match
+	 */
+	private static int matchScore(String label, @Nullable String context) {
+		if (context == null)
+			return 0;
+		String a = label.toLowerCase(Locale.ROOT).trim();
+		String b = context.toLowerCase(Locale.ROOT).replaceAll("\\bonly\\b", "").trim();
+		if (a.equals(b))
+			return 3;
+		var labelStyles = stylesIn(label);
+		var contextStyles = stylesIn(context);
+		if (labelStyles.isEmpty())
+			return 0;
+		if (labelStyles.equals(contextStyles))
+			return 2;
+		return contextStyles.containsAll(labelStyles) ? 1 : 0;
+	}
+
+	/**
+	 * Give each equipment table an inventory: the one in a tab or section named for it, e.g. "Magic Only" for the
+	 * Magic table, or else the one that follows it before the next table, or else the nearest one, preferring the
+	 * first one after it, since pages often list every table first and the inventories after.
+	 */
+	private static void attachInventories(List<GearSetup> setups, List<Integer> positions, List<InventorySource> inventories) {
+		if (inventories.isEmpty())
+			return;
+
+		for (int i = 0; i < setups.size(); i++) {
+			InventorySource best = null;
+			int bestScore = 0;
+			for (var source : inventories) {
+				int score = matchScore(setups.get(i).getLabel(), source.context);
+				if (score > bestScore) {
+					best = source;
+					bestScore = score;
+				}
+			}
+
+			if (best == null) {
+				int from = positions.get(i);
+				int to = i + 1 < positions.size() ? positions.get(i + 1) : Integer.MAX_VALUE;
+				InventorySource after = null;
+				for (var source : inventories) {
+					if (source.position > from && source.position < to) {
+						best = source;
+						break;
+					}
+					if (after == null && source.position > from)
+						after = source;
+				}
+				if (best == null)
+					best = after != null ? after : inventories.get(inventories.size() - 1);
+			}
+			setups.set(i, setups.get(i).withInventory(best.items));
+		}
+	}
+
+	/**
+	 * Offer {{Loadout}}s that aren't just one of the tables' styles as setups of their own, like Zulrah's
+	 * "Max Magic & Ranged", which wears magic gear and carries ranged switches
+	 */
+	private static void addLoadoutSetups(List<GearSetup> setups, List<String> contexts, List<InventorySource> inventories) {
+		var existing = new ArrayList<>(setups);
+		for (var source : inventories) {
+			if (source.slots.isEmpty())
+				continue;
+			boolean matchesTable = false;
+			for (var setup : existing)
+				matchesTable |= matchScore(setup.getLabel(), source.context) >= 2;
+			if (matchesTable)
+				continue;
+			String label = source.context != null ? source.context : "Loadout " + (setups.size() + 1);
+			setups.add(new GearSetup(label, source.slots, source.items));
+			contexts.add(source.context);
 		}
 	}
 

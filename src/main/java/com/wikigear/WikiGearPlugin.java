@@ -1,6 +1,7 @@
 package com.wikigear;
 
 import com.google.inject.Provides;
+import com.wikigear.dps.Monster;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -9,8 +10,10 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -22,9 +25,13 @@ import net.runelite.api.EnumID;
 import net.runelite.api.GameState;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
+import net.runelite.api.Quest;
+import net.runelite.api.QuestState;
 import net.runelite.api.ScriptID;
+import net.runelite.api.Skill;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.InventoryID;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.game.ItemEquipmentStats;
@@ -87,6 +94,12 @@ public class WikiGearPlugin extends Plugin {
 	@Inject
 	private WikiGearConfig config;
 
+	@Inject
+	private DpsDataService dpsData;
+
+	@Inject
+	private ScheduledExecutorService executor;
+
 	private WikiGearPanel panel;
 	private NavigationButton navigationButton;
 
@@ -103,6 +116,21 @@ public class WikiGearPlugin extends Plugin {
 		 * Text for Bank Tags' "Import tag tab", which creates the tab with this layout
 		 */
 		public final String importText;
+		/**
+		 * The DPS calculator's numbers for the gear, if it was chosen for the highest DPS
+		 */
+		@Nullable
+		public final DpsOptimizer.Result dps;
+	}
+
+	/**
+	 * Choose gear for the highest DPS against this monster, rather than in the wiki's order
+	 */
+	@RequiredArgsConstructor
+	public static class DpsRequest
+	{
+		public final Monster monster;
+		public final boolean onSlayerTask;
 	}
 
 	@Provides
@@ -120,6 +148,7 @@ public class WikiGearPlugin extends Plugin {
 			.panel(panel)
 			.build();
 		clientToolbar.addNavigation(navigationButton);
+		executor.execute(dpsData::load);
 	}
 
 	@Override
@@ -130,9 +159,29 @@ public class WikiGearPlugin extends Plugin {
 	}
 
 	/**
-	 * Create a bank tag for each setup with the best gear the player owns, then call back on the client thread.
+	 * Calculator monsters matching a wiki page name, or an empty list while the DPS data is still loading
 	 */
-	void createLoadouts(String monster, List<GearSetup> setups, boolean wilderness, Consumer<List<LoadoutResult>> onDone, Consumer<String> onError) {
+	List<Monster> findDpsMonsters(String name) {
+		var data = dpsData.get();
+		return data == null ? List.of() : DpsPlanner.findMonsters(data, name, 30);
+	}
+
+	boolean isDpsDataLoaded() {
+		return dpsData.get() != null;
+	}
+
+	void setOptimiseDps(boolean optimise) {
+		configManager.setConfiguration(WikiGearConfig.CONFIG_GROUP, "optimiseDps", optimise);
+	}
+
+	/**
+	 * Create a bank tag for each setup with the best gear the player owns, then call back on the client thread.
+	 *
+	 * @param dpsRequest choose gear for the highest DPS against this monster, or null to follow the wiki's order
+	 * @param combine    make one tag wearing the first setup, with the others' gear as switches in the inventory
+	 */
+	void createLoadouts(String monster, List<GearSetup> setups, boolean wilderness, @Nullable DpsRequest dpsRequest,
+		boolean combine, Consumer<List<LoadoutResult>> onDone, Consumer<String> onError) {
 		clientThread.invoke(() -> {
 			if (client.getGameState() != GameState.LOGGED_IN) {
 				onError.accept("Log in first.");
@@ -158,31 +207,200 @@ public class WikiGearPlugin extends Plugin {
 			addOwned(owned, client.getItemContainer(InventoryID.INV), allowBlighted);
 			addPotionStore(owned, allowBlighted);
 
-			var results = new ArrayList<LoadoutResult>();
-			for (var setup : setups) {
-				var result = GearPicker.pick(setup, owned, config.fillEmptySlots(), substitutes);
-				if (!config.includeSpecial())
-					result.picks.remove(GearSlot.SPECIAL);
-				if (!config.includeInventory()) {
-					Arrays.fill(result.inventory, -1);
-					result.missingInventory.clear();
-					result.substitutions.clear();
-				}
-				String tag = tagName(monster, setup);
-				int[] layout = TagExport.layout(result);
-				saveTag(tag, result, layout);
-				int iconItemId = TagExport.iconItem(result, layout);
-				if (config.addTab())
-					addTagTab(tag, iconItemId);
-				String importText = TagExport.toImportText(tag, iconItemId, layout);
-				results.add(new LoadoutResult(setup, tag, result, importText));
+			var results = new ArrayList<GearPicker.Result>();
+			for (var setup : setups)
+				results.add(GearPicker.pick(setup, owned, config.fillEmptySlots(), substitutes));
+
+			if (dpsRequest == null) {
+				saveLoadouts(monster, setups, results, new ArrayList<>(), combine, owned, onDone);
+				return;
 			}
 
-			if (config.openTag() && !results.isEmpty() && isBankOpen())
-				bankTagsService.openBankTag(results.get(0).tag, BankTagsService.OPTION_ALLOW_MODIFICATIONS);
-
-			onDone.accept(results);
+			// The DPS search can take a second or two with a big bank, so keep it off the client thread
+			var state = readPlayerState();
+			executor.execute(() -> {
+				var dps = new ArrayList<DpsOptimizer.Result>();
+				try {
+					for (int i = 0; i < results.size(); i++) {
+						dps.add(optimise(results.get(i), owned, state, dpsRequest, wilderness));
+						results.set(i, addHybridSwitches(setups.get(i), results.get(i), owned, state, dpsRequest, wilderness));
+					}
+				} catch (RuntimeException ex) {
+					log.warn("DPS optimisation failed", ex);
+					clientThread.invoke(() -> onError.accept("The DPS calculation failed: " + ex.getMessage()));
+					return;
+				}
+				clientThread.invoke(() -> saveLoadouts(monster, setups, results, dps, combine, owned, onDone));
+			});
 		});
+	}
+
+	/**
+	 * Swap the gear picks for the highest DPS gear owned. Returns null, keeping the wiki's picks, when that's impossible.
+	 */
+	@Nullable
+	private DpsOptimizer.Result optimise(GearPicker.Result result, GearPicker.OwnedItems owned, DpsPlanner.PlayerState state,
+		DpsRequest request, boolean wilderness) {
+		var data = dpsData.get();
+		if (data == null) {
+			result.notes.add("The DPS calculator's data hasn't loaded yet, so this follows the wiki's order.");
+			return null;
+		}
+
+		var ctx = new DpsOptimizer.Context();
+		ctx.monster = request.monster;
+		ctx.skills = state.skills;
+		ctx.prayers = DpsPlanner.unlockedPrayers(state);
+		ctx.spells = DpsPlanner.castableSpells(data, state);
+		ctx.potions = DpsPlanner.potions(owned, request.monster, config.assumeAnyPotion(), result.notes);
+		ctx.onSlayerTask = request.onSlayerTask;
+		ctx.inWilderness = wilderness;
+		ctx.kandarinDiary = state.kandarinHardDiary;
+		ctx.candidates = DpsPlanner.candidates(data, owned);
+		ctx.seed = DpsPlanner.seed(result.picks, ctx.candidates);
+		ctx.blowpipeDart = DpsPlanner.blowpipeDart(data, ctx.candidates);
+
+		var best = result.style != null ? DpsOptimizer.optimise(ctx, result.style) : DpsOptimizer.optimiseAny(ctx);
+		if (best == null) {
+			result.notes.add("Nothing you own can attack " + request.monster.name + " this way, so this follows the wiki's order.");
+			return null;
+		}
+		DpsPlanner.applyResult(result.picks, best, owned);
+		if (best.equipment.weapon != null && com.wikigear.dps.Constants.has(com.wikigear.dps.Constants.BLOWPIPE_IDS,
+			data.canonicalItemId(best.equipment.weapon.id)) && ctx.blowpipeDart != null)
+			result.notes.add("Assumes " + ctx.blowpipeDart.name + "s in your blowpipe.");
+		return best;
+	}
+
+	/**
+	 * For a setup that names two styles, like "Void Mage and Ranged", choose the highest DPS gear for the second style
+	 * too, starting from the switches the wiki carries that the player owns, and carry it in the inventory
+	 */
+	private GearPicker.Result addHybridSwitches(GearSetup setup, GearPicker.Result result, GearPicker.OwnedItems owned,
+		DpsPlanner.PlayerState state, DpsRequest request, boolean wilderness) {
+		var styles = CombatStyle.mentioned(setup.getLabel());
+		if (styles.size() < 2 || dpsData.get() == null)
+			return result;
+
+		var results = new ArrayList<GearPicker.Result>();
+		var labels = new ArrayList<String>();
+		var dpsNotes = new ArrayList<String>();
+		results.add(result);
+		labels.add(setup.getLabel());
+		for (var style : styles) {
+			if (style == result.style)
+				continue;
+			int[] noInventory = new int[GearSetup.INVENTORY_SIZE];
+			Arrays.fill(noInventory, -1);
+			var switches = new GearPicker.Result(HybridLoadout.switchStartingPicks(result, owned), new ArrayList<>(), style,
+				noInventory, new ArrayList<>(), new LinkedHashMap<>());
+			var best = optimise(switches, owned, state, request, wilderness);
+			if (best == null)
+				continue;
+			String label = Text.titleCase(style);
+			results.add(switches);
+			labels.add(label);
+			dpsNotes.add(String.format("%s switches: DPS %.2f, max hit %.0f.", label, best.dps, best.maxHit));
+		}
+		if (results.size() < 2)
+			return result;
+
+		var merged = HybridLoadout.merge(results, labels, owned, this::equipmentSlotOf);
+		merged.notes.addAll(dpsNotes);
+		return merged;
+	}
+
+	/**
+	 * The equipment slot of an item by its name, from the DPS calculator's data, or null if it isn't equipment
+	 */
+	@Nullable
+	private Integer equipmentSlotOf(String name) {
+		var data = dpsData.get();
+		if (data == null)
+			return null;
+		for (var piece : data.equipment) {
+			if (piece.name.equalsIgnoreCase(name)) {
+				var slot = GearSlot.fromWikiName(piece.slot);
+				return slot == null ? null : slot.getEquipmentSlot();
+			}
+		}
+		return null;
+	}
+
+	private DpsPlanner.PlayerState readPlayerState() {
+		var state = new DpsPlanner.PlayerState();
+		var s = state.skills;
+		s.atk = client.getRealSkillLevel(Skill.ATTACK);
+		s.str = client.getRealSkillLevel(Skill.STRENGTH);
+		s.def = client.getRealSkillLevel(Skill.DEFENCE);
+		s.hp = client.getRealSkillLevel(Skill.HITPOINTS);
+		s.ranged = client.getRealSkillLevel(Skill.RANGED);
+		s.magic = client.getRealSkillLevel(Skill.MAGIC);
+		s.prayer = client.getRealSkillLevel(Skill.PRAYER);
+		s.mining = client.getRealSkillLevel(Skill.MINING);
+		s.herblore = client.getRealSkillLevel(Skill.HERBLORE);
+		// Finishing the Knight Waves training ground unlocks Chivalry and Piety
+		state.knightWaves = client.getVarbitValue(VarbitID.KR_KNIGHTWAVES_STATE) >= 8;
+		state.rigour = client.getVarbitValue(VarbitID.PRAYER_RIGOUR_UNLOCKED) != 0;
+		state.augury = client.getVarbitValue(VarbitID.PRAYER_AUGURY_UNLOCKED) != 0;
+		state.deadeye = client.getVarbitValue(VarbitID.PRAYER_DEADEYE_UNLOCKED) != 0;
+		state.mysticVigour = client.getVarbitValue(VarbitID.PRAYER_MYSTIC_VIGOUR_UNLOCKED) != 0;
+		state.desertTreasure = Quest.DESERT_TREASURE_I.getState(client) == QuestState.FINISHED;
+		state.kandarinHardDiary = client.getVarbitValue(VarbitID.KANDARIN_DIARY_HARD_COMPLETE) == 1;
+		return state;
+	}
+
+	private void saveLoadouts(String monster, List<GearSetup> setups, List<GearPicker.Result> picked,
+		List<DpsOptimizer.Result> dps, boolean combine, GearPicker.OwnedItems owned, Consumer<List<LoadoutResult>> onDone) {
+		for (var result : picked) {
+			if (!config.includeSpecial())
+				result.picks.remove(GearSlot.SPECIAL);
+			if (!config.includeInventory()) {
+				Arrays.fill(result.inventory, -1);
+				result.missingInventory.clear();
+				result.substitutions.clear();
+			}
+		}
+
+		var tagSetups = new ArrayList<>(setups);
+		var tagResults = new ArrayList<>(picked);
+		var tagDps = new ArrayList<>(dps);
+		if (combine && setups.size() > 1) {
+			var labels = new ArrayList<String>();
+			for (var setup : setups)
+				labels.add(setup.getLabel());
+			var merged = HybridLoadout.merge(picked, labels, owned, this::equipmentSlotOf);
+			for (int i = 1; i < dps.size(); i++)
+				if (dps.get(i) != null)
+					merged.notes.add(String.format("%s switches: DPS %.2f, max hit %.0f.", labels.get(i), dps.get(i).dps, dps.get(i).maxHit));
+			tagSetups = new ArrayList<>(List.of(setups.get(0).withLabel(String.join(" and ", labels))));
+			tagResults = new ArrayList<>(List.of(merged));
+			tagDps = new ArrayList<>();
+			tagDps.add(dps.isEmpty() ? null : dps.get(0));
+		}
+
+		var results = new ArrayList<LoadoutResult>();
+		for (int i = 0; i < tagSetups.size(); i++) {
+			var setup = tagSetups.get(i);
+			var result = tagResults.get(i);
+			String tag = tagName(monster, setup);
+			int[] layout = TagExport.layout(result);
+			saveTag(tag, result, layout);
+			int iconItemId = TagExport.iconItem(result, layout);
+			if (config.addTab())
+				addTagTab(tag, iconItemId);
+			String importText = TagExport.toImportText(tag, iconItemId, layout);
+			results.add(new LoadoutResult(setup, tag, result, importText, i < tagDps.size() ? tagDps.get(i) : null));
+		}
+
+		if (config.openTag() && !results.isEmpty() && isBankOpen())
+			bankTagsService.openBankTag(results.get(0).tag, BankTagsService.OPTION_ALLOW_MODIFICATIONS);
+
+		onDone.accept(results);
+	}
+
+	void setCombineStyles(boolean combine) {
+		configManager.setConfiguration(WikiGearConfig.CONFIG_GROUP, "combineStyles", combine);
 	}
 
 	private void addOwned(GearPicker.OwnedItems owned, ItemContainer container, boolean allowBlighted) {
