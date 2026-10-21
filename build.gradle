@@ -13,7 +13,16 @@ repositories {
 	mavenCentral()
 }
 
-def runeLiteVersion = '1.13.+'
+// Always build against the newest RuneLite release, like the official launcher does. Game updates often ship
+// with a RuneLite release that fixes plugins (e.g. 1.13.3 fixed prayer reordering for the 2026-10-20 cache), so
+// an older client can still log in but have broken features.
+def runeLiteVersion = 'latest.release'
+
+configurations.configureEach {
+	// Gradle remembers which version 'latest.release' meant for 24 hours by default, which kept launches on an
+	// outdated client after a release. Check for a new release on every launch instead.
+	resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+}
 def pluginMainClass = 'rs117.hd.HdPluginTest'
 
 dependencies {
