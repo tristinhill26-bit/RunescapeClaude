@@ -175,13 +175,13 @@ public interface MadAngelConfig extends Config
 	@ConfigItem(
 		keyName = "smiteHitTicks",
 		name = "Strike lands",
-		description = "Ticks from the start of a normal smite to the lightning's damage. \"PRAY MAGE!\" shows the tick before, so the prayer is up when it lands.",
+		description = "Ticks from the start of a normal smite to the bolt landing on you. \"PRAY MAGE!\" shows the tick before, so the prayer turns on as it lands, which blocks it fully.",
 		section = smiteSection,
 		position = 1
 	)
 	default int smiteTicks()
 	{
-		return 6;
+		return 7;
 	}
 
 
@@ -189,13 +189,13 @@ public interface MadAngelConfig extends Config
 	@ConfigItem(
 		keyName = "enragedFirstHitTicks",
 		name = "Enraged 1st strike",
-		description = "Ticks from the start of an enraged smite to the first strike's damage",
+		description = "Ticks from the start of an enraged smite to the first bolt landing on you",
 		section = smiteSection,
 		position = 2
 	)
 	default int enragedFirstTicks()
 	{
-		return 6;
+		return 7;
 	}
 
 	@Range(min = 1, max = 10)
@@ -227,7 +227,7 @@ public interface MadAngelConfig extends Config
 	@ConfigItem(
 		keyName = "smiteChat",
 		name = "Timing in chat",
-		description = "Post a tick-by-tick log of each smite in chat (\"you took\" is the strike's damage), to tune the delays above",
+		description = "Post a tick-by-tick log of each smite in chat, to tune the delays above. The bolt shows on you a tick after its \"you took\" line.",
 		section = smiteSection,
 		position = 5
 	)
