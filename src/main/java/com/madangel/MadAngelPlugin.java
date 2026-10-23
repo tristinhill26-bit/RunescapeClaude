@@ -43,6 +43,11 @@ public class MadAngelPlugin extends Plugin
 	private static final int SMITE_IMPACT = 4013;
 
 	/**
+	 * How long after a smite starts a lightning hit on you still counts as part of it.
+	 */
+	private static final int SMITE_REPORT_TICKS = 20;
+
+	/**
 	 * Game ticks without a sweep animation before we decide the sweep is over.
 	 */
 	private static final int SWEEP_TIMEOUT_TICKS = 4;
@@ -67,7 +72,7 @@ public class MadAngelPlugin extends Plugin
 	@Getter
 	private NPC smiteNpc;
 	private final SmiteTimer smiteTimer = new SmiteTimer();
-	private int smiteStartTick;
+	private int smiteStartTick = -1;
 
 	/**
 	 * Exploding Light balls in flight, and the tile each will land on.
@@ -207,9 +212,12 @@ public class MadAngelPlugin extends Plugin
 			return;
 		}
 
-		if (smiteNpc != null && config.smiteChat())
+		// Checked against the last smite start rather than the countdown, so a hit later than the
+		// configured delay still gets reported.
+		int ticks = client.getTickCount() - smiteStartTick;
+		if (smiteStartTick >= 0 && ticks <= SMITE_REPORT_TICKS && config.smiteChat())
 		{
-			chat("Smite hit you " + (client.getTickCount() - smiteStartTick) + " ticks after it started");
+			chat("Smite hit you " + ticks + " ticks after it started");
 		}
 	}
 
