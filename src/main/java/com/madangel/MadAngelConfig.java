@@ -173,7 +173,7 @@ public interface MadAngelConfig extends Config
 
 	@Range(min = 2, max = 10)
 	@ConfigItem(
-		keyName = "smiteHitTicks",
+		keyName = "smiteBoltTicks",
 		name = "Strike lands",
 		description = "Ticks from the start of a normal smite to the bolt landing on you. \"PRAY MAGE!\" shows the tick before, so the prayer turns on as it lands, which blocks it fully.",
 		section = smiteSection,
@@ -187,7 +187,7 @@ public interface MadAngelConfig extends Config
 
 	@Range(min = 2, max = 10)
 	@ConfigItem(
-		keyName = "enragedFirstHitTicks",
+		keyName = "enragedFirstBoltTicks",
 		name = "Enraged 1st strike",
 		description = "Ticks from the start of an enraged smite to the first bolt landing on you",
 		section = smiteSection,
