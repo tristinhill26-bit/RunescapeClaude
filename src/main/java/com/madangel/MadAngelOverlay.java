@@ -5,6 +5,7 @@ import com.madangel.SweepGeometry.Tile;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.Stroke;
@@ -51,7 +52,34 @@ class MadAngelOverlay extends Overlay
 	{
 		renderSweep(graphics);
 		renderLights(graphics);
+		renderSmite(graphics);
 		return null;
+	}
+
+	private void renderSmite(Graphics2D graphics)
+	{
+		NPC npc = plugin.getSmiteNpc();
+		int ticks = plugin.getSmiteTicks();
+		if (!config.showSmite() || npc == null || ticks < 0)
+		{
+			return;
+		}
+
+		String text = ticks == 0 ? "PRAY MAGE!" : "Mage in " + ticks;
+		String strike = plugin.getSmiteStrikeLabel();
+		if (strike != null)
+		{
+			text += " (" + strike + ")";
+		}
+
+		Font old = graphics.getFont();
+		graphics.setFont(old.deriveFont(Font.BOLD, 20f));
+		Point point = npc.getCanvasTextLocation(graphics, text, npc.getLogicalHeight() + 60);
+		if (point != null)
+		{
+			OverlayUtil.renderTextLocation(graphics, point, text, ticks == 0 ? config.smiteNowColor() : config.smiteColor());
+		}
+		graphics.setFont(old);
 	}
 
 	private void renderSweep(Graphics2D graphics)

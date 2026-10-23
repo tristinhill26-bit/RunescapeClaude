@@ -27,6 +27,13 @@ public interface MadAngelConfig extends Config
 	)
 	String lightSection = "light";
 
+	@ConfigSection(
+		name = "Smite",
+		description = "The lightning strike you block with Protect from Magic",
+		position = 2
+	)
+	String smiteSection = "smite";
+
 	@ConfigItem(
 		keyName = "showDodge",
 		name = "Show dodge tile",
@@ -150,5 +157,105 @@ public interface MadAngelConfig extends Config
 	default Color lightColor()
 	{
 		return new Color(0, 220, 255, 120);
+	}
+
+	@ConfigItem(
+		keyName = "showSmite",
+		name = "Show smite countdown",
+		description = "Count down over her head to the tick to turn on Protect from Magic. Praying on that tick fully blocks the strike.",
+		section = smiteSection,
+		position = 0
+	)
+	default boolean showSmite()
+	{
+		return true;
+	}
+
+	@Range(min = 1, max = 10)
+	@ConfigItem(
+		keyName = "smiteTicks",
+		name = "Strike delay",
+		description = "Ticks from the start of a normal smite to the strike (wiki: 4)",
+		section = smiteSection,
+		position = 1
+	)
+	default int smiteTicks()
+	{
+		return 4;
+	}
+
+	@Range(min = 1, max = 10)
+	@ConfigItem(
+		keyName = "enragedFirstTicks",
+		name = "Enraged 1st strike",
+		description = "Ticks from the start of an enraged smite to the first strike",
+		section = smiteSection,
+		position = 2
+	)
+	default int enragedFirstTicks()
+	{
+		return 4;
+	}
+
+	@Range(min = 1, max = 10)
+	@ConfigItem(
+		keyName = "enragedSecondTicks",
+		name = "Enraged 2nd strike",
+		description = "Ticks from the first enraged strike to the second (wiki: 4)",
+		section = smiteSection,
+		position = 3
+	)
+	default int enragedSecondTicks()
+	{
+		return 4;
+	}
+
+	@Range(min = 1, max = 10)
+	@ConfigItem(
+		keyName = "enragedThirdTicks",
+		name = "Enraged 3rd strike",
+		description = "Ticks from the second enraged strike to the third (wiki: 2)",
+		section = smiteSection,
+		position = 4
+	)
+	default int enragedThirdTicks()
+	{
+		return 2;
+	}
+
+	@ConfigItem(
+		keyName = "smiteChat",
+		name = "Timing in chat",
+		description = "Post in chat when a smite starts and how many ticks later the lightning hits you, to tune the delays above",
+		section = smiteSection,
+		position = 5
+	)
+	default boolean smiteChat()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "smiteColor",
+		name = "Countdown colour",
+		description = "Colour of the countdown before the strike",
+		section = smiteSection,
+		position = 6
+	)
+	default Color smiteColor()
+	{
+		return new Color(80, 160, 255);
+	}
+
+	@ConfigItem(
+		keyName = "smiteNowColor",
+		name = "Pray now colour",
+		description = "Colour of the text on the tick to pray",
+		section = smiteSection,
+		position = 7
+	)
+	default Color smiteNowColor()
+	{
+		return new Color(255, 60, 255);
 	}
 }
