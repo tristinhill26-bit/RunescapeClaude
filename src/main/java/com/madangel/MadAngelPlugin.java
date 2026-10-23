@@ -14,7 +14,6 @@ import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.NPC;
-import net.runelite.api.Player;
 import net.runelite.api.Projectile;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.events.AnimationChanged;
@@ -43,12 +42,7 @@ public class MadAngelPlugin extends Plugin
 	static final int EXPLODING_LIGHT_PROJECTILE = 4015;
 
 	/**
-	 * VFX_MAD_ANGEL_ATTACK_SMITE_IMPACT: the lightning landing on you.
-	 */
-	private static final int SMITE_IMPACT = 4013;
-
-	/**
-	 * How long after a smite starts a lightning hit on you still counts as part of it.
+	 * How many ticks after a smite starts the timing log keeps posting.
 	 */
 	private static final int SMITE_REPORT_TICKS = 20;
 
@@ -83,7 +77,6 @@ public class MadAngelPlugin extends Plugin
 	private NPC smiteNpc;
 	private final SmiteTimer smiteTimer = new SmiteTimer();
 	private int smiteStartTick = -1;
-	private int lastImpactCycle = -1;
 
 	/**
 	 * The NPC that last cast smite, kept after the countdown ends so the timing log can follow it.
@@ -193,7 +186,6 @@ public class MadAngelPlugin extends Plugin
 		{
 			endSmite();
 		}
-		checkSmiteImpact();
 		if (getSmiteTicks() == 0)
 		{
 			logTiming("countdown says PRAY MAGE");
@@ -274,43 +266,6 @@ public class MadAngelPlugin extends Plugin
 		}
 	}
 
-	/**
-	 * Reports the tick the lightning lands on you, once per hit, so the delays can be tuned.
-	 */
-	private void checkSmiteImpact()
-	{
-		Player player = client.getLocalPlayer();
-		if (player == null)
-		{
-			return;
-		}
-
-		// Each strike restarts the impact graphic, so a new start cycle is a new hit even when the last
-		// one is still playing.
-		boolean landed = false;
-		for (ActorSpotAnim spotAnim : player.getSpotAnims())
-		{
-			int start = spotAnim.getStartCycle();
-			if (spotAnim.getId() == SMITE_IMPACT && start != lastImpactCycle && start <= client.getGameCycle())
-			{
-				lastImpactCycle = start;
-				landed = true;
-			}
-		}
-		if (!landed)
-		{
-			return;
-		}
-
-		// Checked against the last smite start rather than the countdown, so a hit later than the
-		// configured delay still gets reported.
-		int ticks = client.getTickCount() - smiteStartTick;
-		if (smiteStartTick >= 0 && ticks <= SMITE_REPORT_TICKS && config.smiteChat())
-		{
-			chat("Smite hit you " + ticks + " ticks after it started");
-		}
-	}
-
 	@Subscribe
 	public void onNpcDespawned(NpcDespawned event)
 	{
@@ -358,10 +313,6 @@ public class MadAngelPlugin extends Plugin
 		if (enraged)
 		{
 			smiteTimer.start(tick, config.enragedFirstTicks() - PRAYER_DELAY, config.enragedSecondTicks(), config.enragedThirdTicks());
-		}
-		else if (config.smiteSecondTicks() > 0)
-		{
-			smiteTimer.start(tick, config.smiteTicks() - PRAYER_DELAY, config.smiteSecondTicks());
 		}
 		else
 		{

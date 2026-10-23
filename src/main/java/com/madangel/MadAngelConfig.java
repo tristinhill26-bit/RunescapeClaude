@@ -173,41 +173,29 @@ public interface MadAngelConfig extends Config
 
 	@Range(min = 2, max = 10)
 	@ConfigItem(
-		keyName = "smiteTicks",
+		keyName = "smiteHitTicks",
 		name = "Strike lands",
-		description = "Ticks from the start of a normal smite to the lightning hitting you. \"PRAY MAGE!\" shows the tick before, so the prayer is up when it lands.",
+		description = "Ticks from the start of a normal smite to the lightning's damage. \"PRAY MAGE!\" shows the tick before, so the prayer is up when it lands.",
 		section = smiteSection,
 		position = 1
 	)
 	default int smiteTicks()
 	{
-		return 5;
+		return 6;
 	}
 
-	@Range(min = 0, max = 10)
-	@ConfigItem(
-		keyName = "smiteSecondTicks",
-		name = "Normal 2nd strike",
-		description = "Ticks from the first normal strike to a second one, or 0 if she only strikes once",
-		section = smiteSection,
-		position = 2
-	)
-	default int smiteSecondTicks()
-	{
-		return 2;
-	}
 
 	@Range(min = 2, max = 10)
 	@ConfigItem(
-		keyName = "enragedFirstTicks",
+		keyName = "enragedFirstHitTicks",
 		name = "Enraged 1st strike",
-		description = "Ticks from the start of an enraged smite to the first strike hitting you",
+		description = "Ticks from the start of an enraged smite to the first strike's damage",
 		section = smiteSection,
-		position = 3
+		position = 2
 	)
 	default int enragedFirstTicks()
 	{
-		return 5;
+		return 6;
 	}
 
 	@Range(min = 1, max = 10)
@@ -216,7 +204,7 @@ public interface MadAngelConfig extends Config
 		name = "Enraged 2nd strike",
 		description = "Ticks from the first enraged strike to the second (wiki: 4)",
 		section = smiteSection,
-		position = 4
+		position = 3
 	)
 	default int enragedSecondTicks()
 	{
@@ -229,7 +217,7 @@ public interface MadAngelConfig extends Config
 		name = "Enraged 3rd strike",
 		description = "Ticks from the second enraged strike to the third (wiki: 2)",
 		section = smiteSection,
-		position = 5
+		position = 4
 	)
 	default int enragedThirdTicks()
 	{
@@ -239,9 +227,9 @@ public interface MadAngelConfig extends Config
 	@ConfigItem(
 		keyName = "smiteChat",
 		name = "Timing in chat",
-		description = "Post in chat when a smite starts and how many ticks later each lightning strike hits you, to tune the delays above",
+		description = "Post a tick-by-tick log of each smite in chat (\"you took\" is the strike's damage), to tune the delays above",
 		section = smiteSection,
-		position = 6
+		position = 5
 	)
 	default boolean smiteChat()
 	{
@@ -253,7 +241,7 @@ public interface MadAngelConfig extends Config
 		name = "Countdown colour",
 		description = "Colour of the countdown before the strike",
 		section = smiteSection,
-		position = 7
+		position = 6
 	)
 	default Color smiteColor()
 	{
@@ -265,7 +253,7 @@ public interface MadAngelConfig extends Config
 		name = "Pray now colour",
 		description = "Colour of the text on the tick to pray",
 		section = smiteSection,
-		position = 8
+		position = 7
 	)
 	default Color smiteNowColor()
 	{
