@@ -3,7 +3,9 @@ package com.madangel;
 import com.google.inject.Provides;
 import com.madangel.SweepAnimations.Side;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import javax.inject.Inject;
 import lombok.Getter;
 import net.runelite.api.Actor;
@@ -18,6 +20,8 @@ import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.GraphicChanged;
+import net.runelite.api.events.HitsplatApplied;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.ProjectileMoved;
 import net.runelite.client.config.ConfigManager;
@@ -80,6 +84,12 @@ public class MadAngelPlugin extends Plugin
 	private final SmiteTimer smiteTimer = new SmiteTimer();
 	private int smiteStartTick = -1;
 	private int lastImpactCycle = -1;
+
+	/**
+	 * The NPC that last cast smite, kept after the countdown ends so the timing log can follow it.
+	 */
+	private NPC smiteCaster;
+	private final Set<Projectile> loggedProjectiles = new HashSet<>();
 
 	/**
 	 * Exploding Light balls in flight, and the tile each will land on.
@@ -152,6 +162,11 @@ public class MadAngelPlugin extends Plugin
 
 		NPC npc = (NPC) actor;
 		int animation = npc.getAnimation();
+		if (npc == smiteCaster && animation != SmiteTimer.SMITE && animation != SmiteTimer.SMITE_ENRAGED)
+		{
+			logTiming("boss animation " + animation);
+		}
+
 		if (animation == SmiteTimer.SMITE || animation == SmiteTimer.SMITE_ENRAGED)
 		{
 			startSmite(npc, animation == SmiteTimer.SMITE_ENRAGED);
@@ -179,6 +194,10 @@ public class MadAngelPlugin extends Plugin
 			endSmite();
 		}
 		checkSmiteImpact();
+		if (getSmiteTicks() == 0)
+		{
+			logTiming("countdown says PRAY MAGE");
+		}
 
 		if (sweepNpc == null)
 		{
@@ -206,9 +225,52 @@ public class MadAngelPlugin extends Plugin
 	public void onProjectileMoved(ProjectileMoved event)
 	{
 		Projectile projectile = event.getProjectile();
+		if (loggedProjectiles.add(projectile))
+		{
+			logTiming("projectile " + projectile.getId());
+		}
+
 		if (projectile.getId() == EXPLODING_LIGHT_PROJECTILE)
 		{
 			lights.put(projectile, event.getPosition());
+		}
+	}
+
+	@Subscribe
+	public void onGraphicChanged(GraphicChanged event)
+	{
+		Actor actor = event.getActor();
+		if (actor != smiteCaster && actor != client.getLocalPlayer())
+		{
+			return;
+		}
+
+		StringBuilder ids = new StringBuilder();
+		for (ActorSpotAnim spotAnim : actor.getSpotAnims())
+		{
+			ids.append(ids.length() == 0 ? "" : ", ").append(spotAnim.getId());
+		}
+		logTiming((actor == smiteCaster ? "boss" : "your") + " graphics: " + (ids.length() == 0 ? "none" : ids));
+	}
+
+	@Subscribe
+	public void onHitsplatApplied(HitsplatApplied event)
+	{
+		if (event.getActor() == client.getLocalPlayer())
+		{
+			logTiming("you took " + event.getHitsplat().getAmount());
+		}
+	}
+
+	/**
+	 * Posts a step of the smite with how many ticks after its start it happened, while the smite is recent.
+	 */
+	private void logTiming(String what)
+	{
+		int ticks = client.getTickCount() - smiteStartTick;
+		if (smiteStartTick >= 0 && ticks <= SMITE_REPORT_TICKS && config.smiteChat())
+		{
+			chat("t+" + ticks + ": " + what);
 		}
 	}
 
@@ -256,6 +318,10 @@ public class MadAngelPlugin extends Plugin
 		{
 			endSmite();
 		}
+		if (event.getNpc() == smiteCaster)
+		{
+			smiteCaster = null;
+		}
 
 		if (event.getNpc() == sweepNpc)
 		{
@@ -286,7 +352,9 @@ public class MadAngelPlugin extends Plugin
 		}
 
 		smiteNpc = npc;
+		smiteCaster = npc;
 		smiteStartTick = tick;
+		loggedProjectiles.clear();
 		if (enraged)
 		{
 			smiteTimer.start(tick, config.enragedFirstTicks() - PRAYER_DELAY, config.enragedSecondTicks(), config.enragedThirdTicks());
@@ -302,7 +370,7 @@ public class MadAngelPlugin extends Plugin
 
 		if (config.smiteChat())
 		{
-			chat(enraged ? "Enraged smite started" : "Smite started");
+			chat((enraged ? "Enraged smite started" : "Smite started") + " (animation " + (enraged ? SmiteTimer.SMITE_ENRAGED : SmiteTimer.SMITE) + ")");
 		}
 	}
 
