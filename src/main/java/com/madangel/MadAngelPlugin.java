@@ -7,16 +7,17 @@ import java.util.Map;
 import javax.inject.Inject;
 import lombok.Getter;
 import net.runelite.api.Actor;
+import net.runelite.api.ActorSpotAnim;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
 import net.runelite.api.NPC;
+import net.runelite.api.Player;
 import net.runelite.api.Projectile;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
-import net.runelite.api.events.GraphicChanged;
 import net.runelite.api.events.NpcDespawned;
 import net.runelite.api.events.ProjectileMoved;
 import net.runelite.client.config.ConfigManager;
@@ -48,6 +49,11 @@ public class MadAngelPlugin extends Plugin
 	private static final int SMITE_REPORT_TICKS = 20;
 
 	/**
+	 * A prayer clicked on one tick is up on the next, so the countdown ends a tick before each strike lands.
+	 */
+	private static final int PRAYER_DELAY = 1;
+
+	/**
 	 * Game ticks without a sweep animation before we decide the sweep is over.
 	 */
 	private static final int SWEEP_TIMEOUT_TICKS = 4;
@@ -73,6 +79,7 @@ public class MadAngelPlugin extends Plugin
 	private NPC smiteNpc;
 	private final SmiteTimer smiteTimer = new SmiteTimer();
 	private int smiteStartTick = -1;
+	private int lastImpactCycle = -1;
 
 	/**
 	 * Exploding Light balls in flight, and the tile each will land on.
@@ -171,6 +178,7 @@ public class MadAngelPlugin extends Plugin
 		{
 			endSmite();
 		}
+		checkSmiteImpact();
 
 		if (sweepNpc == null)
 		{
@@ -204,10 +212,30 @@ public class MadAngelPlugin extends Plugin
 		}
 	}
 
-	@Subscribe
-	public void onGraphicChanged(GraphicChanged event)
+	/**
+	 * Reports the tick the lightning lands on you, once per hit, so the delays can be tuned.
+	 */
+	private void checkSmiteImpact()
 	{
-		if (event.getActor() != client.getLocalPlayer() || !event.getActor().hasSpotAnim(SMITE_IMPACT))
+		Player player = client.getLocalPlayer();
+		if (player == null)
+		{
+			return;
+		}
+
+		// Each strike restarts the impact graphic, so a new start cycle is a new hit even when the last
+		// one is still playing.
+		boolean landed = false;
+		for (ActorSpotAnim spotAnim : player.getSpotAnims())
+		{
+			int start = spotAnim.getStartCycle();
+			if (spotAnim.getId() == SMITE_IMPACT && start != lastImpactCycle && start <= client.getGameCycle())
+			{
+				lastImpactCycle = start;
+				landed = true;
+			}
+		}
+		if (!landed)
 		{
 			return;
 		}
@@ -261,11 +289,15 @@ public class MadAngelPlugin extends Plugin
 		smiteStartTick = tick;
 		if (enraged)
 		{
-			smiteTimer.start(tick, config.enragedFirstTicks(), config.enragedSecondTicks(), config.enragedThirdTicks());
+			smiteTimer.start(tick, config.enragedFirstTicks() - PRAYER_DELAY, config.enragedSecondTicks(), config.enragedThirdTicks());
+		}
+		else if (config.smiteSecondTicks() > 0)
+		{
+			smiteTimer.start(tick, config.smiteTicks() - PRAYER_DELAY, config.smiteSecondTicks());
 		}
 		else
 		{
-			smiteTimer.start(tick, config.smiteTicks());
+			smiteTimer.start(tick, config.smiteTicks() - PRAYER_DELAY);
 		}
 
 		if (config.smiteChat())
