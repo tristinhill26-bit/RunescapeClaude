@@ -73,6 +73,22 @@ cd headunit/scripts
 ./02-backup.sh                  # can take a while over Wi-Fi. Leave the car running/ACC on
 ```
 
+### No laptop: use an Android phone (Termux)
+
+Install Termux from its [GitHub releases](https://github.com/termux/termux-app/releases), turn on the phone's hotspot,
+connect the stereo to it, then in Termux:
+
+```bash
+pkg install -y android-tools git
+git clone -b claude/pensive-lovelace-f9ez4m https://github.com/tristinhill26-bit/RunescapeClaude.git
+cd RunescapeClaude/headunit/scripts
+bash 00-connect.sh <stereo-ip>   # the real IP, without the < >
+termux-wake-lock                 # keeps Android from killing Termux during the backup
+bash 01-recon.sh
+```
+
+To hand a summary back, run `termux-setup-storage` once, then `cp ../recon/*/SUMMARY.txt ~/storage/downloads/` and attach the file.
+
 Then send back both `SUMMARY.txt` files (`recon/<time>/SUMMARY.txt` and `backup/<time>/SUMMARY.txt`).
 If `00-connect.sh` fails, send its output instead.
 
