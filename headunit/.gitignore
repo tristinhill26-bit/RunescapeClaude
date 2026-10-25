@@ -1,0 +1,5 @@
+# Device data stays on your laptop. Never commit it.
+.unit
+logs/
+recon/
+backup/
