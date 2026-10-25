@@ -54,6 +54,15 @@ Needs: a laptop (macOS, Linux, or Windows with **Git Bash**) and Google's
 | 7 | Verify: reboot, watch network connections, test AA/CarPlay/radio/camera/SWC/calls | No | |
 | 8 | Lock down adb so only your laptop can connect | Yes, reversible | optional |
 
+### What we know so far (recon, Oct 25 2026)
+
+- Real hardware: Rockchip RK3326 ("auto_rk_t20"), 4 cores, 4 GB, **Android 11** (SDK 30). The version string was edited to say 15. Security patch 2021-10-01.
+- Good: no `su`, adb runs as `shell` and needs approval, WebView 126. Bad: "unknown sources" on, no private DNS.
+- Vendor already disabled: TXZ voice assistant, log collector, Adobe Reader, Chrome, Google Maps, **FM/AM app (`com.imotor.fmam`)**.
+- `/system/bin/auto_recovery.sh` = reflash firmware from a USB stick containing an `auto-recovery` file. **Keep**: it's the unbrick path.
+- Owner decisions: FM radio doesn't work → propose re-enabling `com.imotor.fmam`. Netflix / Spotify / YouTube / HERE / Google app /
+  Car Launcher FREE → off for now (reversible); install official Play Store versions later if wanted.
+
 ### Step 0: on the stereo
 
 1. Connect the stereo to Wi-Fi: your home network if the car reaches it, otherwise a phone hotspot with the laptop on the same hotspot.
