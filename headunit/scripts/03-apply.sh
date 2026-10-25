@@ -60,22 +60,30 @@ EOF
 chmod +x "$undo"
 undo_add() { echo "$1" >>"$undo"; }   # appended in order; each line restores one item
 
-done_list=(); skipped=()
+done_list=(); skipped=(); failed=()
+# Write the undo line first, make the change, and take the undo line back out if Android refused it.
+change() {
+  local label="$1" cmd="$2" undo_cmd="$3" res
+  undo_add "rw_shell '$undo_cmd'"
+  res="$(rw_shell "$cmd" 2>&1)"
+  if [[ $res == *"new state:"* ]]; then
+    echo "  $label -> ${res##*new state: }"; done_list+=("$label")
+  else
+    sed -i '$d' "$undo"
+    echo "  $label -> REFUSED: $(echo "$res" | grep -m1 -E 'Exception|Error' )"; failed+=("$label")
+  fi
+}
 for pkg in "${DISABLE[@]}"; do
   if ! grep -qx "$pkg" "$run/before_all.txt"; then skipped+=("$pkg (not installed)"); continue; fi
   if [[ ${home%%/*} == "$pkg" ]]; then skipped+=("$pkg (is the home screen)"); continue; fi
   if [[ $pkg =~ $PROTECT_RE && $pkg != "$APPROVED_OVERRIDE" ]]; then skipped+=("$pkg (protected)"); continue; fi
   if grep -qx "$pkg" "$run/before_disabled.txt"; then skipped+=("$pkg (already disabled)"); continue; fi
-  undo_add "rw_shell 'pm enable $pkg'"
-  res="$(rw_shell "pm disable-user --user 0 $pkg")"
-  echo "  disable $pkg -> $res"; done_list+=("disabled $pkg")
+  change "disable $pkg" "pm disable-user --user 0 $pkg" "pm enable $pkg"
 done
 for pkg in "${ENABLE[@]}"; do
   if ! grep -qx "$pkg" "$run/before_all.txt"; then skipped+=("$pkg (not installed)"); continue; fi
   if ! grep -qx "$pkg" "$run/before_disabled.txt"; then skipped+=("$pkg (already enabled)"); continue; fi
-  undo_add "rw_shell 'pm disable-user --user 0 $pkg'"
-  res="$(rw_shell "pm enable $pkg")"
-  echo "  enable  $pkg -> $res"; done_list+=("enabled $pkg")
+  change "enable $pkg" "pm enable $pkg" "pm disable-user --user 0 $pkg"
 done
 
 # Private DNS
@@ -94,6 +102,7 @@ sleep 5
   echo "=== APPLY RESULT ($(date '+%F %T')) ==="
   echo "Changes:"; printf '  %s\n' "${done_list[@]}"
   echo "Skipped:"; printf '  %s\n' "${skipped[@]:-none}"
+  echo "Refused by Android:"; printf '  %s\n' "${failed[@]:-none}"
   echo
   echo "State now:"
   for pkg in "${DISABLE[@]}" "${ENABLE[@]}"; do
@@ -102,8 +111,8 @@ sleep 5
   done
   echo "  private DNS: $(ro_shell 'settings get global private_dns_mode' | tr -d '\r') $(ro_shell 'settings get global private_dns_specifier' | tr -d '\r')"
   echo
-  echo "DNS check (0.0.0.0 = blocked by AdGuard):"
-  for h in www.google.com iotapi.adups.com iotapi-new.abupdate.com uiotapi-new.abupdate.com piotapi-new.abupdate.com \
+  echo "DNS check (0.0.0.0 = blocked by AdGuard; doubleclick.net should be blocked if AdGuard is active):"
+  for h in www.google.com doubleclick.net iotapi.adups.com iotapi-new.abupdate.com uiotapi-new.abupdate.com piotapi-new.abupdate.com \
            www.imotoros.com.cn cms.carletter.cn; do
     ip="$(ro_shell "ping -c 1 -W 2 $h" 2>&1 | tr -d '\r' | sed -n 's/^PING [^ ]* (\([^)]*\)).*/\1/p' | head -1)"
     printf '  %-28s %s\n' "$h" "${ip:-no answer}"

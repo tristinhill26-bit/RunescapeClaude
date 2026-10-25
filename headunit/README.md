@@ -44,11 +44,11 @@ Needs: a laptop (macOS, Linux, or Windows with **Git Bash**) and Google's
 
 | # | Step | Changes the unit? | Status |
 |---|------|-------------------|--------|
-| 0 | Turn on debugging, connect over Wi-Fi (`00-connect.sh`) | No | **← you are here** |
-| 1 | Recon: real Android version, CPU, every app, boot scripts, su, network (`01-recon.sh`) | No | ready |
-| 2 | Full backup: every APK, all settings, boot scripts, SHA-256 manifest (`02-backup.sh`) | No | ready |
-| 3 | Claude sorts apps into keep / junk / not sure and you approve the list | No | after step 1 |
-| 4 | Disable the approved junk, with an undo script | Yes, reversible | after your OK |
+| 0 | Turn on debugging, connect over Wi-Fi (`00-connect.sh`) | No | done |
+| 1 | Recon: real Android version, CPU, every app, boot scripts, su, network (`01-recon.sh`, `01b-details.sh`, `01c-deep.sh`) | No | done |
+| 2 | Full backup: every APK, all settings, boot scripts, SHA-256 manifest (`02-backup.sh`) | No | done (114 pkgs, 1.7 GB) |
+| 3 | Claude sorts apps into keep / junk / not sure and you approve the list | No | done |
+| 4 | Disable the approved junk, with an undo script (`03-apply.sh`) | Yes, reversible | **done, testing ← you are here** |
 | 5 | Shut down silent installers, auto-reinstallers, the OTA updater and the su backdoor (originals saved first) | Yes, reversible | after your OK |
 | 6 | Private DNS (AdGuard), WebView update, open-source launcher, apps from GitHub releases | Yes, reversible | after your OK |
 | 7 | Verify: reboot, watch network connections, test AA/CarPlay/radio/camera/SWC/calls | No | |
@@ -60,6 +60,9 @@ Needs: a laptop (macOS, Linux, or Windows with **Git Bash**) and Google's
 - Good: no `su`, adb runs as `shell` and needs approval, WebView 126. Bad: "unknown sources" on, no private DNS.
 - Vendor already disabled: TXZ voice assistant, log collector, Adobe Reader, Chrome, Google Maps, **FM/AM app (`com.imotor.fmam`)**.
 - `/system/bin/auto_recovery.sh` = reflash firmware from a USB stick containing an `auto-recovery` file. **Keep**: it's the unbrick path.
+- **Step 4 applied 2026-10-25:** 13 apps disabled, AdGuard private DNS on. Re-enabling `com.imotor.fmam` was refused: Android lets
+  adb (shell) undo only *user* disables, and the vendor disabled this one at system level. Next try: factory menu → 9 App Settings.
+  AdGuard's default list does **not** block `adups.com` / `abupdate.com` / `carletter.cn`.
 - Owner decisions: FM radio doesn't work → propose re-enabling `com.imotor.fmam`. Netflix / Spotify / YouTube / HERE / Google app /
   Car Launcher FREE → off for now (reversible); install official Play Store versions later if wanted.
 
