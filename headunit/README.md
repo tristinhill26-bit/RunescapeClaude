@@ -61,6 +61,8 @@ Needs: a laptop (macOS, Linux, or Windows with **Git Bash**) and Google's
    On many of these units, Developer options sit behind **Settings → Factory/Car settings → password**. Look in the manual or ask
    Rimoody support for the code. Codes people commonly report for these units include `8888`, `1234`, `0000` and `3368`, but they vary.
    Don't change anything else in the factory menu.
+   **This unit (MCU `IAP90|CM06.21.03.1M_250605`, Rockchip "Auto RK T10" family, really Android 11):** the build-number
+   password is the stereo's current date plus three capital letter O's, e.g. `20261025OOO`. Confirmed working.
 3. In **Developer options**, turn on **USB debugging** and, if it's there, **ADB over network / Network debugging**.
 4. Find the stereo's IP under **Settings → Wi-Fi → (your network)**.
 
