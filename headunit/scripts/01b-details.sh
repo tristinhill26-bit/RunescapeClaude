@@ -11,25 +11,6 @@ recon="$(ls -d "$HU_DIR"/recon/*/ 2>/dev/null | tail -1)"
 out="$recon/DETAILS.txt"
 echo "Writing $out"
 
-uidmap="$(ro_shell 'pm list packages -U' | tr -d '\r' | sed 's/^package://')"
-uid_to_pkg() { local u="$1"; (( u < 10000 )) && { echo "system uid $u"; return; }
-  echo "$uidmap" | awk -v u="uid:$u" '$2==u {print $1}' | paste -sd, -; }
-hex2ip() {
-  local h="$1"
-  [[ ${#h} -eq 32 ]] && { [[ ${h:0:24} == 0000000000000000FFFF0000 ]] && h="${h:24:8}" ||
-    { [[ $h == 00000000000000000000000000000000 ]] && { echo "[::]"; return; }; echo "v6:$h"; return; }; }
-  printf '%d.%d.%d.%d' "0x${h:6:2}" "0x${h:4:2}" "0x${h:2:2}" "0x${h:0:2}"
-}
-net_snapshot() {
-  ro_shell 'cat /proc/net/tcp /proc/net/tcp6' | tr -d '\r' | awk '$4=="0A"||$4=="01" {print $2, $3, $4, $8}' |
-  while read -r loc rem st uid; do
-    local lip lport rip rport
-    lip="$(hex2ip "${loc%%:*}")"; lport=$((16#${loc##*:}))
-    rip="$(hex2ip "${rem%%:*}")"; rport=$((16#${rem##*:}))
-    if [[ $st == 0A ]]; then printf '  LISTEN       %-22s uid %-6s %s\n' "$lip:$lport" "$uid" "$(uid_to_pkg "$uid")"
-    else printf '  CONNECTED -> %-22s uid %-6s %s\n' "$rip:$rport" "$uid" "$(uid_to_pkg "$uid")"; fi
-  done | sort -u
-}
 
 {
   echo "=== DETAILS ($(date '+%F %T')) ==="
