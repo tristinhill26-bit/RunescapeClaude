@@ -88,3 +88,14 @@ net_snapshot() {
     else printf '  CONNECTED -> %-28s uid %-6s %s\n' "$rip:$rport" "$uid" "$(uid_to_pkg "$uid")"; fi
   done | sort -u
 }
+
+# ---- Write access: only 03-apply.sh and undo scripts use this. Every call is logged as CHANGE. ----
+rw_shell() {
+  printf '%s  CHANGE adb shell %s\n' "$(date '+%F %T')" "$*" >>"$LOG_FILE"
+  adb -s "$(serial)" shell "$*" </dev/null | tr -d '\r'
+}
+
+latest_backup() {
+  local b; b="$(ls -d "$HU_DIR"/backup/*/ 2>/dev/null | tail -1)"
+  [[ -n $b && -f $b/SUMMARY.txt && -f $b/MANIFEST.sha256 ]] && echo "${b%/}"
+}
