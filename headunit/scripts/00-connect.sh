@@ -5,6 +5,8 @@ source "$(dirname "$0")/common.sh"
 need_adb
 
 ip="${1:-}"; port="${2:-5555}"
+# Accept "ip:port" exactly as the stereo's Wireless debugging screen shows it.
+if [[ $ip == *:* ]]; then port="${ip##*:}"; ip="${ip%:*}"; fi
 [[ -n $ip ]] || die "Usage: $0 <head-unit-ip> [port]   (find the IP under Settings > Wi-Fi > your network on the stereo)"
 target="$ip:$port"
 
