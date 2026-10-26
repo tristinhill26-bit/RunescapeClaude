@@ -63,6 +63,13 @@ Needs: a laptop (macOS, Linux, or Windows with **Git Bash**) and Google's
 - **Step 4 applied 2026-10-25:** 13 apps disabled, AdGuard private DNS on. Re-enabling `com.imotor.fmam` was refused: Android lets
   adb (shell) undo only *user* disables, and the vendor disabled this one at system level. Next try: factory menu → 9 App Settings.
   AdGuard's default list does **not** block `adups.com` / `abupdate.com` / `carletter.cn`.
+- **2026-10-26 16:05: vendor update overwrote `/system/priv-app/VehicleInfos/VehicleInfos.apk` in place** (CAN/climate app,
+  20250916 → 20260917, SHA-256 `a6e8aeda…be490` → `bbf03a92…2a328`, mode 775) while the owner was on the Vehicle screen;
+  the stereo rebooted ~16:08 and the bundled Adups/abupdate OTA agent started. Main firmware unchanged (V1.09.01-20250907).
+  Rollback would need root writes to /system, so it's out of bounds; the factory APK is in the backup. Mitigation: block
+  the update hosts via DNS and/or keep the stereo offline unless needed.
+- Steering wheel controls: CAN box never answers (DEBUG shows only Send lines, `CAN version: Unknown`) → physical
+  connection/power of the CAN box, not the protocol setting (Simple / Volkswagen / VWCommon / High).
 - Owner decisions: FM radio doesn't work → propose re-enabling `com.imotor.fmam`. Netflix / Spotify / YouTube / HERE / Google app /
   Car Launcher FREE → off for now (reversible); install official Play Store versions later if wanted.
 
