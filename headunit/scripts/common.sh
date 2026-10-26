@@ -23,6 +23,12 @@ serial() {
 ensure_connected() {
   local s; s="$(serial)"
   if [[ "$(adb -s "$s" get-state 2>/dev/null)" != "device" ]]; then
+    # Wireless debugging picks a new port after every restart. If adb is already connected to the
+    # same stereo IP on another port (e.g. via a manual "adb connect"), switch to that and save it.
+    local live; live="$(adb devices | awk -v ip="${s%:*}:" 'index($1, ip)==1 && $2=="device" {print $1; exit}')"
+    if [[ -n $live ]]; then
+      echo "$live" >"$STATE_FILE"; echo "Using $live (port changed since last time)." >&2; return
+    fi
     adb connect "$s" >/dev/null 2>&1
     [[ "$(adb -s "$s" get-state 2>/dev/null)" == "device" ]] ||
       die "Can't reach $s. Is the car on and on the same Wi-Fi as this laptop? Re-run 00-connect.sh."
