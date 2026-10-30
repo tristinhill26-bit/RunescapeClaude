@@ -1,14 +1,13 @@
 #!/data/data/com.termux/files/usr/bin/bash
 # Opens RuneLite with Claude's plugins in the Termux:X11 app. phone/setup-termux.sh installs this as "runelite".
 DISTRO="debian"
-ROOTFS="$PREFIX/var/lib/proot-distro/installed-rootfs/$DISTRO"
 
 # A credentials.properties file from the PC (for Jagex accounts) can be dropped in the phone's Downloads folder.
 # Move it into Debian's RuneLite folder so it isn't left lying around.
 for CREDS in "$HOME/storage/downloads/credentials.properties" "/sdcard/Download/credentials.properties"; do
 	if [ -f "$CREDS" ]; then
-		mkdir -p "$ROOTFS/root/.runelite"
-		mv -f "$CREDS" "$ROOTFS/root/.runelite/credentials.properties" && echo "Moved your Jagex account login into RuneLite."
+		proot-distro login "$DISTRO" -- bash -c "mkdir -p /root/.runelite && cat > /root/.runelite/credentials.properties" < "$CREDS" \
+			&& rm -f "$CREDS" && echo "Moved your Jagex account login into RuneLite."
 		break
 	fi
 done
