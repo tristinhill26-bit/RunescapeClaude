@@ -21,14 +21,15 @@ termux-x11 :0 >/dev/null 2>&1 &
 sleep 3
 am start --user 0 -n com.termux.x11/com.termux.x11.MainActivity >/dev/null 2>&1
 
-# Set Termux:X11 up like the mobile game the first time: full screen in landscape, the screen kept on, and the display
-# at half the phone's resolution so the game's text and buttons come out twice as big. Done once, so changes made in
+# Set Termux:X11 up like the mobile game the first time: full screen in landscape, the screen kept on, the display at
+# half the phone's resolution so the game's text and buttons come out twice as big, and touch input that clicks where
+# you tap (Phone Mode turns a long press into a right-click). Done once, so changes made in
 # Termux:X11's own settings stick. It can only change settings while the app is open, hence after the line above.
-PREFS_DONE="$HOME/.config/runelite-phone/termux-x11-prefs-v1"
+PREFS_DONE="$HOME/.config/runelite-phone/termux-x11-prefs-v2"
 if [ ! -f "$PREFS_DONE" ]; then
 	sleep 2
 	if timeout 10 termux-x11-preference "fullscreen"="true" "hideCutout"="true" "forceOrientation"="landscape" \
-		"displayResolutionMode"="scaled" "displayScale"="200" "screenIdleTimeout"="never" >/dev/null 2>&1; then
+		"displayResolutionMode"="scaled" "displayScale"="200" "screenIdleTimeout"="never" "touchMode"="2" >/dev/null 2>&1; then
 		mkdir -p "$(dirname "$PREFS_DONE")" && touch "$PREFS_DONE"
 	else
 		echo "Couldn't change Termux:X11's settings, so it may not be full screen. Try running runelite again."

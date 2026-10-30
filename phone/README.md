@@ -70,12 +70,13 @@ To quit, close RuneLite from its own menu or go back to Termux and press `Ctrl` 
 
 ## Tips
 
-- **Screen size:** the first launch sets Termux:X11 to full screen, landscape, and half the phone's resolution so
-  everything is twice as big, and the **Phone Mode** plugin keeps RuneLite filling the screen. For a game area that
-  fills the screen too, pick **Resizable** in the game's display settings. To make things bigger or smaller, change
-  Display scale in Termux:X11 Preferences > Output (higher is bigger, 200% is the starting point).
-- **Touch controls:** in Termux:X11 Preferences > Input, pick **Touchscreen input mode**. "Trackpad" acts like a laptop
-  touchpad (tap to click, two-finger tap to right-click). "Direct touch" clicks where you tap. Try both.
+- **Screen size:** the first launch sets Termux:X11 to full screen and landscape, and the **Phone Mode** plugin
+  keeps RuneLite filling the screen and turns on **Stretched Mode** so the game scales up to fill it, in fixed or
+  resizable mode. To make things bigger or smaller, change Display scale in Termux:X11 Preferences > Output (higher
+  is bigger, 200% is the starting point).
+- **Touch controls:** tap to click, hold your finger down for the right-click menu, and use two fingers for
+  the scroll wheel (zoom). These need Termux:X11's Touchscreen input mode on **Simulated touchscreen**, which the first
+  launch sets for you.
 - **Keyboard:** swipe in from the left edge in Termux:X11 to show the keyboard and extra keys.
 - **Don't turn on GPU or 117 HD** in RuneLite's plugin list on the phone. They need OpenGL and will crash or show a
   black screen. The phone keeps its own RuneLite settings, so if that happens, reset them: delete `/root/.runelite/settings.properties` inside Debian (`proot-distro login debian` then
