@@ -59,6 +59,17 @@ tasks.register('run', JavaExec) {
 	args "--developer-mode", "--debug", "--disable-telemetry"
 }
 
+// For a phone running Linux in Termux (see phone/README.md): starts without 117 HD and Interaction Lights, which need
+// desktop OpenGL, and draws with plain software rendering.
+tasks.register('runLite', JavaExec) {
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = pluginMainClass
+
+	systemProperty 'rlhd.lite', 'true'
+	jvmArgs "-ea", "-Xmx768M", "-Dsun.java2d.opengl=false", "-Dsun.java2d.xrender=false"
+	args "--developer-mode", "--disable-telemetry"
+}
+
 tasks.register('shadowJar', Jar) {
 	dependsOn configurations.testRuntimeClasspath
 	manifest {

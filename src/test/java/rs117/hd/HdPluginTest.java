@@ -29,9 +29,20 @@ public class HdPluginTest
 		Props.set("rlhd.resource-path", "src/main/resources");
 		ClassLoader.getSystemClassLoader().setDefaultAssertionStatus(true);
 		useLatestPluginHub();
-		ExternalPluginManager.loadBuiltin(HdPlugin.class, InteractionLightsPlugin.class, FairyRingLabelsPlugin.class, WikiGearPlugin.class,
-			ShadowTilesPlugin.class, MadAngelPlugin.class,
-			ToaHelperPlugin.class);
+		if (Boolean.getBoolean("rlhd.lite"))
+		{
+			// For devices without desktop OpenGL (e.g. a phone running Linux in Termux): leave out the plugins that
+			// need the 117 HD renderer, and keep the ones that only draw on top of the game.
+			ExternalPluginManager.loadBuiltin(FairyRingLabelsPlugin.class, WikiGearPlugin.class,
+				ShadowTilesPlugin.class, MadAngelPlugin.class,
+				ToaHelperPlugin.class);
+		}
+		else
+		{
+			ExternalPluginManager.loadBuiltin(HdPlugin.class, InteractionLightsPlugin.class, FairyRingLabelsPlugin.class, WikiGearPlugin.class,
+				ShadowTilesPlugin.class, MadAngelPlugin.class,
+				ToaHelperPlugin.class);
+		}
 		RuneLite.main(args);
 	}
 
