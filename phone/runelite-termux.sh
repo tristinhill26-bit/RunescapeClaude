@@ -14,7 +14,9 @@ for CREDS in "$HOME/storage/downloads/credentials.properties" "/sdcard/Download/
 done
 
 # Start a fresh X11 display and bring the Termux:X11 app to the front.
-pkill -f com.termux.x11 >/dev/null 2>&1
+# Matched on the start of the X server's process name only, because this script runs as "bash -c <its text>", and a
+# looser pattern would match the script's own process and stop it.
+pkill -f '^termux-x11 ' >/dev/null 2>&1
 termux-x11 :0 >/dev/null 2>&1 &
 sleep 3
 am start --user 0 -n com.termux.x11/com.termux.x11.MainActivity >/dev/null 2>&1
