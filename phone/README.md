@@ -63,15 +63,17 @@ all sessions from the Jagex account page.
 1. Open the **Termux:X11** app once (it says "Not connected" until the next step, that's normal), then switch back to Termux.
 2. Type `runelite` and press Enter.
 
-It switches to Termux:X11 and RuneLite opens full screen. The first start takes a few minutes. Each launch checks for
+It switches to Termux:X11, turns the screen sideways and RuneLite opens full screen. The first start takes a few minutes. Each launch checks for
 updates first, like the PC launcher does.
 
 To quit, close RuneLite from its own menu or go back to Termux and press `Ctrl` + `C` on the Termux key bar.
 
 ## Tips
 
-- **Things are tiny:** in RuneLite, turn on the **Stretched Mode** plugin, or in Termux:X11 open Preferences >
-  Output and set Display resolution mode to **scaled** (try 50%).
+- **Screen size:** the first launch sets Termux:X11 to full screen, landscape, and half the phone's resolution so
+  everything is twice as big, and the **Phone Mode** plugin keeps RuneLite filling the screen. For a game area that
+  fills the screen too, pick **Resizable** in the game's display settings. To make things bigger or smaller, change
+  Display scale in Termux:X11 Preferences > Output (higher is bigger, 200% is the starting point).
 - **Touch controls:** in Termux:X11 Preferences > Input, pick **Touchscreen input mode**. "Trackpad" acts like a laptop
   touchpad (tap to click, two-finger tap to right-click). "Direct touch" clicks where you tap. Try both.
 - **Keyboard:** swipe in from the left edge in Termux:X11 to show the keyboard and extra keys.

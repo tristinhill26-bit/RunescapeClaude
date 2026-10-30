@@ -2,6 +2,7 @@ package rs117.hd;
 
 import com.fairyringlabels.FairyRingLabelsPlugin;
 import com.madangel.MadAngelPlugin;
+import com.phonemode.PhoneModePlugin;
 import com.shadowtiles.ShadowTilesPlugin;
 import com.toahelper.ToaHelperPlugin;
 import com.wikigear.WikiGearPlugin;
@@ -33,7 +34,7 @@ public class HdPluginTest
 		{
 			// For devices without desktop OpenGL (e.g. a phone running Linux in Termux): leave out the plugins that
 			// need the 117 HD renderer, and keep the ones that only draw on top of the game.
-			ExternalPluginManager.loadBuiltin(FairyRingLabelsPlugin.class, WikiGearPlugin.class,
+			ExternalPluginManager.loadBuiltin(PhoneModePlugin.class, FairyRingLabelsPlugin.class, WikiGearPlugin.class,
 				ShadowTilesPlugin.class, MadAngelPlugin.class,
 				ToaHelperPlugin.class);
 		}

@@ -35,7 +35,7 @@ main() {
 		set -e
 		export DEBIAN_FRONTEND=noninteractive
 		apt-get update
-		apt-get install -y default-jdk git openbox fonts-dejavu-core ca-certificates
+		apt-get install -y default-jdk git openbox procps fonts-dejavu-core ca-certificates
 	'
 
 	step "Downloading Claude's plugins..."
@@ -58,7 +58,14 @@ main() {
 	proot-distro login "$DISTRO" -- bash -c "cd /root/RunescapeClaude && ./gradlew --no-daemon testClasses"
 
 	step "Adding the 'runelite' command..."
-	proot-distro login "$DISTRO" -- cat /root/RunescapeClaude/phone/runelite-termux.sh > "$PREFIX/bin/runelite"
+	# A small command that updates the repo, then runs the newest launcher from it, so launcher fixes arrive with updates
+	cat > "$PREFIX/bin/runelite" <<-'LAUNCHER'
+		#!/data/data/com.termux/files/usr/bin/bash
+		echo "Checking for updates..."
+		proot-distro login debian -- git -C /root/RunescapeClaude pull --ff-only -q </dev/null \
+			|| echo "Couldn't update, so opening the version you already have."
+		exec bash -c "$(proot-distro login debian -- cat /root/RunescapeClaude/phone/runelite-termux.sh </dev/null)"
+	LAUNCHER
 	chmod +x "$PREFIX/bin/runelite"
 
 	echo
