@@ -60,7 +60,7 @@ all sessions from the Jagex account page.
 
 ## 5. Play
 
-1. Open the **Termux:X11** app once (it shows a black screen, that's normal), then switch back to Termux.
+1. Open the **Termux:X11** app once (it says "Not connected" until the next step, that's normal), then switch back to Termux.
 2. Type `runelite` and press Enter.
 
 It switches to Termux:X11 and RuneLite opens full screen. The first start takes a few minutes. Each launch checks for
