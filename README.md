@@ -157,6 +157,10 @@ entomb, Zebak's rockfall, blood clouds and waves, Akkha's unstable orbs, Het's O
 the 3x3 explosions of Volatile Baboons and Kephri's eggs. Ba-Ba's rockfall is one tile, since the
 wiki says only the player directly under a shadow is hurt.
 
+**Phone HP & Prayer** sends your current and max Hitpoints and Prayer to the **HP & Prayer** Android app over
+your home Wi-Fi, so your phone can sit next to the keyboard as a big second display. See
+[`android-app/README.md`](android-app/README.md) for installing the app and connecting it.
+
 The overlays (beam, outline, dots, arrows) work on their own. The lighting needs 117 HD Enhanced running with
 *Dynamic lights* enabled.
 
@@ -172,7 +176,8 @@ powershell -ExecutionPolicy Bypass -File .\Create-Desktop-Shortcut.ps1
 The interaction lighting lives in [`src/main/java/rs117/hd/interaction`](src/main/java/rs117/hd/interaction),
 Shadow Tiles in [`src/main/java/com/shadowtiles`](src/main/java/com/shadowtiles), and
 Mad Angel Helper in [`src/main/java/com/madangel`](src/main/java/com/madangel), and
-ToA Helper in [`src/main/java/com/toahelper`](src/main/java/com/toahelper).
+ToA Helper in [`src/main/java/com/toahelper`](src/main/java/com/toahelper), and
+Phone HP & Prayer in [`src/main/java/com/phonestats`](src/main/java/com/phonestats) with its app in [`android-app`](android-app).
 
 [`com.wikigear.dps`](src/main/java/com/wikigear/dps) is translated from
 [weirdgloop/osrs-dps-calc](https://github.com/weirdgloop/osrs-dps-calc) (Copyright Jayden Bailey (Weird Gloop) and

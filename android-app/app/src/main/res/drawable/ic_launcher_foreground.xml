@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A red heart (Hitpoints) with a blue star (Prayer), inside the 72dp safe zone of an adaptive icon -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+	android:width="108dp"
+	android:height="108dp"
+	android:viewportWidth="108"
+	android:viewportHeight="108">
+	<path
+		android:fillColor="#E53935"
+		android:pathData="M48,76 L30,58 C24,52 24,42 30,37 C36,32 44,33 48,40 C52,33 60,32 66,37 C72,42 72,52 66,58 Z" />
+	<path
+		android:fillColor="#4FC3F7"
+		android:pathData="M72,52 L75,60 L83,60 L77,65 L79,73 L72,68 L65,73 L67,65 L61,60 L69,60 Z" />
+</vector>

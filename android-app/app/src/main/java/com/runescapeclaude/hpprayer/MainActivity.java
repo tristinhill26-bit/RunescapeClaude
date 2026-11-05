@@ -1,0 +1,318 @@
+package com.runescapeclaude.hpprayer;
+
+import android.app.Activity;
+import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.os.Build;
+import android.os.Bundle;
+import android.text.InputType;
+import android.view.Gravity;
+import android.view.View;
+import android.view.WindowInsets;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
+
+public class MainActivity extends Activity implements StatsConnection.Listener {
+	private static final String PREFS = "settings";
+	private static final String KEY_HOST = "host";
+	private static final String KEY_PORT = "port";
+	private static final int DEFAULT_PORT = 8765;
+
+	private static final int BACKGROUND = Color.rgb(18, 18, 22);
+	private static final int HP_GREEN = Color.rgb(46, 160, 67);
+	private static final int HP_ORANGE = Color.rgb(230, 140, 30);
+	private static final int HP_RED = Color.rgb(211, 47, 47);
+	private static final int PRAYER_ON = Color.rgb(41, 182, 246);
+	private static final int PRAYER_OFF = Color.rgb(30, 110, 160);
+
+	private SharedPreferences prefs;
+	private volatile StatsConnection connection;
+
+	private TextView statusView;
+	private TextView nameView;
+	private StatBarView hpBar;
+	private StatBarView prayerBar;
+	private LinearLayout settingsPanel;
+	private EditText hostInput;
+	private EditText portInput;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+		// It's a display you glance at while playing, so don't let the screen go dark
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		getWindow().setStatusBarColor(BACKGROUND);
+		getWindow().setNavigationBarColor(BACKGROUND);
+		setContentView(buildUi());
+		settingsPanel.setVisibility(savedHost().isEmpty() ? View.VISIBLE : View.GONE);
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+		connect();
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		disconnect();
+	}
+
+	private View buildUi() {
+		float dp = getResources().getDisplayMetrics().density;
+		int pad = (int) (20 * dp);
+
+		LinearLayout root = new LinearLayout(this);
+		root.setOrientation(LinearLayout.VERTICAL);
+		root.setPadding(pad, pad, pad, pad);
+		root.setBackgroundColor(BACKGROUND);
+
+		LinearLayout header = new LinearLayout(this);
+		header.setOrientation(LinearLayout.HORIZONTAL);
+		header.setGravity(Gravity.CENTER_VERTICAL);
+
+		LinearLayout titles = new LinearLayout(this);
+		titles.setOrientation(LinearLayout.VERTICAL);
+		nameView = text(22, Color.WHITE);
+		nameView.setTypeface(Typeface.DEFAULT_BOLD);
+		nameView.setText(R.string.app_name);
+		statusView = text(14, Color.rgb(170, 170, 180));
+		titles.addView(nameView);
+		titles.addView(statusView);
+		header.addView(titles, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+
+		Button settingsButton = new Button(this);
+		settingsButton.setText("PC");
+		settingsButton.setOnClickListener(v -> settingsPanel.setVisibility(
+			settingsPanel.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE));
+		header.addView(settingsButton);
+		root.addView(header);
+
+		settingsPanel = buildSettings(dp);
+		root.addView(settingsPanel);
+
+		hpBar = new StatBarView(this, "Hitpoints", HP_GREEN);
+		prayerBar = new StatBarView(this, "Prayer", PRAYER_OFF);
+		LinearLayout.LayoutParams barParams = new LinearLayout.LayoutParams(
+			LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+		barParams.topMargin = (int) (20 * dp);
+		root.addView(hpBar, barParams);
+		root.addView(prayerBar, new LinearLayout.LayoutParams(barParams));
+
+		ScrollView scroll = new ScrollView(this);
+		scroll.setFillViewport(true);
+		scroll.setBackgroundColor(BACKGROUND);
+		scroll.addView(root);
+		applySystemBarInsets(scroll);
+		return scroll;
+	}
+
+	private LinearLayout buildSettings(float dp) {
+		LinearLayout panel = new LinearLayout(this);
+		panel.setOrientation(LinearLayout.VERTICAL);
+		panel.setPadding(0, (int) (16 * dp), 0, 0);
+
+		TextView help = text(14, Color.rgb(200, 200, 210));
+		help.setText("Enter your PC's address. RuneLite prints it in the chat box when you log in, "
+			+ "e.g. 192.168.1.23. Your phone has to be on the same Wi-Fi as the PC.");
+		panel.addView(help);
+
+		LinearLayout row = new LinearLayout(this);
+		row.setOrientation(LinearLayout.HORIZONTAL);
+		row.setGravity(Gravity.CENTER_VERTICAL);
+
+		hostInput = input("PC address");
+		hostInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+		hostInput.setText(savedHost());
+		row.addView(hostInput, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 3));
+
+		portInput = input("Port");
+		portInput.setInputType(InputType.TYPE_CLASS_NUMBER);
+		portInput.setText(String.valueOf(prefs.getInt(KEY_PORT, DEFAULT_PORT)));
+		portInput.setImeOptions(EditorInfo.IME_ACTION_GO);
+		portInput.setOnEditorActionListener((v, actionId, event) -> {
+			saveAndConnect();
+			return true;
+		});
+		row.addView(portInput, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+
+		Button connectButton = new Button(this);
+		connectButton.setText("Connect");
+		connectButton.setOnClickListener(v -> saveAndConnect());
+		row.addView(connectButton);
+		panel.addView(row);
+		return panel;
+	}
+
+	private void saveAndConnect() {
+		String host = hostInput.getText().toString().trim()
+			.replaceFirst("^https?://", "")
+			.replaceFirst("/.*$", "");
+		int port = DEFAULT_PORT;
+		// Accept "192.168.1.23:8765" typed into the address box too
+		int colon = host.lastIndexOf(':');
+		if (colon > 0 && host.indexOf(':') == colon) {
+			try {
+				port = Integer.parseInt(host.substring(colon + 1));
+			} catch (NumberFormatException ignored) {
+			}
+			host = host.substring(0, colon);
+		} else {
+			try {
+				port = Integer.parseInt(portInput.getText().toString().trim());
+			} catch (NumberFormatException ignored) {
+			}
+		}
+		hostInput.setText(host);
+		portInput.setText(String.valueOf(port));
+		prefs.edit().putString(KEY_HOST, host).putInt(KEY_PORT, port).apply();
+
+		InputMethodManager imm = getSystemService(InputMethodManager.class);
+		if (imm != null) {
+			imm.hideSoftInputFromWindow(hostInput.getWindowToken(), 0);
+		}
+		if (!host.isEmpty()) {
+			settingsPanel.setVisibility(View.GONE);
+		}
+		disconnect();
+		connect();
+	}
+
+	private void connect() {
+		String host = savedHost();
+		if (host.isEmpty()) {
+			statusView.setText("Not set up yet");
+			return;
+		}
+		connection = new StatsConnection(host, prefs.getInt(KEY_PORT, DEFAULT_PORT), this);
+		connection.start();
+	}
+
+	private void disconnect() {
+		if (connection != null) {
+			connection.stop();
+			connection = null;
+		}
+	}
+
+	private String savedHost() {
+		return prefs.getString(KEY_HOST, "");
+	}
+
+	// Callbacks from the connection thread. Each one checks it came from the current connection, so a late message
+	// from one that was just replaced can't overwrite the screen.
+
+	@Override
+	public void onConnecting(StatsConnection source) {
+		runOnUiThread(() -> {
+			if (source == connection) {
+				statusView.setText("Connecting to " + savedHost() + "…");
+			}
+		});
+	}
+
+	@Override
+	public void onConnected(StatsConnection source) {
+		runOnUiThread(() -> {
+			if (source == connection) {
+				statusView.setText("Connected to " + savedHost());
+			}
+		});
+	}
+
+	@Override
+	public void onStats(StatsConnection source, Stats stats) {
+		runOnUiThread(() -> {
+			if (source != connection) {
+				return;
+			}
+			if (!stats.loggedIn) {
+				nameView.setText(R.string.app_name);
+				statusView.setText("Connected. Waiting for you to log in");
+				hpBar.clear();
+				prayerBar.clear();
+				prayerBar.setBadge("");
+				return;
+			}
+			nameView.setText(stats.name.isEmpty() ? getString(R.string.app_name) : stats.name);
+			statusView.setText("Connected to " + savedHost());
+			hpBar.setValues(stats.hp, stats.maxHp);
+			hpBar.setColor(hpColor(stats.hp, stats.maxHp));
+			prayerBar.setValues(stats.prayer, stats.maxPrayer);
+			prayerBar.setColor(stats.prayerActive ? PRAYER_ON : PRAYER_OFF);
+			prayerBar.setBadge(stats.prayerActive ? "ON" : "");
+		});
+	}
+
+	@Override
+	public void onDisconnected(StatsConnection source, String reason) {
+		runOnUiThread(() -> {
+			if (source == connection) {
+				statusView.setText(reason + ". Retrying…");
+				hpBar.clear();
+				prayerBar.clear();
+			}
+		});
+	}
+
+	private static int hpColor(int hp, int maxHp) {
+		if (maxHp <= 0) {
+			return HP_GREEN;
+		}
+		float fraction = hp / (float) maxHp;
+		if (fraction > 0.5f) {
+			return HP_GREEN;
+		}
+		return fraction > 0.25f ? HP_ORANGE : HP_RED;
+	}
+
+	private TextView text(int sp, int color) {
+		TextView view = new TextView(this);
+		view.setTextSize(sp);
+		view.setTextColor(color);
+		return view;
+	}
+
+	private EditText input(String hint) {
+		EditText input = new EditText(this);
+		input.setHint(hint);
+		input.setSingleLine(true);
+		input.setTextColor(Color.WHITE);
+		input.setHintTextColor(Color.rgb(120, 120, 130));
+		return input;
+	}
+
+	/** Android 15 draws apps under the status and navigation bars, so pad the content to stay clear of them. */
+	private static void applySystemBarInsets(View view) {
+		view.setOnApplyWindowInsetsListener((v, insets) -> {
+			int left;
+			int top;
+			int right;
+			int bottom;
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+				android.graphics.Insets bars = insets.getInsets(
+					WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout() | WindowInsets.Type.ime());
+				left = bars.left;
+				top = bars.top;
+				right = bars.right;
+				bottom = bars.bottom;
+			} else {
+				left = insets.getSystemWindowInsetLeft();
+				top = insets.getSystemWindowInsetTop();
+				right = insets.getSystemWindowInsetRight();
+				bottom = insets.getSystemWindowInsetBottom();
+			}
+			v.setPadding(left, top, right, bottom);
+			return insets;
+		});
+	}
+}

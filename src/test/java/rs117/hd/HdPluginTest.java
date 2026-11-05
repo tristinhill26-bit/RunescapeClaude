@@ -3,6 +3,7 @@ package rs117.hd;
 import com.fairyringlabels.FairyRingLabelsPlugin;
 import com.madangel.MadAngelPlugin;
 import com.phonemode.PhoneModePlugin;
+import com.phonestats.PhoneStatsPlugin;
 import com.shadowtiles.ShadowTilesPlugin;
 import com.toahelper.ToaHelperPlugin;
 import com.wikigear.WikiGearPlugin;
@@ -36,13 +37,13 @@ public class HdPluginTest
 			// need the 117 HD renderer, and keep the ones that only draw on top of the game.
 			ExternalPluginManager.loadBuiltin(PhoneModePlugin.class, FairyRingLabelsPlugin.class, WikiGearPlugin.class,
 				ShadowTilesPlugin.class, MadAngelPlugin.class,
-				ToaHelperPlugin.class);
+				ToaHelperPlugin.class, PhoneStatsPlugin.class);
 		}
 		else
 		{
 			ExternalPluginManager.loadBuiltin(HdPlugin.class, InteractionLightsPlugin.class, FairyRingLabelsPlugin.class, WikiGearPlugin.class,
 				ShadowTilesPlugin.class, MadAngelPlugin.class,
-				ToaHelperPlugin.class);
+				ToaHelperPlugin.class, PhoneStatsPlugin.class);
 		}
 		RuneLite.main(args);
 	}
