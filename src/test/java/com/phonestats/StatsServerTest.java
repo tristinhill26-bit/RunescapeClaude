@@ -31,9 +31,9 @@ public class StatsServerTest
 	@Test
 	public void snapshotJsonEscapesNames()
 	{
-		StatsSnapshot snapshot = new StatsSnapshot(true, "Zezima \"the\" \\best", 45, 99, 12, 77, true);
+		StatsSnapshot snapshot = new StatsSnapshot(true, "Zezima \"the\" \\best", 45, 99, 12, 77, true, 90);
 		assertEquals("{\"loggedIn\":true,\"name\":\"Zezima \\\"the\\\" \\\\best\",\"hp\":45,\"maxHp\":99," +
-			"\"prayer\":12,\"maxPrayer\":77,\"prayerActive\":true}", snapshot.toJson());
+			"\"prayer\":12,\"maxPrayer\":77,\"prayerActive\":true,\"goading\":90}", snapshot.toJson());
 	}
 
 	@Test
@@ -95,6 +95,32 @@ public class StatsServerTest
 			skipHeaders(in);
 			assertEquals("{\"hp\":1}", in.readLine());
 		}
+	}
+
+	@Test
+	public void keptEventsAreReplayedToNewPhones() throws Exception
+	{
+		server.publish("{\"hp\":1}");
+		server.publishEvent("loot", "{\"id\":\"a\"}", true);
+		server.publishEvent("drop", "{\"total\":5}");
+		try (Socket socket = connect("/events"))
+		{
+			BufferedReader in = reader(socket);
+			skipHeaders(in);
+			assertEquals("data: {\"hp\":1}", in.readLine());
+			assertEquals("", in.readLine());
+			assertEquals("event: loot", in.readLine());
+			assertEquals("data: {\"id\":\"a\"}", in.readLine());
+		}
+	}
+
+	@Test
+	public void lootJsonHasIdAndTime()
+	{
+		DropMessage loot = new DropMessage("s-1", 1234, "Goblin");
+		loot.add("Bones", 1, 100, true);
+		assertEquals("{\"id\":\"s-1\",\"time\":1234,\"source\":\"Goblin\",\"total\":100,\"items\":[" +
+			"{\"name\":\"Bones\",\"quantity\":1,\"value\":100,\"tradeable\":true}]}", loot.toJson());
 	}
 
 	@Test

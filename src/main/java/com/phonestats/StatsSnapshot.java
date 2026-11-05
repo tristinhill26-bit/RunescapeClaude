@@ -8,7 +8,7 @@ import lombok.Value;
 @Value
 public class StatsSnapshot
 {
-	public static final StatsSnapshot LOGGED_OUT = new StatsSnapshot(false, "", 0, 0, 0, 0, false);
+	public static final StatsSnapshot LOGGED_OUT = new StatsSnapshot(false, "", 0, 0, 0, 0, false, 0);
 
 	boolean loggedIn;
 	String name;
@@ -17,6 +17,8 @@ public class StatsSnapshot
 	int prayer;
 	int maxPrayer;
 	boolean prayerActive;
+	// Seconds left on a goading potion, 0 when none is active
+	int goadingSeconds;
 
 	public String toJson()
 	{
@@ -27,6 +29,7 @@ public class StatsSnapshot
 			",\"prayer\":" + prayer +
 			",\"maxPrayer\":" + maxPrayer +
 			",\"prayerActive\":" + prayerActive +
+			",\"goading\":" + goadingSeconds +
 			"}";
 	}
 

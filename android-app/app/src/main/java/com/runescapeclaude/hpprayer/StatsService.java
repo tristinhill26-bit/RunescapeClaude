@@ -34,12 +34,15 @@ public class StatsService extends Service implements StatsConnection.Listener {
 	static final String KEY_STATUS_BAR = "statusBar";
 	static final String KEY_PRAYER_ALERTS = "prayerAlerts";
 	static final String KEY_DROP_ALERTS = "dropAlerts";
+	static final String KEY_GOADING_ALERTS = "goadingAlerts";
 
 	private static final String CHANNEL_ID = "live_stats";
 	private static final String PRAYER_CHANNEL_ID = "prayer_alerts";
 	private static final String DROP_CHANNEL_ID = "drop_alerts";
+	private static final String GOADING_CHANNEL_ID = "goading_alerts";
 	private static final int NOTIFICATION_ID = 1;
 	private static final int PRAYER_NOTIFICATION_ID = 2;
+	private static final int GOADING_NOTIFICATION_ID = 3;
 	private static final int[] PRAYER_THRESHOLDS = { 20, 10, 0 };
 	private static final int NOT_LOW = Integer.MAX_VALUE;
 	private static final int UNKNOWN = -1;
@@ -47,6 +50,7 @@ public class StatsService extends Service implements StatsConnection.Listener {
 	// The lowest prayer threshold you're currently at or below, so each one only alerts once on the way down
 	private int prayerBracket = UNKNOWN;
 	private int nextDropId = 100;
+	private int lastGoading = -1;
 
 	private NotificationManager notifications;
 	private volatile StatsConnection connection;
@@ -75,6 +79,11 @@ public class StatsService extends Service implements StatsConnection.Listener {
 		prayerChannel.enableVibration(true);
 		prayerChannel.setVibrationPattern(new long[] { 0, 250, 120, 250 });
 		notifications.createNotificationChannel(prayerChannel);
+
+		NotificationChannel goadingChannel = new NotificationChannel(GOADING_CHANNEL_ID, "Goading potion",
+			NotificationManager.IMPORTANCE_HIGH);
+		goadingChannel.setDescription("When your goading potion runs out");
+		notifications.createNotificationChannel(goadingChannel);
 
 		NotificationChannel dropChannel = new NotificationChannel(DROP_CHANNEL_ID, "Drop alerts",
 			NotificationManager.IMPORTANCE_HIGH);
@@ -148,10 +157,12 @@ public class StatsService extends Service implements StatsConnection.Listener {
 		}
 		if (!stats.loggedIn) {
 			prayerBracket = UNKNOWN;
+			lastGoading = -1;
 			showStatus(source, "Waiting for you to log in");
 			return;
 		}
 		checkPrayer(stats);
+		checkGoading(stats);
 		if (lastStats != null && lastStats.sameAs(stats)) {
 			return;
 		}
@@ -190,6 +201,32 @@ public class StatsService extends Service implements StatsConnection.Listener {
 			.build();
 		// One notification that each alert replaces, so the shade doesn't fill up
 		notifications.notify(PRAYER_NOTIFICATION_ID, alert);
+	}
+
+	private void checkGoading(Stats stats) {
+		boolean ranOut = lastGoading > 0 && stats.goading == 0;
+		lastGoading = stats.goading;
+		if (stats.goading > 0) {
+			// Drank another dose, so the old alert no longer applies
+			notifications.cancel(GOADING_NOTIFICATION_ID);
+		}
+		if (!ranOut || !prefs(this).getBoolean(KEY_GOADING_ALERTS, true)) {
+			return;
+		}
+		Notification alert = new Notification.Builder(this, GOADING_CHANNEL_ID)
+			.setSmallIcon(R.drawable.ic_stat_heart)
+			.setContentTitle("Goading potion ran out")
+			.setContentText("Drink another dose to keep monsters coming")
+			.setCategory(Notification.CATEGORY_REMINDER)
+			.setContentIntent(openAppIntent())
+			.setAutoCancel(true)
+			.build();
+		notifications.notify(GOADING_NOTIFICATION_ID, alert);
+	}
+
+	@Override
+	public void onLoot(StatsConnection source, String json) {
+		LootLog.get(this).add(json);
 	}
 
 	@Override
@@ -296,7 +333,8 @@ public class StatsService extends Service implements StatsConnection.Listener {
 		int shown = showPrayer ? stats.prayer : stats.hp;
 		builder.setSmallIcon(Icon.createWithBitmap(numberIcon(shown)))
 			.setContentTitle(title)
-			.setContentText(stats.name.isEmpty() ? "Logged in" : stats.name);
+			.setContentText((stats.name.isEmpty() ? "Logged in" : stats.name)
+				+ (stats.goading > 0 ? "  ·  Goading " + Stats.duration(stats.goading) : ""));
 		requestLiveUpdate(builder, (showPrayer ? "Pray " : "HP ") + shown);
 		return builder.build();
 	}

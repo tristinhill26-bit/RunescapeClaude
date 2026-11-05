@@ -24,6 +24,7 @@ import net.runelite.api.Prayer;
 import net.runelite.api.Skill;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.gameval.VarbitID;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -58,6 +59,9 @@ public class PhoneStatsPlugin extends Plugin
 	private ItemManager itemManager;
 
 	private volatile StatsServer server;
+	// Makes loot IDs unique across RuneLite restarts
+	private final String sessionId = Long.toString(System.currentTimeMillis(), 36);
+	private int lootCount;
 	private StatsSnapshot lastSent;
 	private boolean addressShown;
 
@@ -136,7 +140,7 @@ public class PhoneStatsPlugin extends Plugin
 	private void sendDrop(String source, Collection<ItemStack> items)
 	{
 		StatsServer current = server;
-		if (current == null || !config.dropAlerts())
+		if (current == null)
 		{
 			return;
 		}
@@ -151,12 +155,14 @@ public class PhoneStatsPlugin extends Plugin
 		}
 
 		DropMessage drop = new DropMessage(source);
+		// Every item, for the app's loot summary
+		DropMessage loot = new DropMessage(sessionId + "-" + (++lootCount), System.currentTimeMillis(), source);
 		for (ItemStack stack : items)
 		{
 			int id = itemManager.canonicalize(stack.getId());
 			ItemComposition item = itemManager.getItemComposition(id);
 			String name = item.getName();
-			if (name == null || name.equalsIgnoreCase("null") || ignored.contains(name.toLowerCase(Locale.ROOT)))
+			if (name == null || name.equalsIgnoreCase("null"))
 			{
 				continue;
 			}
@@ -164,12 +170,21 @@ public class PhoneStatsPlugin extends Plugin
 			long each = id == COINS ? 1 : itemManager.getItemPrice(id);
 			long value = each * stack.getQuantity();
 			boolean tradeable = item.isTradeable();
+			loot.add(name, stack.getQuantity(), value, tradeable);
+			if (!config.dropAlerts() || ignored.contains(name.toLowerCase(Locale.ROOT)))
+			{
+				continue;
+			}
 			if ((value >= config.dropMinValue()) || (!tradeable && config.dropUntradeables()))
 			{
 				drop.add(name, stack.getQuantity(), value, tradeable);
 			}
 		}
 
+		if (!loot.isEmpty())
+		{
+			current.publishEvent("loot", loot.toJson(), true);
+		}
 		if (!drop.isEmpty())
 		{
 			current.publishEvent("drop", drop.toJson());
@@ -192,7 +207,18 @@ public class PhoneStatsPlugin extends Plugin
 			client.getRealSkillLevel(Skill.HITPOINTS),
 			client.getBoostedSkillLevel(Skill.PRAYER),
 			client.getRealSkillLevel(Skill.PRAYER),
-			isAnyPrayerActive());
+			isAnyPrayerActive(),
+			goadingSeconds());
+	}
+
+	/**
+	 * Seconds left on a goading potion. The game counts it down in steps of 6 ticks, like RuneLite's Timers & Buffs
+	 * plugin reads it.
+	 */
+	private int goadingSeconds()
+	{
+		int steps = client.getVarbitValue(VarbitID.GOADING_POTION_TIMER);
+		return (int) Math.round(steps * 6 * 0.6);
 	}
 
 	private boolean isAnyPrayerActive()

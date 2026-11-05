@@ -66,11 +66,22 @@ While it runs, it also sends:
   plugin's **Drop alerts** settings. Prices are Grand Exchange prices, so custom items on a private server count as
   worth 0 unless they're untradeable.
 
-Both have a switch in the app, and their sound and vibration can be changed in Android's notification settings for
-the app (*Prayer alerts* and *Drop alerts*).
+- **Goading potion**: while one is active the app shows how long it has left (also in the status bar notification),
+  and you get an alert when it runs out so you know to drink another dose. This reads the same game timer as
+  RuneLite's Timers & Buffs plugin, so it needs your server to run the potion like the real game does.
+
+All of them have a switch in the app, and their sound and vibration can be changed in Android's notification settings for
+the app (*Prayer alerts*, *Goading potion* and *Drop alerts*).
 
 If the phone sits with its screen off for a while, Android may pause Wi-Fi to save battery, and the numbers catch up
 when you wake it.
+
+## Loot summary
+
+Below the switches, **Loot** adds up every drop RuneLite sees (NPC kills and player kills): the total value, the
+sources that gave the most, the most valuable items, and the last 10 drops. It's saved on the phone, so it keeps
+counting across sessions until you tap **Reset**. Drops from while the app was closed are caught up the next time it
+connects, as long as RuneLite hasn't been restarted in between.
 
 ## Building it yourself
 

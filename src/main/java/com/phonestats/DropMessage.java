@@ -9,12 +9,25 @@ import java.util.List;
  */
 public class DropMessage
 {
+	private final String id;
+	private final long time;
 	private final String source;
 	private final List<String> items = new ArrayList<>();
 	private long total;
 
 	public DropMessage(String source)
 	{
+		this(null, 0, source);
+	}
+
+	/**
+	 * @param id   unique for every drop, so the phone can tell a drop it already has from a new one
+	 * @param time when it dropped, in milliseconds since 1970
+	 */
+	public DropMessage(String id, long time, String source)
+	{
+		this.id = id;
+		this.time = time;
 		this.source = source;
 	}
 
@@ -38,7 +51,8 @@ public class DropMessage
 
 	public String toJson()
 	{
-		return "{\"source\":\"" + StatsSnapshot.escape(source) + "\"" +
+		return "{" + (id != null ? "\"id\":\"" + StatsSnapshot.escape(id) + "\",\"time\":" + time + "," : "") +
+			"\"source\":\"" + StatsSnapshot.escape(source) + "\"" +
 			",\"total\":" + total +
 			",\"items\":[" + String.join(",", items) + "]}";
 	}

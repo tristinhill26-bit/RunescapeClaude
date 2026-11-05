@@ -12,8 +12,11 @@ final class Stats {
 	final int prayer;
 	final int maxPrayer;
 	final boolean prayerActive;
+	/** Seconds left on a goading potion, 0 when none is active. */
+	final int goading;
 
-	private Stats(boolean loggedIn, String name, int hp, int maxHp, int prayer, int maxPrayer, boolean prayerActive) {
+	private Stats(boolean loggedIn, String name, int hp, int maxHp, int prayer, int maxPrayer, boolean prayerActive,
+		int goading) {
 		this.loggedIn = loggedIn;
 		this.name = name;
 		this.hp = hp;
@@ -21,6 +24,12 @@ final class Stats {
 		this.prayer = prayer;
 		this.maxPrayer = maxPrayer;
 		this.prayerActive = prayerActive;
+		this.goading = goading;
+	}
+
+	/** "1:24" */
+	static String duration(int seconds) {
+		return seconds / 60 + ":" + (seconds % 60 < 10 ? "0" : "") + seconds % 60;
 	}
 
 	static Stats parse(String json) throws JSONException {
@@ -32,11 +41,13 @@ final class Stats {
 			o.optInt("maxHp", 0),
 			o.optInt("prayer", 0),
 			o.optInt("maxPrayer", 0),
-			o.optBoolean("prayerActive", false));
+			o.optBoolean("prayerActive", false),
+			o.optInt("goading", 0));
 	}
 
 	boolean sameAs(Stats o) {
 		return loggedIn == o.loggedIn && hp == o.hp && maxHp == o.maxHp && prayer == o.prayer
-			&& maxPrayer == o.maxPrayer && prayerActive == o.prayerActive && name.equals(o.name);
+			&& maxPrayer == o.maxPrayer && prayerActive == o.prayerActive && goading == o.goading
+			&& name.equals(o.name);
 	}
 }

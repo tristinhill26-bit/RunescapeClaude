@@ -23,6 +23,9 @@ final class StatsConnection {
 		/** A drop the plugin thought worth a ping, as the plugin's JSON. */
 		void onDrop(StatsConnection source, String json);
 
+		/** Every drop, for the loot summary, as the plugin's JSON. Drops from before connecting are replayed. */
+		void onLoot(StatsConnection source, String json);
+
 		void onDisconnected(StatsConnection source, String reason);
 	}
 
@@ -110,6 +113,8 @@ final class StatsConnection {
 					String data = line.substring(5).trim();
 					if (event.equals("drop")) {
 						listener.onDrop(this, data);
+					} else if (event.equals("loot")) {
+						listener.onLoot(this, data);
 					} else if (event.isEmpty()) {
 						try {
 							listener.onStats(this, Stats.parse(data));

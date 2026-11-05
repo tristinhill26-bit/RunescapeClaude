@@ -34,6 +34,7 @@ public class StatsServer
 {
 	private static final int HEARTBEAT_SECONDS = 5;
 	private static final int REQUEST_TIMEOUT_MS = 5000;
+	private static final int MAX_HISTORY = 2000;
 
 	private final int port;
 	private final List<Socket> listeners = new CopyOnWriteArrayList<>();
@@ -42,6 +43,8 @@ public class StatsServer
 		Executors.newSingleThreadScheduledExecutor(daemon("phone-stats-heartbeat"));
 
 	private volatile String latest = "{\"loggedIn\":false}";
+	// Events that phones connecting later still get, such as this session's loot
+	private final java.util.ArrayDeque<String> history = new java.util.ArrayDeque<>();
 	private volatile boolean running;
 	private ServerSocket serverSocket;
 
@@ -105,7 +108,28 @@ public class StatsServer
 	 */
 	public void publishEvent(String name, String json)
 	{
-		sendToAll("event: " + name + "\n" + event(json));
+		publishEvent(name, json, false);
+	}
+
+	/**
+	 * @param keep also send it to phones that connect later (up to the last {@value #MAX_HISTORY}), so they can
+	 *             catch up on what they missed
+	 */
+	public void publishEvent(String name, String json, boolean keep)
+	{
+		String message = "event: " + name + "\n" + event(json);
+		if (keep)
+		{
+			synchronized (history)
+			{
+				history.addLast(message);
+				while (history.size() > MAX_HISTORY)
+				{
+					history.removeFirst();
+				}
+			}
+		}
+		sendToAll(message);
 	}
 
 	private void sendToAll(String message)
@@ -215,7 +239,12 @@ public class StatsServer
 				{
 					try
 					{
-						out.write((headers + event(latest)).getBytes(StandardCharsets.UTF_8));
+						StringBuilder first = new StringBuilder(headers).append(event(latest));
+						synchronized (history)
+						{
+							history.forEach(first::append);
+						}
+						out.write(first.toString().getBytes(StandardCharsets.UTF_8));
 						out.flush();
 						listeners.add(socket);
 					}

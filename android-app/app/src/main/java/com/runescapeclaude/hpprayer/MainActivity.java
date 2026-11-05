@@ -1,6 +1,7 @@
 package com.runescapeclaude.hpprayer;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -22,8 +23,9 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
+import java.util.List;
 
-public class MainActivity extends Activity implements StatsConnection.Listener {
+public class MainActivity extends Activity implements StatsConnection.Listener, LootLog.Listener {
 	static final String PREFS = "settings";
 	static final String KEY_HOST = "host";
 	static final String KEY_PORT = "port";
@@ -48,11 +50,20 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 	private EditText hostInput;
 	private EditText portInput;
 	private Switch statusBarSwitch;
+	private TextView goadingView;
+	// Whether a goading potion was active since connecting, so "ran out" only shows after you've used one
+	private boolean goadingSeen;
+	private TextView lootTotalView;
+	private TextView lootSourcesView;
+	private TextView lootItemsView;
+	private TextView lootRecentView;
+	private LootLog lootLog;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
+		lootLog = LootLog.get(this);
 		// It's a display you glance at while playing, so don't let the screen go dark
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		getWindow().setStatusBarColor(BACKGROUND);
@@ -64,6 +75,8 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 	@Override
 	protected void onStart() {
 		super.onStart();
+		lootLog.addListener(this);
+		showLoot();
 		connect();
 		// The notification's Stop button can turn this off while the app is closed
 		boolean statusBar = prefs.getBoolean(StatsService.KEY_STATUS_BAR, false);
@@ -76,6 +89,7 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 	@Override
 	protected void onStop() {
 		super.onStop();
+		lootLog.removeListener(this);
 		disconnect();
 	}
 
@@ -120,6 +134,13 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 		root.addView(prayerBar, barParams);
 		root.addView(hpBar, new LinearLayout.LayoutParams(barParams));
 
+		goadingView = text(17, Color.WHITE);
+		goadingView.setTypeface(Typeface.DEFAULT_BOLD);
+		goadingView.setGravity(Gravity.CENTER);
+		goadingView.setPadding(0, (int) (12 * dp), 0, (int) (12 * dp));
+		goadingView.setVisibility(View.GONE);
+		root.addView(goadingView, new LinearLayout.LayoutParams(barParams));
+
 		statusBarSwitch = new Switch(this);
 		statusBarSwitch.setText("Keep running when the app is closed (status bar and alerts)");
 		statusBarSwitch.setTextColor(Color.rgb(200, 200, 210));
@@ -129,8 +150,12 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 
 		root.addView(prefSwitch("Prayer alerts at 20, 10 and 0", StatsService.KEY_PRAYER_ALERTS),
 			new LinearLayout.LayoutParams(barParams));
+		root.addView(prefSwitch("Alert when a goading potion runs out", StatsService.KEY_GOADING_ALERTS),
+			new LinearLayout.LayoutParams(barParams));
 		root.addView(prefSwitch("Drop alerts (set the value in the RuneLite plugin)", StatsService.KEY_DROP_ALERTS),
 			new LinearLayout.LayoutParams(barParams));
+
+		buildLoot(root, dp);
 
 		ScrollView scroll = new ScrollView(this);
 		scroll.setFillViewport(true);
@@ -307,8 +332,11 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 				hpBar.clear();
 				prayerBar.clear();
 				prayerBar.setBadge("");
+				goadingSeen = false;
+				goadingView.setVisibility(View.GONE);
 				return;
 			}
+			showGoading(stats.goading);
 			nameView.setText(stats.name.isEmpty() ? getString(R.string.app_name) : stats.name);
 			statusView.setText("Connected to " + savedHost());
 			hpBar.setValues(stats.hp, stats.maxHp);
@@ -325,6 +353,11 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 	}
 
 	@Override
+	public void onLoot(StatsConnection source, String json) {
+		lootLog.add(json);
+	}
+
+	@Override
 	public void onDisconnected(StatsConnection source, String reason) {
 		runOnUiThread(() -> {
 			if (source == connection) {
@@ -333,6 +366,21 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 				prayerBar.clear();
 			}
 		});
+	}
+
+	private void showGoading(int seconds) {
+		if (seconds > 0) {
+			goadingSeen = true;
+			goadingView.setText("Goading potion: " + Stats.duration(seconds) + " left");
+			goadingView.setBackgroundColor(Color.rgb(36, 80, 44));
+			goadingView.setVisibility(View.VISIBLE);
+		} else if (goadingSeen) {
+			goadingView.setText("Goading potion ran out. Drink another dose!");
+			goadingView.setBackgroundColor(Color.rgb(140, 70, 10));
+			goadingView.setVisibility(View.VISIBLE);
+		} else {
+			goadingView.setVisibility(View.GONE);
+		}
 	}
 
 	private static int hpColor(int hp, int maxHp) {
@@ -344,6 +392,112 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 			return HP_GREEN;
 		}
 		return fraction > 0.25f ? HP_ORANGE : HP_RED;
+	}
+
+	private void buildLoot(LinearLayout root, float dp) {
+		LinearLayout header = new LinearLayout(this);
+		header.setOrientation(LinearLayout.HORIZONTAL);
+		header.setGravity(Gravity.CENTER_VERTICAL);
+		TextView title = text(20, Color.WHITE);
+		title.setTypeface(Typeface.DEFAULT_BOLD);
+		title.setText("Loot");
+		header.addView(title, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
+		Button reset = new Button(this);
+		reset.setText("Reset");
+		reset.setOnClickListener(v -> new AlertDialog.Builder(this)
+			.setTitle("Reset loot?")
+			.setMessage("This clears the totals and the drop list.")
+			.setPositiveButton("Reset", (dialog, which) -> lootLog.clear())
+			.setNegativeButton("Cancel", null)
+			.show());
+		header.addView(reset);
+		LinearLayout.LayoutParams headerParams = new LinearLayout.LayoutParams(
+			LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+		headerParams.topMargin = (int) (28 * dp);
+		root.addView(header, headerParams);
+
+		lootTotalView = text(16, Color.rgb(255, 214, 64));
+		root.addView(lootTotalView);
+		lootSourcesView = lootSection(root, "Best sources", dp);
+		lootItemsView = lootSection(root, "Top items", dp);
+		lootRecentView = lootSection(root, "Recent drops", dp);
+	}
+
+	private TextView lootSection(LinearLayout root, String heading, float dp) {
+		TextView label = text(15, Color.rgb(150, 150, 165));
+		label.setTypeface(Typeface.DEFAULT_BOLD);
+		label.setText(heading);
+		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+			LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+		params.topMargin = (int) (14 * dp);
+		root.addView(label, params);
+		TextView body = text(15, Color.rgb(220, 220, 228));
+		body.setLineSpacing(3 * dp, 1f);
+		root.addView(body);
+		return body;
+	}
+
+	@Override
+	public void onLootChanged() {
+		runOnUiThread(this::showLoot);
+	}
+
+	private void showLoot() {
+		int count = lootLog.dropCount();
+		if (count == 0) {
+			lootTotalView.setText("No drops yet. Kill something!");
+			lootSourcesView.setText("–");
+			lootItemsView.setText("–");
+			lootRecentView.setText("–");
+			return;
+		}
+		java.text.DateFormat date = java.text.DateFormat.getDateTimeInstance(
+			java.text.DateFormat.SHORT, java.text.DateFormat.SHORT);
+		lootTotalView.setText(StatsService.coins(lootLog.totalValue()) + " from " + count
+			+ (count == 1 ? " drop" : " drops") + " since " + date.format(new java.util.Date(lootLog.firstTime())));
+
+		StringBuilder sources = new StringBuilder();
+		List<LootLog.Tally> bySource = lootLog.bySource();
+		for (int i = 0; i < Math.min(5, bySource.size()); i++) {
+			LootLog.Tally tally = bySource.get(i);
+			appendLine(sources, tally.name + "  ·  " + tally.count + (tally.count == 1 ? " drop" : " drops")
+				+ "  ·  " + StatsService.coins(tally.value));
+		}
+		lootSourcesView.setText(sources);
+
+		StringBuilder items = new StringBuilder();
+		List<LootLog.Tally> byItem = lootLog.byItem();
+		for (int i = 0; i < Math.min(10, byItem.size()); i++) {
+			LootLog.Tally tally = byItem.get(i);
+			appendLine(items, tally.name + (tally.count > 1 ? " x" + tally.count : "") + "  ·  "
+				+ (tally.tradeable ? StatsService.coins(tally.value) : "untradeable"));
+		}
+		lootItemsView.setText(items);
+
+		StringBuilder recent = new StringBuilder();
+		java.text.DateFormat time = java.text.DateFormat.getTimeInstance(java.text.DateFormat.SHORT);
+		for (LootLog.Drop drop : lootLog.recent(10)) {
+			StringBuilder names = new StringBuilder();
+			for (LootLog.Item item : drop.items) {
+				if (names.length() > 0) {
+					names.append(", ");
+				}
+				names.append(item.name);
+				if (item.quantity > 1) {
+					names.append(" x").append(item.quantity);
+				}
+			}
+			appendLine(recent, time.format(new java.util.Date(drop.time)) + "  " + drop.source + " (" +
+				StatsService.coins(drop.total) + "): " + names);
+		}
+		lootRecentView.setText(recent);
+	}
+
+	private static void appendLine(StringBuilder sb, String line) {
+		if (sb.length() > 0) {
+			sb.append('\n');
+		}
+		sb.append(line);
 	}
 
 	/** A switch for an alert setting the background service reads. Alerts are on until turned off. */
