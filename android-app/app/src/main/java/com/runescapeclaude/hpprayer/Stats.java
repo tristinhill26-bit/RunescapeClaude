@@ -34,4 +34,9 @@ final class Stats {
 			o.optInt("maxPrayer", 0),
 			o.optBoolean("prayerActive", false));
 	}
+
+	boolean sameAs(Stats o) {
+		return loggedIn == o.loggedIn && hp == o.hp && maxHp == o.maxHp && prayer == o.prayer
+			&& maxPrayer == o.maxPrayer && prayerActive == o.prayerActive && name.equals(o.name);
+	}
 }

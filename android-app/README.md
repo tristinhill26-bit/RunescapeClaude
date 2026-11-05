@@ -44,6 +44,21 @@ the Wi-Fi drops. Tap **PC** to change the address later.
 If it says *No answer*, check the phone is on the same Wi-Fi as the PC (not mobile data or a guest network), and that
 Windows Firewall allows Java. If it says *refused*, the plugin is off or uses a different port.
 
+## Status bar
+
+Turn on **Show in status bar when the app is closed** to keep an ongoing notification with your stats:
+
+- The status bar icon is your current Hitpoints as a number.
+- Pull down the notification shade to see `HP 45/99 · Prayer 12/77`.
+- On Android 16 (One UI 8 and later) the app also asks to be a **Live Update**, which shows `45 · 12` (Hitpoints ·
+  Prayer) in a chip at the top left of the screen and in Samsung's Now Bar on the lock screen. If the chip doesn't
+  appear, long-press the notification, open its settings and turn on **Live notifications** (the name varies a little
+  between phones).
+- Tap **Stop** on the notification to turn it off.
+
+If the phone sits with its screen off for a while, Android may pause Wi-Fi to save battery, and the numbers catch up
+when you wake it.
+
 ## Building it yourself
 
 Open the `android-app` folder in Android Studio and press Run, or with the Android SDK installed:

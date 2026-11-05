@@ -1,7 +1,10 @@
 package com.runescapeclaude.hpprayer;
 
 import android.app.Activity;
+import android.Manifest;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
@@ -17,13 +20,15 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 public class MainActivity extends Activity implements StatsConnection.Listener {
-	private static final String PREFS = "settings";
-	private static final String KEY_HOST = "host";
-	private static final String KEY_PORT = "port";
-	private static final int DEFAULT_PORT = 8765;
+	static final String PREFS = "settings";
+	static final String KEY_HOST = "host";
+	static final String KEY_PORT = "port";
+	static final int DEFAULT_PORT = 8765;
+	private static final int NOTIFICATION_PERMISSION_REQUEST = 1;
 
 	private static final int BACKGROUND = Color.rgb(18, 18, 22);
 	private static final int HP_GREEN = Color.rgb(46, 160, 67);
@@ -42,6 +47,7 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 	private LinearLayout settingsPanel;
 	private EditText hostInput;
 	private EditText portInput;
+	private Switch statusBarSwitch;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +65,12 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 	protected void onStart() {
 		super.onStart();
 		connect();
+		// The notification's Stop button can turn this off while the app is closed
+		boolean statusBar = prefs.getBoolean(StatsService.KEY_STATUS_BAR, false);
+		statusBarSwitch.setChecked(statusBar);
+		if (statusBar) {
+			startStatsService();
+		}
 	}
 
 	@Override
@@ -107,6 +119,13 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 		barParams.topMargin = (int) (20 * dp);
 		root.addView(hpBar, barParams);
 		root.addView(prayerBar, new LinearLayout.LayoutParams(barParams));
+
+		statusBarSwitch = new Switch(this);
+		statusBarSwitch.setText("Show in status bar when the app is closed");
+		statusBarSwitch.setTextColor(Color.rgb(200, 200, 210));
+		statusBarSwitch.setTextSize(15);
+		statusBarSwitch.setOnClickListener(v -> setStatusBar(statusBarSwitch.isChecked()));
+		root.addView(statusBarSwitch, new LinearLayout.LayoutParams(barParams));
 
 		ScrollView scroll = new ScrollView(this);
 		scroll.setFillViewport(true);
@@ -185,6 +204,48 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 		}
 		disconnect();
 		connect();
+		if (prefs.getBoolean(StatsService.KEY_STATUS_BAR, false)) {
+			// Reconnect the notification to the new address too
+			stopService(new Intent(this, StatsService.class));
+			startStatsService();
+		}
+	}
+
+	private void setStatusBar(boolean on) {
+		prefs.edit().putBoolean(StatsService.KEY_STATUS_BAR, on).apply();
+		if (!on) {
+			stopService(new Intent(this, StatsService.class));
+			return;
+		}
+		if (Build.VERSION.SDK_INT >= 33
+			&& checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+			requestPermissions(new String[] { Manifest.permission.POST_NOTIFICATIONS },
+				NOTIFICATION_PERMISSION_REQUEST);
+			return;
+		}
+		startStatsService();
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+		if (requestCode != NOTIFICATION_PERMISSION_REQUEST) {
+			return;
+		}
+		if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+			startStatsService();
+		} else {
+			statusBarSwitch.setChecked(false);
+			prefs.edit().putBoolean(StatsService.KEY_STATUS_BAR, false).apply();
+			statusView.setText("Allow notifications for HP & Prayer to show it in the status bar");
+		}
+	}
+
+	private void startStatsService() {
+		if (savedHost().isEmpty()) {
+			return;
+		}
+		startForegroundService(new Intent(this, StatsService.class));
 	}
 
 	private void connect() {
