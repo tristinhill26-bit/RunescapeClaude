@@ -1,0 +1,97 @@
+plugins {
+	id 'java'
+}
+
+repositories {
+	mavenLocal()
+	maven {
+		url = 'https://repo.runelite.net'
+		content {
+			includeGroupByRegex("net\\.runelite.*")
+		}
+	}
+	mavenCentral()
+}
+
+// Always build against the newest RuneLite release, like the official launcher does. Game updates often ship
+// with a RuneLite release that fixes plugins (e.g. 1.13.3 fixed prayer reordering for the 2026-10-20 cache), so
+// an older client can still log in but have broken features.
+def runeLiteVersion = 'latest.release'
+
+configurations.configureEach {
+	// Gradle remembers which version 'latest.release' meant for 24 hours by default, which kept launches on an
+	// outdated client after a release. Check for a new release on every launch instead.
+	resolutionStrategy.cacheDynamicVersionsFor 0, 'seconds'
+}
+def pluginMainClass = 'rs117.hd.HdPluginTest'
+
+dependencies {
+	compileOnly group: 'net.runelite', name: 'client', version: runeLiteVersion
+
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+	testImplementation 'junit:junit:4.13.2'
+	testImplementation 'org.mockito:mockito-core:3.1.0'
+	testImplementation group: 'net.runelite', name: 'client', version: runeLiteVersion
+	testImplementation group: 'net.runelite', name: 'jshell', version: runeLiteVersion
+
+	testCompileOnly 'org.projectlombok:lombok:1.18.30'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+}
+
+def props = new Properties()
+file('runelite-plugin.properties').withInputStream { props.load(it) }
+
+group = 'rs117.hd'
+version = props.getProperty('version')
+
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = 'UTF-8'
+	options.release.set(11)
+}
+
+tasks.register('run', JavaExec) {
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = pluginMainClass
+
+	jvmArgs "-ea", "-Xmx768M", "--add-opens=java.desktop/com.apple.eawt=ALL-UNNAMED"
+	args "--developer-mode", "--debug", "--disable-telemetry"
+}
+
+// For a phone running Linux in Termux (see phone/README.md): starts without 117 HD and Interaction Lights, which need
+// desktop OpenGL, and draws with plain software rendering.
+tasks.register('runLite', JavaExec) {
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = pluginMainClass
+
+	systemProperty 'rlhd.lite', 'true'
+	jvmArgs "-ea", "-Xmx768M", "-Dsun.java2d.opengl=false", "-Dsun.java2d.xrender=false"
+	args "--developer-mode", "--disable-telemetry"
+}
+
+tasks.register('shadowJar', Jar) {
+	dependsOn configurations.testRuntimeClasspath
+	manifest {
+		attributes('Main-Class': pluginMainClass, 'Multi-Release': true)
+	}
+
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+	from sourceSets.main.output
+	from sourceSets.test.output
+	from {
+		configurations.testRuntimeClasspath.collect { file ->
+			file.isDirectory() ? file : zipTree(file)
+		}
+	}
+
+	exclude 'META-INF/INDEX.LIST'
+	exclude 'META-INF/*.SF'
+	exclude 'META-INF/*.DSA'
+	exclude 'META-INF/*.RSA'
+	exclude '**/module-info.class'
+
+	group = BasePlugin.BUILD_GROUP
+	archiveClassifier.set('shadow')
+	archiveFileName.set("${rootProject.name}-${project.version}-all.jar")
+}

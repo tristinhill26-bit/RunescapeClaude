@@ -1,0 +1,58 @@
+name: Phone HP & Prayer
+
+# Compiles the RuneLite plugin against the newest RuneLite release, runs its tests, and builds the Android app.
+# Each build on the launcher's branch is published as the "phone-app" release, so the APK can be downloaded
+# straight onto the phone.
+on:
+  push:
+    branches: [ claude/runelite-117hd-lighting-dnp1u3 ]
+    paths:
+      - 'android-app/**'
+      - 'src/main/java/com/phonestats/**'
+      - 'src/test/java/com/phonestats/**'
+      - '.github/workflows/phone-app.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Compile every plugin and run the Phone HP & Prayer tests
+        run: ./gradlew --no-daemon testClasses test --tests 'com.phonestats.*'
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Build the APK
+        working-directory: android-app
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleRelease
+          cp app/build/outputs/apk/release/app-release.apk HP-and-Prayer.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: HP-and-Prayer-apk
+          path: android-app/HP-and-Prayer.apk
+      - name: Publish as the phone-app release
+        if: github.ref == 'refs/heads/claude/runelite-117hd-lighting-dnp1u3'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete phone-app --yes --cleanup-tag || true
+          gh release create phone-app android-app/HP-and-Prayer.apk \
+            --target "$GITHUB_SHA" \
+            --title "HP & Prayer phone app" \
+            --notes "Built from ${GITHUB_SHA::7}. Open this page on your phone, tap HP-and-Prayer.apk, then open the download to install it."
