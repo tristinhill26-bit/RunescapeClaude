@@ -1461,7 +1461,7 @@
     "retainVanillaUvs": true
   },
   {
-    "description": "Path of Glouphrie spirit tree (all states)",
+    "description": "Path of Glouphrie spirit tree (all states) - DYNAMIC - ANIMATED",
     "baseMaterial": "BARK",
     "objectIds": [
       "POG_SPIRIT_TREE_DEAD",
@@ -1474,10 +1474,13 @@
     "uvType": "BOX",
     "uvScale": 0.8,
     "retainVanillaUvs": true,
+    "shiftLightness": 3,
     "colorOverrides": [
       {
         "colors": "h == 17",
-        "baseMaterial": "LEAF_VEINS_DARK"
+        "baseMaterial": "LEAF_VEINS",
+        "shiftLightness": -5,
+        "uvType": "BOX"
       }
     ]
   },
@@ -3128,6 +3131,8 @@
       "FRIS_SHORT_GRASS_4",
       "FRIS_SHORT_GRASS_2",
       "FRIS_SHORT_GRASS_1",
+      "FRIS_LONG_GRASS_2",
+      "FRIS_LONG_GRASS_3",
       "FRIS_LONG_GRASS_4",
       "FRIS_SHORT_GRASS_4_CASTLE_EDGE",
       "FRIS_SHORT_GRASS_4_CASTLE_EDGE2",
@@ -5438,8 +5443,6 @@
       "FAI_VARROCK_WATCHTOWER_WOODEN_BEAM_LVL2",
       "FAI_VARROCK_WATCHTOWER_CORNER_LVL3",
       "FAI_VARROCK_WATCHTOWER_WALL_LVL3",
-      "FAI_VARROCK_WATCHTOWER_ROOF_LVL4",
-      "FAI_VARROCK_WATCHTOWER_ROOF_3X3",
       "FAI_VARROCK_CASTLE_BATTLEMENT_SHAPE_8_RIGHT",
       "FAI_VARROCK_CASTLE_BATTLEMENT_SHAPE_8_LEFT",
       "FAI_VARROCK_CASTLE_BATTLEMENT_SHAPE_8_RIGHT_2",
@@ -5474,6 +5477,29 @@
       {
         "description": "Interior trim",
         "baseMaterial": "WOOD_GRAIN_3",
+        "colors": "h == 7",
+        "uvType": "BOX",
+        "uvOrientationZ": 512,
+        "uvScale": 0.6
+      }
+    ]
+  },
+  {
+    "description": "Varrock Watchtower Roof - Brick walls with taupe interior",
+    "baseMaterial": "SMOOTH_STONE_SEMI_DARK",
+    "flatNormals": true,
+    "doubleSidedFaces": true,
+    "uvType": "BOX",
+    "uvScale": 0.6,
+    "objectIds": [
+      "FAI_VARROCK_WATCHTOWER_ROOF_LVL4",
+      "FAI_VARROCK_WATCHTOWER_ROOF_3X3"
+    ],
+    "colorOverrides": [
+      {
+        "description": "Interior trim",
+        "baseMaterial": "WOOD_GRAIN_3",
+        "doubleSidedFaces": true,
         "colors": "h == 7",
         "uvType": "BOX",
         "uvOrientationZ": 512,
@@ -7083,6 +7109,7 @@
         "description": "tiles",
         "colors": "h == 0",
         "baseMaterial": "STONE_NORMALED",
+        "doubleSidedFaces": true,
         "uvType": "BOX",
         "uvOrientation": -256,
         "uvScale": 0.8
@@ -8622,6 +8649,13 @@
     ],
     "uvType": "BOX",
     "uvScale": 0.5
+  },
+  {
+    "description": "PoH - Anivesary Altar Room Decoration - Double sided faces",
+    "doubleSidedFaces": true,
+    "objectIds": [
+      "POH_ICON_9"
+    ]
   },
   {
     "description": "ROCK_CAVE_ENTRANCES",
@@ -12170,7 +12204,8 @@
       "DADDYSHOME_CARPET_SIDE_BROKEN_0OP",
       "DADDYSHOME_CARPET_SIDE_FIXED",
       "DT2_GHORROCK_RUGSIDE",
-      "DOGQ_DEN_BED"
+      "DOGQ_DEN_BED",
+      "DOGQ_DEN_BED_NOOP"
     ]
   },
   {
@@ -14657,7 +14692,9 @@
       "HOSDUN_WEST_DOOR",
       "HOSDUN_EAST_DOOR",
       "HOSDUN_GRUBBY_DOOR_LOCKED",
-      "HOSDUN_GRUBBY_DOOR_OPEN"
+      "HOSDUN_GRUBBY_DOOR_OPEN",
+      "GOLRIE_GATE_WATERFALL_QUEST",
+      "POG_GATE_DOOR"
     ]
   },
   {
@@ -15437,7 +15474,8 @@
       "FIGHTARENA_DOOR2_ESCAPE",
       "DOTI_INTERROGATION_DOOR",
       "LUC2_MOV_DOOR_CLOSED",
-      "LUC2_MOV_DOOR_OPEN"
+      "LUC2_MOV_DOOR_OPEN",
+      "BRASSKEYDOOR"
     ],
     "uvType": "BOX",
     "flatNormals": true,
@@ -18125,7 +18163,8 @@
       "CRATE_WOODEN01_REINFORCED01_OPEN01_IMCANDO01",
       "SLUG2_LIGHTHOUSE_CRATE_STACK",
       "BANANACRATE",
-      "DOGQ_DEN_BOX"
+      "DOGQ_DEN_BOX",
+      "DOGQ_DEN_BOX_NOOP"
     ],
     "uvType": "BOX",
     "flatNormals": true,
@@ -21310,10 +21349,73 @@
       "CAVEKIT_ROCK02_LOW03",
       "CAVEKIT_ROCK02_LOW04",
       "CAVEKIT_ROCK02_LOW05",
-      "CAVEKIT_ROCK02_LOW06",
-      "WILD_CALLISTO_EXIT01"
+      "CAVEKIT_ROCK02_LOW06"
     ],
     "uvType": "BOX"
+  },
+  {
+    "description": "Wilderness - Artio/Callisto Walls and Rocks",
+    "areas": [ "Callisto Exit Fix" ],
+    "baseMaterial": "STONE_NORMALED",
+    "shiftLightness": -5,
+    "objectIds": [
+      "CAVEKIT_ROCK02_LOW04"
+    ],
+    "uvType": "BOX"
+  },
+  {
+    "description": "Wilderness - Artio/Callisto Walls and Rocks",
+    "areas": [ "Callisto Exit Fix" ],
+    "baseMaterial": "STONE_NORMALED",
+    "shiftLightness": -3,
+    "objectIds": [
+      "CAVEKIT_ROCK02_LOW05"
+    ],
+    "uvType": "BOX"
+  },
+  {
+    "description": "Wilderness - Artio/Callisto Exit",
+    "baseMaterial": "STONE_NORMALED",
+    "shiftLightness": -4,
+    "objectIds": [
+      "WILD_CALLISTO_EXIT01"
+    ],
+    "uvType": "BOX",
+    "colorOverrides": [
+      {
+        "colors": "a < 255",
+        "baseMaterial": "GRAY_80"
+      },
+      {
+        "colors": "l > 100",
+        "baseMaterial": "GRAY_125"
+      },
+      {
+        "colors": "l > 35",
+        "uvType": "BOX",
+        "shiftLightness": -10,
+        "baseMaterial": "STONE_NORMALED"
+      }
+    ]
+  },
+  {
+    "description": "Wilderness - Escape caves exit cave",
+    "baseMaterial": "STONE_NORMALED",
+    "shiftLightness": -1,
+    "objectIds": [
+      "WILD_BOSS_ESCAPE_CAVE_EXIT01"
+    ],
+    "uvType": "BOX",
+    "colorOverrides": [
+      {
+        "colors": "a < 255",
+        "baseMaterial": "GRAY_80"
+      },
+      {
+        "colors": "l == 68",
+        "baseMaterial": "GRAY_125"
+      }
+    ]
   },
   {
     "description": "Wilderness - Escape Caves - Entrance",
@@ -21321,7 +21423,13 @@
     "objectIds": [
       "WILD_CAVE_EXIT01"
     ],
-    "uvType": "BOX"
+    "uvType": "BOX",
+    "colorOverrides": [
+      {
+        "colors": "l == 2",
+        "baseMaterial": "GRAY_65"
+      }
+    ]
   },
   {
     "description": "Wilderness - Prayer Training Chaos Temple - Stained Glass Window",
@@ -22439,11 +22547,16 @@
     "colorOverrides": [
       {
         "colors": "h == 0",
-        "baseMaterial": "GRUNGE_3"
+        "baseMaterial": "CARPET",
+        "uvType": "BOX",
+        "shiftLightness": 5,
+        "uvOrientation": 187,
+        "uvScale": 0.5
       },
       {
         "colors": "h == 7",
-        "baseMaterial": "GRUNGE_3"
+        "baseMaterial": "METALLIC_1_SEMIGLOSS",
+        "shiftLightness": 10
       }
     ]
   },
@@ -24948,7 +25061,9 @@
       "AVIUM_TREE_2",
       "AVIUM_TREE_DARK",
       "KHARAZI_JUNGLE_TREE1",
-      "XBOWS_BEACH_TO_ISLAND_TREE_BASIC"
+      "XBOWS_BEACH_TO_ISLAND_TREE_BASIC",
+      "CRAB_AVIUM_TREE_1",
+      "CRAB_AVIUM_TREE_2"
     ],
     "uvType": "MODEL_XZ",
     "uvScale": 0.25,
@@ -33725,6 +33840,10 @@
     ],
     "colorOverrides": [
       {
+        "colors": "l <= 2",
+        "baseMaterial": "PURE_BLACK"
+      },
+      {
         "colors": "s == 2",
         "baseMaterial": "DIRT_1_SEMI_DARK",
         "uvType": "BOX"
@@ -33820,35 +33939,27 @@
   },
   {
     "description": "Poison Waste Dungeon Walls - Dirt with Railing",
-    "baseMaterial": "DIRT_1_LIGHT",
+    "baseMaterial": "ROCK_3_SMOOTH",
     "uvType": "BOX",
     "uvScale": 0.8,
+    "uvOrientation": 256,
     "objectIds": [
       "POG_SEWER_PIPE_SIDE_01",
       "POG_SEWER_PIPE_SIDE_FOR_LADDER",
-      "POG_SEWER_PIPE_FLOOR_EDGE_CORNER",
       "POG_SEWER_PIPE_CORNER",
       "POG_SEWER_PIPE_SIDE_GRATE_SIDE",
       "POG_SEWER_PIPE_SIDE_GRATE_MID",
       "POG_SEWER_PIPE_SIDE_GRATE_MID_MIRROR",
       "POG_SEWER_PIPE_SIDE_GRATE_SIDE_MIRROR",
       "POG_SEWER_PIPE_SIDE_02",
-      "POG_SEWER_PIPE_EXIT_BOTTOM_01_MIRROR",
-      "POG_SEWER_PIPE_EXIT_BOTTOM_02_MIRROR",
-      "POG_SEWER_PIPE_EXIT_BOTTOM_03_MIRROR",
-      "POG_SEWER_PIPE_EXIT_BOTTOM_01",
-      "POG_SEWER_PIPE_EXIT_BOTTOM_02",
-      "POG_SEWER_PIPE_EXIT_BOTTOM_03",
       "POG_SEWER_PIPE_EXIT_TOP_01_MIRROR",
       "POG_SEWER_PIPE_EXIT_TOP_02_MIRROR",
       "POG_SEWER_PIPE_EXIT_TOP_03_MIRROR",
       "POG_SEWER_PIPE_EXIT_TOP_01",
       "POG_SEWER_PIPE_EXIT_TOP_02",
       "POG_SEWER_PIPE_EXIT_TOP_03",
-      "POG_SEWER_PIPE_FLOOR_EDGE_01",
-      "POG_SEWER_PIPE_FLOOR_EDGE_02",
-      "POG_SEWER_PIPE_FLOOR_MID_02",
-      "POG_SEWER_PIPE_FLOOR_MID_01"
+      "POG_SEWER_PIPE_EXIT_BOTTOM_03_MIRROR",
+      "POG_SEWER_PIPE_EXIT_BOTTOM_03"
     ],
     "colorOverrides": [
       {
@@ -33861,6 +33972,63 @@
         "colors": "h == 10 && s == 1",
         "baseMaterial": "METALLIC_1_LIGHT"
       }
+    ]
+  },
+  {
+    "description": "Poison Waste Dungeon Walls - Entrance Tunnel",
+    "baseMaterial": "ROCK_3_SMOOTH",
+    "uvType": "BOX",
+    "uvScale": 0.8,
+    "uvOrientation": 256,
+    "objectIds": [
+      "POG_SEWER_PIPE_TOP_HALF_BLEND_03",
+      "POG_SEWER_PIPE_TOP_HALF_BLEND_02",
+      "POG_SEWER_PIPE_TOP_HALF_BLEND_01",
+      "POG_SEWER_PIPE_TOP_HALF_BLEND_01_MIRROR",
+      "POG_SEWER_PIPE_TOP_HALF_BLEND_02_MIRROR",
+      "POG_SEWER_PIPE_TOP_HALF_BLEND_03_MIRROR",
+      "POG_SEWER_PIPE_TOP_HALF_03_OFFSET",
+      "POG_SEWER_PIPE_TOP_HALF_02_OFFSET",
+      "POG_SEWER_PIPE_TOP_HALF_01_OFFSET",
+      "POG_SEWER_PIPE_TOP_HALF_01",
+      "POG_SEWER_PIPE_TOP_HALF_02",
+      "POG_SEWER_PIPE_TOP_HALF_03"
+    ],
+    "colorOverrides": [
+      {
+        "colors": "h == 5",
+        "baseMaterial": "SMOOTH_STONE",
+        "uvType": "BOX",
+        "uvScale": 0.75
+      },
+      {
+        "colors": "h == 10 && s == 1",
+        "baseMaterial": "METALLIC_1_LIGHT"
+      },
+      {
+        "colors": "h == 6",
+        "baseMaterial": "DIRT_1",
+        "uvType": "BOX"
+      }
+    ]
+  },
+  {
+    "description": "Poison Waste Dungeon - Dirt floor",
+    "baseMaterial": "DIRT_1",
+    "uvType": "BOX",
+    "uvScale": 0.8,
+    "uvOrientation": 256,
+    "shiftLightness": -3,
+    "objectIds": [
+      "POG_SEWER_PIPE_EXIT_BOTTOM_01_MIRROR",
+      "POG_SEWER_PIPE_EXIT_BOTTOM_02_MIRROR",
+      "POG_SEWER_PIPE_EXIT_BOTTOM_01",
+      "POG_SEWER_PIPE_EXIT_BOTTOM_02",
+      "POG_SEWER_PIPE_FLOOR_EDGE_01",
+      "POG_SEWER_PIPE_FLOOR_EDGE_02",
+      "POG_SEWER_PIPE_FLOOR_MID_02",
+      "POG_SEWER_PIPE_FLOOR_MID_01",
+      "POG_SEWER_PIPE_FLOOR_EDGE_CORNER"
     ]
   },
   {
@@ -33917,18 +34085,6 @@
     "uvScale": 0.8,
     "objectIds": [
       "POG_CAVE_WALL_LOWER_WALL_TOP",
-      "POG_SEWER_PIPE_TOP_HALF_BLEND_03",
-      "POG_SEWER_PIPE_TOP_HALF_BLEND_02",
-      "POG_SEWER_PIPE_TOP_HALF_BLEND_01",
-      "POG_SEWER_PIPE_TOP_HALF_BLEND_01_MIRROR",
-      "POG_SEWER_PIPE_TOP_HALF_BLEND_02_MIRROR",
-      "POG_SEWER_PIPE_TOP_HALF_BLEND_03_MIRROR",
-      "POG_SEWER_PIPE_TOP_HALF_03_OFFSET",
-      "POG_SEWER_PIPE_TOP_HALF_02_OFFSET",
-      "POG_SEWER_PIPE_TOP_HALF_01_OFFSET",
-      "POG_SEWER_PIPE_TOP_HALF_01",
-      "POG_SEWER_PIPE_TOP_HALF_02",
-      "POG_SEWER_PIPE_TOP_HALF_03",
       "POG_SEWER_GRATE_DOOR_MID",
       "POG_SEWER_GRATE_DOOR_TOP",
       "POG_ROCK_DUGUPSOIL_04",
@@ -33972,6 +34128,25 @@
       "POG_SEWER_RAIL_END",
       "POG_SEWER_RAIL",
       "POG_SEWER_RAIL_END_MIRROR"
+    ]
+  },
+  {
+    "description": "Poison Waste Dungeon - Red Button",
+    "baseMaterial": "METALLIC_1",
+    "uvType": "BOX",
+    "uvScale": 0.2,
+    "uvOrientation": 256,
+    "shiftLightness": 8,
+    "colorOverrides": [
+      {
+        "description": "Button",
+        "colors": "s == 7",
+        "baseMaterial": "GRUNGE_3",
+        "uvType": "BOX"
+      }
+    ],
+    "objectIds": [
+      "POG_ALARM_BUTTON"
     ]
   },
   {
@@ -34478,14 +34653,17 @@
       "WILD_CHEST_OPEN",
       "KEBOS_CHEST_CLOSED_INACTIVE",
       "WGS_MOVARIO_RUNE_CHEST",
-      "GOBLIN_OUTPOST_CHEST_CLOSED"
+      "GOBLIN_OUTPOST_CHEST_CLOSED",
+      "POG_CHEST_CLOSED",
+      "POG_CHEST_OPEN"
     ],
     "uvType": "BOX",
     "uvOrientationZ": 512,
     "uvOrientationX": 512,
     "flatNormals": true,
     "uvOrientationY": 512,
-    "uvScale": 0.8
+    "uvScale": 0.8,
+    "shiftLightness": 1
   },
   {
     "description": "Object - Wooden - Plank - Chest - Metal Clasp",
@@ -36469,7 +36647,8 @@
       "FAI_LEAFLESS_BUSH_SMALL_02",
       "DOV_HUNTING_PLANT2",
       "DOV_HUNTING_PLANT2_OP",
-      "HW17_JARVIS_BUSH"
+      "HW17_JARVIS_BUSH",
+      "CRAB_ENAKH_LEAFLESSBUSH"
     ],
     "uvType": "BOX",
     "uvOrientation": 600
@@ -36564,6 +36743,7 @@
     "baseMaterial": "WOOD_GRAIN_3",
     "uvType": "BOX",
     "retainVanillaUvs": false,
+    "doubleSidedFaces": true,
     "colorOverrides": [
       {
         "colors": "h == 10 && s == 0",
@@ -39226,7 +39406,8 @@
       "MAGIC_TREE_11",
       "MAGIC_TREE_FULLYGROWN_1",
       "MAGIC_TREE_FULLYGROWN_2",
-      "MAGICTREE"
+      "MAGICTREE",
+      "CRAB_MAGICTREE"
     ],
     "uvType": "BOX",
     "uvOrientation": 150,
@@ -39285,6 +39466,7 @@
   {
     "description": "Woodcutting Guild - Redwood Tree Top Leaves",
     "baseMaterial": "GRUNGE_3_DULL",
+    "doubleSidedFaces": true,
     "objectIds": [
       "REDWOODTREE_CANOPY_LOW_BLANK",
       "REDWOODTREE_CANOPY_LOW_SIDE1",
@@ -46737,7 +46919,6 @@
       "DECOKIT_ROCK01_JOIN02",
       "CAVEKIT_ROCK02_LOW02",
       "DECOKIT_ROCK01_MIDDLE01_DARK01",
-      "WILD_BOSS_ESCAPE_CAVE_EXIT01",
       "WILD_BOSS_ESCAPE_CAVE_EXIT02",
       "WILD_BOSS_ESCAPE_CAVE_EXIT_NOOP",
       "WILD_ESCAPECAVE_STALAGMITE01",
@@ -48139,6 +48320,7 @@
   {
     "description": "Zeah - Rough Plank Roofs",
     "baseMaterial": "WOOD_GRAIN_3",
+    "doubleSidedFaces": true,
     "objectIds": [
       "FARM_BARN_ROOF1", "FARM_BARN_ROOF2", "FARM_BARN_ROOF"
     ],
@@ -48212,6 +48394,7 @@
       "GROUNDCOVER_PLANT3_WITHERED",
       "GROUNDCOVER_PLANT4_WITHERED",
       "GROUNDCOVER_PLANT5_WITHERED",
+      "CRAB_GROUNDCOVER_PLANT4_WITHERED",
       "TT_HUNTING_PLANT_04_OP",
       "TT_HUNTING_PLANT_04_NOOP",
       "TT_HUNTING_PLANT_05_OP",
@@ -50765,7 +50948,6 @@
       "MURDERHIVE"
     ],
     "uvType": "BOX",
-    "upwardsNormals": false,
     "uvScale": 0.7,
     "uvOrientationX": 512
   },
@@ -65768,7 +65950,8 @@
       {
         "description": "Glass",
         "colors": "a < 255",
-        "baseMaterial": "BLANK_GLOSS",
+        "baseMaterial": "GRAY_50",
+        "shiftAlpha": -40,
         "uvType": "BOX",
         "uvScale": 0.4
       }
@@ -66998,9 +67181,10 @@
   },
   {
     "description": "Shayzien - Port Sarim - Fossil Island - Wooden - Volcano - Deposit Box",
-    "baseMaterial": "WOOD_GRAIN_3",
+    "baseMaterial": "WOOD_GRAIN_3_LIGHT",
     "uvType": "BOX",
     "uvOrientationY": 512,
+    "undoVanillaShading": false,
     "objectIds": [
       "SARIM_DEPOSIT_BOX",
       "CLAN_MEDIEVAL_DEPOSIT_BOX",
@@ -67796,6 +67980,7 @@
   {
     "description": "Corsair Cove - Hosidius - Thatch - Roofs",
     "baseMaterial": "HD_HAY_BRIGHT",
+    "doubleSidedFaces": true,
     "uvType": "BOX",
     "uvScale": 0.7,
     "objectIds": [
@@ -67810,6 +67995,7 @@
       {
         "description": "Ropes",
         "baseMaterial": "ROPE",
+        "doubleSidedFaces": true,
         "colors": "h == 7",
         "uvType": "BOX",
         "uvScale": 0.66
@@ -72998,6 +73184,15 @@
     "uvType": "BOX",
     "uvScale": 0.6,
     "uvOrientation": 89,
+    "colorOverrides": [
+      {
+        "description": "Grey rocks",
+        "baseMaterial": "ROCK_3",
+        "colors": "s == 0",
+        "uvType": "BOX",
+        "uvOrientation": 88
+      }
+    ],
     "objectIds": [
       "POG_SEWER_BRICK_RUBBLE_01",
       "POG_SEWER_BRICK_RUBBLE_02",
@@ -74091,7 +74286,8 @@
     "uvScale": 0.6,
     "uvOrientation": 512,
     "objectIds": [
-      "ALUFT_GNOME_CRATES"
+      "ALUFT_GNOME_CRATES",
+      "POG_GNOME_CRATES"
     ]
   },
   {
@@ -74100,15 +74296,30 @@
     "uvType": "BOX",
     "uvScale": 0.6,
     "objectIds": [
-      "ALUFT_GNOME_CRATE_SINGLE"
+      "ALUFT_GNOME_CRATE_SINGLE",
+      "POG_GNOME_CRATE_SINGLE"
     ]
   },
+
   {
     "description": "Gnome Stronghold - Wooden - Barrels",
     "baseMaterial": "WOOD_GRAIN_3",
     "uvType": "BOX",
-    "uvScale": 0.6,
+    "shiftLightness": 3,
+    "uvScale": 0.8,
+    "colorOverrides": [
+      {
+        "colors": [ "h == 6 && s == 5", "h == 7" ],
+        "baseMaterial": "WOOD_GRAIN_3",
+        "uvType": "BOX",
+        "uvScale": 0.5,
+        "uvOrientation": 512,
+        "shiftLightness": 3
+      }
+    ],
     "objectIds": [
+      "POG_GNOME_BARREL",
+      "POG_GNOME_BARRELS",
       "ALUFT_GNOME_BARRELS"
     ]
   },
@@ -82034,6 +82245,31 @@
     ]
   },
   {
+    "description": "Sailing - NPC Ship",
+    "baseMaterial": "METALLIC_1_VERY_LIGHT_SMOOTH",
+    "objectIds": [
+      "SAILING_BOAT_NPC_KANDARIN_LARGE01A",
+      "SAILING_BOAT_NPC_KANDARIN_LARGE01B1",
+      "SAILING_BOAT_NPC_KANDARIN_LARGE01B2",
+      "SAILING_BOAT_NPC_KANDARIN_LARGE01C1",
+      "SAILING_BOAT_NPC_KANDARIN_LARGE01C2",
+      "SAILING_BOAT_NPC_KANDARIN_LARGE01D",
+      "SAILING_BOAT_NPC_KANDARIN_LARGE01E",
+      "SAILING_BOAT_NPC_KANDARIN_LARGE01F",
+      "SAILING_BOAT_NPC_KANDARIN_LARGE01G"
+    ],
+    "colorOverrides": [
+      {
+        "description": "Hull",
+        "colors": "h == 5",
+        "baseMaterial": "WOOD_GRAIN_3",
+        "uvType": "BOX",
+        "uvScale": 0.65,
+        "uvOrientation": 512
+      }
+    ]
+  },
+  {
     "description": "Ship - Wood with Sails or Metal",
     "baseMaterial": "METALLIC_1_VERY_LIGHT_SMOOTH",
     "objectIds": [
@@ -82061,7 +82297,7 @@
       {
         "description": "Sail",
         "colors": "h == 8",
-        "baseMaterial": "CARPET_LIGHT_SMOOTH",
+        "baseMaterial": "SAIL_CLOTH_LIGHT_SMOOTH",
         "shadowNormalBias": true
       }
     ]
@@ -82072,7 +82308,8 @@
     "objectIds": [
       "BOATKIT_MAST_MIDDLEMAST_HOISTED",
       "BOATKIT_MAST_REARMAST_HOISTED",
-      "BOATKIT_MAST_MIDDLEMAST_UNFURLED"
+      "BOATKIT_MAST_MIDDLEMAST_UNFURLED",
+      "BOATKIT_MAST_MIDDLEMAST_FULL"
     ],
     "disableDetailCulling": true,
     "colorOverrides": [
@@ -82087,7 +82324,7 @@
       {
         "description": "Sail",
         "colors": "h == 8",
-        "baseMaterial": "CARPET_LIGHT_SMOOTH",
+        "baseMaterial": "SAIL_CLOTH_LIGHT_SMOOTH",
         "shadowNormalBias": true
       }
     ]
@@ -84043,6 +84280,7 @@
       {
         "description": "Flame",
         "colors": "a < 255",
+        "baseMaterial": "NONE",
         "upwardsNormals": true,
         "receiveShadows": false
       },
@@ -84297,7 +84535,7 @@
     "colorOverrides": [
       {
         "description": "Canvas Roof",
-        "baseMaterial": "CARPET_LIGHT_SMOOTH",
+        "baseMaterial": "SAIL_CLOTH_LIGHT_SMOOTH",
         "colors": "h > 6 && h < 11"
       },
       {
@@ -84388,7 +84626,10 @@
       "PALM_UPDATE03",
       "TT_PALM_1",
       "TT_PALM_2",
-      "TT_PALM_3"
+      "TT_PALM_3",
+      "CRAB_PALM_UPDATE01",
+      "CRAB_PALM_UPDATE02",
+      "CRAB_PALM_UPDATE03"
     ],
     "colorOverrides": [
       {
@@ -87605,7 +87846,9 @@
     "objectIds": [
       "TARNISHED_PIRATE_THIEVING_CHEST_CROWN_JEWEL",
       "TARNISHED_PIRATE_THIEVING_CHEST_SHIMMERING_ATOLL",
-      "TARNISHED_PIRATE_THIEVING_CHEST_OPEN"
+      "TARNISHED_PIRATE_THIEVING_CHEST_OPEN",
+      "RUSTY_PIRATE_THIEVING_CHEST_DOGNOSE",
+      "RUSTY_PIRATE_THIEVING_CHEST_OPEN"
     ],
     "colorOverrides": [
       {
@@ -90982,6 +91225,168 @@
       {
         "colors": "l == 2",
         "baseMaterial": "PURE_BLACK"
+      }
+    ]
+  },
+  {
+    "description": "Halloween Pumpkin",
+    "baseMaterial": "GRUNGE_3",
+    "uvScale": 0.7,
+    "uvType": "BOX",
+    "objectIds": [
+      "HW22_LANTERN_PUMPKIN01_GROUP05",
+      "HW22_LANTERN_PUMPKIN01_LIT01_SMALL02",
+      "HW22_LANTERN_TURNIP01_LIT01_GROUP01_2X2",
+      "HW22_LANTERN_TURNIP01_LIT01_GROUP04",
+      "HW22_LANTERN_TURNIP01_LIT01_GROUP01",
+      "HW22_LANTERN_PUMPKIN01_SMALL01",
+      "HW22_LANTERN_PUMPKIN01_ALT01_SMALL01_OFFSET02"
+    ],
+    "colorOverrides": [
+      {
+        "colors": "h == 14 || h == 21 || h == 23 || h == 24",
+        "baseMaterial": "GRUNGE_1_LIGHT",
+        "uvType": "BOX",
+        "uvScale": 0.5
+      }
+    ]
+  },
+  {
+    "description": "Halloween Stocks with Skeleton",
+    "baseMaterial": "GRUNGE_3",
+    "uvScale": 0.7,
+    "uvType": "BOX",
+    "objectIds": [
+      "HW22_DECORATION_SKELETON01_STOCKS01_2X2"
+    ],
+    "colorOverrides": [
+      {
+        "colors": "h == 3",
+        "baseMaterial": "WOOD_GRAIN_3",
+        "uvType": "BOX",
+        "uvScale": 0.5,
+        "uvOrientationY": 512
+      },
+      {
+        "colors": "h == 4 && s == 2",
+        "baseMaterial": "BURLAP",
+        "uvType": "BOX",
+        "uvScale": 0.5,
+        "uvOrientationY": 512
+      }
+    ]
+  },
+  {
+    "description": "Halloween Wall Beast",
+    "baseMaterial": "GRUNGE_3",
+    "uvScale": 0.7,
+    "uvType": "BOX",
+    "objectIds": [
+      "HW22_DECORATION_WALLBEAST01_CANDY01"
+    ],
+    "colorOverrides": [
+      {
+        "colors": "h == 10",
+        "baseMaterial": "SMOOTH_STONE",
+        "uvType": "BOX",
+        "uvScale": 0.5
+      },
+      {
+        "colors": "h == 4 && s == 2",
+        "baseMaterial": "BURLAP",
+        "uvType": "BOX",
+        "uvScale": 0.5,
+        "uvOrientationY": 512
+      }
+    ]
+  },
+  {
+    "description": "Halloween Death Scarecrow",
+    "baseMaterial": "WOOD_GRAIN_3",
+    "uvScale": 0.7,
+    "uvOrientation": 712,
+    "uvType": "BOX",
+    "objectIds": [
+      "HW22_DECORATION_REAPER01_SCARECROW01"
+    ],
+    "colorOverrides": [
+      {
+        "colors": "h == 42",
+        "baseMaterial": "CARPET_LIGHT",
+        "uvType": "BOX",
+        "uvScale": 0.7
+      },
+      {
+        "colors": "h == 7",
+        "baseMaterial": "HD_HAY",
+        "uvType": "BOX",
+        "uvScale": 0.3
+      }
+    ]
+  },
+  {
+    "description": "Halloween Shade Decoration",
+    "baseMaterial": "GRUNGE_3",
+    "uvScale": 0.7,
+    "uvType": "BOX",
+    "objectIds": [
+      "HW22_DECORATION_SHADE01_DEFAULT01"
+    ],
+    "colorOverrides": [
+      {
+        "colors": "h > 7",
+        "baseMaterial": "CARPET_LIGHT",
+        "uvType": "BOX",
+        "uvScale": 0.7
+      }
+    ]
+  },
+  {
+    "description": "Halloween Skeleton Grave",
+    "baseMaterial": "GRUNGE_3",
+    "uvScale": 0.7,
+    "terrainVertexSnap": true,
+    "terrainVertexSnapThreshold": 0.01,
+    "uvType": "BOX",
+    "objectIds": [
+      "HW22_DECORATION_SKELETON01_GRAVESTONE01"
+    ],
+    "colorOverrides": [
+      {
+        "colors": "h == 3",
+        "baseMaterial": "DIRT_1",
+        "terrainVertexSnap": true,
+        "uvType": "BOX"
+      },
+      {
+        "colors": "h == 42",
+        "baseMaterial": "SMOOTH_STONE",
+        "uvType": "BOX",
+        "uvScale": 0.5
+      }
+    ]
+  },
+  {
+    "description": "Halloween Webs",
+    "baseMaterial": "WOOD_GRAIN_3",
+    "uvScale": 0.7,
+    "uvOrientation": 712,
+    "uvType": "BOX",
+    "objectIds": [
+      "HW22_DECORATION_WEBBING01_LARGE01_SPIDER01_OFFSET01",
+      "HW22_DECORATION_WEBBING01_MEDIUM01",
+      "HW22_DECORATION_WEBBING01_MEDIUM01_SPIDER01",
+      "HW22_DECORATION_WEBBING01_LARGE01_OFFSET01",
+      "HW22_DECORATION_WEBBING01_SMALL01",
+      "HW22_DECORATION_WEBBING01_MEDIUM01_OFFSET01",
+      "HW22_DECORATION_WEBBING01_SMALL01_OFFSET01"
+    ],
+    "colorOverrides": [
+      {
+        "colors": "h == 43",
+        "baseMaterial": "GROUND_WEB_1",
+        "shiftLightness": 5,
+        "uvType": "BOX"
       }
     ]
   },
@@ -105036,15 +105441,16 @@
     ]
   },
   {
-    "description": "Wyrmscraig - Mad Angel - Darken Light Tennis Shadow Slightly",
+    "description": "Wyrmscraig - Mad Angel - Light Tennis landing shadow - Black and more opaque so it stays visible inside HD shadows",
     "areas": [ "WYRMSCRAIG" ],
-    "baseMaterial": "GRAY_125",
+    "baseMaterial": "BLACK",
+    "shiftAlpha": 60,
     "graphicsObjectIds": [
       "GARGBOSS_DEBRIS_SHADOW_150"
     ]
   },
   {
-    "description": "Wyrmscraig - Mad Angel - Darken Light Tennis Shadow Slightly",
+    "description": "Wyrmscraig - Mad Angel - Brighten Cathedral Light Rays Slightly",
     "areas": [ "WYRMSCRAIG" ],
     "shiftLightness": 3,
     "objectIds": [ "WYRMSCRAIG_CATHEDRAL_LIGHTRAY01" ]
@@ -105683,7 +106089,8 @@
     "shiftLightness": 2,
     "uvType": "BOX",
     "objectIds": [
-      "DOGQ_DEN_SCRAPS"
+      "DOGQ_DEN_SCRAPS",
+      "DOGQ_DEN_SCRAPS_NOOP"
     ]
   },
   {
@@ -105735,6 +106142,482 @@
     ],
     "objectIds": [
       "PRISON_BUCKET_SPILT"
+    ]
+  },
+  {
+    "description": "Ruff Situation - Varrock Dog Bed",
+    "baseMaterial": "WOOD_GRAIN_3",
+    "uvType": "BOX",
+    "uvScale": 0.5,
+    "uvOrientationX": 512,
+    "uvOrientationZ": 512,
+    "colorOverrides": [
+      {
+        "colors": "h == 0",
+        "baseMaterial": "CARPET_LIGHT",
+        "uvType": "MODEL_XZ"
+      }
+    ],
+    "objectIds": [
+      "DOGQ_DOG_GUARD_HOUSE"
+    ]
+  },
+  {
+    "description": "Crab Quest - Quest Start Sand",
+    "uvType": "BOX",
+    "baseMaterial": "SAND_4",
+    "objectIds": [
+      "ENAKH_TEMPLE_SAND_PILE1"
+    ]
+  },
+  {
+    "description": "Crab Quest - Floatsam",
+    "uvType": "BOX",
+    "baseMaterial": "SAND_4",
+    "npcIds": [
+      "CRAB_FLOATSAM_1",
+      "CRAB_FLOATSAM_2",
+      "CRAB_FLOATSAM_3"
+    ],
+    "colorOverrides": [
+      {
+        "colors": "h == 5 && s == 0 || h == 5 && s == 1",
+        "baseMaterial": "METALLIC_1_SMOOTH"
+      },
+      {
+        "colors": "h == 5",
+        "baseMaterial": "WOOD_GRAIN_3",
+        "uvType": "BOX",
+        "uvScale": 0.5
+      },
+      {
+        "colors": "h == 0 && s == 2",
+        "baseMaterial": "WOOD_GRAIN_3",
+        "uvType": "BOX",
+        "uvScale": 0.35,
+        "uvOrientationY": 256
+      },
+      {
+        "colors": "h == 7",
+        "baseMaterial": "GRUNGE_3"
+      },
+      {
+        "colors": "h == 12",
+        "baseMaterial": "LEAF_VEINS",
+        "uvType": "BOX",
+        "uvScale": 0.1
+      },
+      {
+        "colors": "h == 37 && a < 255",
+        "baseMaterial": "NONE",
+        "hideAsWaterEffect": true
+      }
+    ]
+  },
+  {
+    "description": "Crab Quest - Coconut",
+    "uvType": "BOX",
+    "uvScale": 0.7,
+    "baseMaterial": "FUR",
+    "objectIds": [
+      "CRAB_DRUMS"
+    ]
+  },
+  {
+    "description": "Crab Quest - Bass Guitar",
+    "uvType": "BOX",
+    "uvScale": 0.7,
+    "baseMaterial": "FUR",
+    "objectIds": [
+      "CRAB_BASS"
+    ],
+    "colorOverrides": [
+      {
+        "colors": "h == 5 && s == 0 || h == 5 && s == 1",
+        "baseMaterial": "METALLIC_1_SMOOTH"
+      },
+      {
+        "colors": "h == 5",
+        "baseMaterial": "WOOD_GRAIN_3",
+        "uvType": "BOX",
+        "uvScale": 0.4
+      },
+      {
+        "colors": "h == 0 && s == 2",
+        "baseMaterial": "WOOD_GRAIN_3",
+        "uvType": "BOX",
+        "uvScale": 0.35,
+        "uvOrientation": -256
+      },
+      {
+        "colors": "h == 7",
+        "baseMaterial": "GRUNGE_3"
+      }
+    ]
+  },
+  {
+    "description": "Crab Quest - Note Shells",
+    "uvType": "BOX",
+    "uvScale": 0.2,
+    "baseMaterial": "GRUNGE_3_SMOOTH",
+    "objectIds": [
+      "CRAB_SHELL_1",
+      "CRAB_SHELL_2",
+      "CRAB_SHELL_3",
+      "CRAB_SHELL_4",
+      "CRAB_SHELL_5",
+      "CRAB_SHELL_6",
+      "CRAB_SHELL_7"
+    ]
+  },
+  {
+    "description": "Gnome Tree Village - Ladder",
+    "uvType": "BOX",
+    "uvScale": 0.5,
+    "baseMaterial": "WOOD_GRAIN_3",
+    "uvOrientation": 512,
+    "colorOverrides": [
+      {
+        "colors": "h == 0 && s == 0 && l == 2",
+        "baseMaterial": "BLACK"
+      }
+    ],
+    "objectIds": [
+      "ROVING_GOLRIE_LADDER_TO_CELLAR",
+      "ROVING_GOLRIE_LADDER_FROM_CELLAR"
+    ]
+  },
+  {
+    "description": "Gnome Tree Village - Dirt Cave Wall",
+    "baseMaterial": "DIRT_1",
+    "uvType": "BOX",
+    "objectIds": [
+      "POG_CAVE_WALL",
+      "POG_CAVE_WALL_JOINT",
+      "POG_CAVE_WALL_ROCKY"
+    ]
+  },
+  {
+    "description": "Gnome Tree Village - Dirt Cave with bars",
+    "baseMaterial": "DIRT_1",
+    "uvType": "BOX",
+    "colorOverrides": [
+      {
+        "colors": "h == 0 && s == 0",
+        "baseMaterial": "METALLIC_1",
+        "uvType": "BOX",
+        "uvScale": 0.2,
+        "shiftLightness": 6
+      }
+    ],
+    "objectIds": [
+      "POG_CAVE_DOOR_SUPPORT",
+      "POG_CAVE_DOOR_SUPPORT_M"
+    ]
+  },
+  {
+    "description": "Gnome Tree Village - Dirt Cave Wall tops",
+    "baseMaterial": "DIRT_1",
+    "uvType": "MODEL_XZ",
+    "colorOverrides": [
+      {
+        "colors": "h == 0 && l == 2",
+        "baseMaterial": "PURE_BLACK"
+      }
+    ],
+    "objectIds": [
+      "POG_CAVE_WALL_TOP5B",
+      "POG_CAVE_WALL_TOP",
+      "POG_CAVE_WALL_TOP_BLACK",
+      "POG_CAVE_WALL_TOP5_BLACK"
+    ]
+  },
+  {
+    "description": "Gnome Tree Village - Dirt Cave Wall Exit",
+    "baseMaterial": "DIRT_1",
+    "uvType": "BOX",
+    "colorOverrides": [
+      {
+        "colors": "h == 0 && l <= 5",
+        "baseMaterial": "PURE_BLACK"
+      }
+    ],
+    "objectIds": [
+      "POG_CAVE_WALL_ENTRANCE_GOLRIE_ROVING",
+      "POG_CAVE_WALL_ENTRANCE"
+    ]
+  },
+  {
+    "description": "Gnome Tree Village - Dirt Cave Wall with supports and lanturns - needs proper UV",
+    "baseMaterial": "DIRT_1",
+    "uvType": "BOX",
+    "objectIds": [
+      "POG_CAVE_WALL_SUPPORT_LEFT",
+      "POG_CAVE_WALL_SUPPORT_RIGHT",
+      "POG_CAVE_MINE_WALL_LAMP"
+    ]
+  },
+  {
+    "description": "Quest - Path of Glorphrie - Cave rocks - Tall",
+    "baseMaterial": "ROCK_3",
+    "uvType": "BOX",
+    "uvOrientation": 512,
+    "uvScale": 1.2,
+    "objectIds": [
+      "POG_CAVE_ROCKS_1X1_03",
+      "POG_CAVE_ROCKS_1X3_01"
+    ]
+  },
+  {
+    "description": "Quest - Path of Glorphrie - Cave rocks",
+    "baseMaterial": "ROCK_3",
+    "uvType": "BOX",
+    "uvOrientation": 187,
+    "objectIds": [
+      "POG_CAVE_ROCKS_1X1_01",
+      "POG_CAVE_ROCKS_1X1_02"
+    ]
+  },
+  {
+    "description": "Quest - Path of Glorphrie - ditch lip",
+    "baseMaterial": "DIRT_2",
+    "uvType": "BOX",
+    "objectIds": [
+      "POG_DITCH_LIP01",
+      "POG_DITCH_LIP02"
+    ]
+  },
+  {
+    "description": "Quest - Path of Glorphrie - Stone Monolith",
+    "baseMaterial": "STONE_NORMALED",
+    "uvType": "BOX",
+    "npcIds": [
+      "POG_GOLRIE_CRATE_1X1",
+      "POG_GOLRIE_CRATE_2X2",
+      "POG_GOLRIE_CRATE_2X2_NOOP",
+      "POG_GOLRIE_CRATE_1X1_NOOP"
+    ]
+  },
+  {
+    "description": "Quest - Path of Glorphrie - Singing Bowl",
+    "baseMaterial": "GRAY_90",
+    "uvType": "BOX",
+    "colorOverrides": [
+      {
+        "colors": "h == 7",
+        "baseMaterial": "MARBLE_2_GLOSS",
+        "uvType": "BOX",
+        "uvOrientation": 512,
+        "uvScale": 0.5
+      },
+      {
+        "colors": "a != 225",
+        "baseMaterial": "NONE",
+        "upwardsNormals": true
+      }
+    ],
+    "objectIds": [
+      "POG_SINGING_BOWL_INSPECT",
+      "POG_SINGING_BOWL_SING"
+    ]
+  },
+  {
+    "description": "Quest - Path of Glorphrie - Metallic Guilded Chest with Wooden Planks",
+    "baseMaterial": "WOOD_GRAIN_3",
+    "uvType": "BOX",
+    "uvScale": 0.45,
+    "uvOrientation": 512,
+    "shiftLightness": 6,
+    "colorOverrides": [
+      {
+        "colors": [ "h == 0", "h == 7 && s == 7" ],
+        "baseMaterial": "METALLIC_1_SEMIGLOSS",
+        "uvType": "BOX",
+        "uvScale": 0.2,
+        "uvOrientation": 512,
+        "shiftLightness": 8
+      }
+    ],
+    "objectIds": [
+      "POG_GOLRIE_SMALL_CHEST_PICKLOCK",
+      "POG_GOLRIE_SMALL_CHEST_NORMAL",
+      "POG_GOLRIE_SMALL_CHEST",
+      "POG_GOLRIE_BIG_CHEST"
+    ]
+  },
+  {
+    "description": "Quest - Path of Glorphrie - Machine Panel",
+    "baseMaterial": "METALLIC_1_SEMIGLOSS",
+    "uvType": "BOX",
+    "uvScale": 0.45,
+    "uvOrientation": 512,
+    "shiftLightness": 8,
+    "objectIds": [
+      "EYEGLO_MACHINE_CLUE_PANEL"
+    ]
+  },
+  {
+    "description": "Quest - Path of Glorphrie - Machine Lecturn",
+    "baseMaterial": "GRUNGE_3",
+    "uvType": "BOX",
+    "uvScale": 0.45,
+    "uvOrientation": 512,
+    "colorOverrides": [
+      {
+        "colors": "h == 6 && s <= 6",
+        "baseMaterial": "METALLIC_1_SEMIGLOSS",
+        "uvType": "BOX",
+        "uvScale": 0.45,
+        "uvOrientation": 187,
+        "shiftLightness": 8
+      }
+    ],
+    "objectIds": [
+      "POG_LECTURN"
+    ]
+  },
+  {
+    "description": "Quest - Path of Glorphrie - Machine Plaform",
+    "baseMaterial": "METALLIC_1_SEMIGLOSS",
+    "uvType": "BOX",
+    "uvScale": 0.45,
+    "uvOrientation": 512,
+    "shiftLightness": 8,
+    "objectIds": [
+      "POG_MACHINE_PLATFORM_PART1",
+      "POG_MACHINE_PLATFORM_PART2",
+      "POG_MACHINE_PLATFORM_PART3",
+      "POG_MACHINE_PLATFORM_PART4",
+      "POG_MACHINE_PLATFORM_PART5",
+      "POG_MACHINE_PLATFORM_PART6",
+      "EYEGLO_MACHINE_PLATFORM_PART1",
+      "EYEGLO_MACHINE_PLATFORM_PART2",
+      "EYEGLO_MACHINE_PLATFORM_PART3",
+      "EYEGLO_MACHINE_PLATFORM_PART4",
+      "EYEGLO_MACHINE_PLATFORM_PART5",
+      "EYEGLO_MACHINE_PLATFORM_PART6"
+    ]
+  },
+  {
+    "description": "Quest - Path of Glorphrie - Machine - DYNNAMIC - ANIMATED",
+    "baseMaterial": "METALLIC_1_SEMIGLOSS",
+    "uvType": "BOX",
+    "uvScale": 0.45,
+    "uvOrientation": 187,
+    "shiftLightness": 2,
+    "colorOverrides": [
+      {
+        "colors": "a < 255",
+        "baseMaterial": "GRAY_80"
+      }
+    ],
+    "objectIds": [
+      "POG_GNOME_MACHINE_01",
+      "POG_GNOME_MACHINE_02",
+      "POG_GNOME_MACHINE_03",
+      "POG_GNOME_MACHINE_01_COGS"
+    ]
+  },
+  {
+    "description": "Gnome Stronghold - Throne",
+    "baseMaterial": "WOOD_GRAIN_3",
+    "uvType": "BOX",
+    "uvScale": 0.8,
+    "shiftLightness": 3,
+    "colorOverrides": [
+      {
+        "colors": "h == 13",
+        "baseMaterial": "CARPET",
+        "uvType": "BOX",
+        "uvScale": 0.45,
+        "uvOrientation": 187,
+        "shiftLightness": 8
+      },
+      {
+        "colors": "h == 4",
+        "baseMaterial": "WOOD_GRAIN_3",
+        "uvType": "BOX",
+        "uvScale": 0.45,
+        "shiftLightness": 3,
+        "uvOrientation": 512
+      }
+    ],
+    "objectIds": [
+      "GNOMETHRONE"
+    ]
+  },
+  {
+    "description": "Quest - Path of Glorphrie - Tables with human",
+    "baseMaterial": "GRUNGE_3_SHINY",
+    "uvType": "BOX",
+    "uvScale": 0.8,
+    "shiftLightness": 3,
+    "colorOverrides": [
+      {
+        "colors": "h == 6 || h == 7",
+        "baseMaterial": "WOOD_GRAIN_3",
+        "uvType": "BOX",
+        "uvScale": 0.45,
+        "shiftLightness": 3,
+        "uvOrientation": 512
+      }
+    ],
+    "objectIds": [
+      "POG_HUMAN_FOOD_SHANKS_ALT",
+      "POG_HUMAN_FOOD_FRUIT_1_ALT",
+      "POG_HUMAN_FOOD_FRUIT_2_ALT"
+    ]
+  },
+  {
+    "description": "Tree Gnome Stronghold - Giant Rock",
+    "baseMaterial": "ROCK_3",
+    "uvType": "BOX",
+    "uvScale": 0.8,
+    "shiftLightness": 3,
+    "uvOrientation": 128,
+    "objectIds": [
+      "ZEP_PRE_QUEST_ROCK"
+    ]
+  },
+  {
+    "description": "Gnome Stronghold - Water Barrel",
+    "baseMaterial": "WOOD_GRAIN_3",
+    "uvType": "BOX",
+    "uvScale": 0.6,
+    "uvOrientation": 512,
+    "colorOverrides": [
+      {
+        "colors": "h == 37",
+        "baseMaterial": "WATER_FOUNTAIN_FLAT",
+        "uvType": "MODEL_XZ",
+        "uvScale": 0.5
+      }
+    ],
+    "objectIds": [
+      "GNOME_WATERBARREL"
+    ]
+  },
+  {
+    "description": "Poison Wastes Dungeon - Wall grass",
+    "baseMaterial": "LEAF_VEINS",
+    "uvType": "BOX",
+    "uvScale": 0.6,
+    "shiftLightness": 5,
+    "objectIds": [
+      "POG_SEWER_BRICK_WALL_PLANTS_01",
+      "POG_SEWER_BRICK_WALL_PLANTS_02",
+      "POG_SEWER_BRICK_WALL_PLANTS_03"
+    ]
+  },
+  {
+    "description": "Poison Wastes Dungeon - Wall Plants",
+    "baseMaterial": "GRUNGE_3",
+    "uvType": "BOX",
+    "uvScale": 0.6,
+    "objectIds": [
+      "POG_SEWER_BRICK_WALL_PLANTS_05",
+      "POG_SEWER_BRICK_WALL_PLANTS_06",
+      "POG_SEWER_BRICK_WALL_PLANTS_07"
     ]
   }
 ]

@@ -102,7 +102,7 @@ public class Light
 			dynamicLifetime = false;
 		}
 
-		animationSpecific = def.waitForAnimation || !def.animationIds.isEmpty();
+		animationSpecific = def.waitForAnimation || def.hasAnimationFilter();
 		if (animationSpecific) {
 			persistent = replayable = true;
 			// Initially hide the light

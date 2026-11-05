@@ -20155,6 +20155,7 @@
   },
   {
     "description": "STANDING_TORCH",
+    "excludeAreas": [ "TAVERLEY_STONE_CIRCLE" ],
     "height": 200,
     "radius": 500,
     "strength": 9,
@@ -20188,6 +20189,25 @@
       "FAI_BARBARIAN_TORCH",
       "ROYAL_TORCH",
       "DWARF_KELDAGRIM_LAMP_STAND"
+    ]
+  },
+  {
+    "description": "TAVERLEY_STONE_CIRCLE_STANDING_TORCH",
+    "areas": [ "TAVERLEY_STONE_CIRCLE" ],
+    "height": 200,
+    "radius": 275,
+    "strength": 13,
+    "nightMultiplier": 1.35,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 20,
+    "objectIds": [
+      "STANDING_TORCH"
     ]
   },
   {
@@ -20730,6 +20750,7 @@
   },
   {
     "description": "LANTERN",
+    "excludeAreas": [ "LADY_ZAY" ],
     "height": 250,
     "radius": 500,
     "strength": 12.5,
@@ -20746,6 +20767,80 @@
       "VC_LANTERN_DECOR",
       "QUEST_LUNAR_HANGING_LANTERN"
     ]
+  },
+  {
+    "description": "LADY_ZAY_LANTERN_UPPER",
+    "areas": [ "LADY_ZAY" ],
+    "excludeAreas": [ "LADY_ZAY_PLANE_0" ],
+    "visibleFromOtherPlanes": false,
+    "offset": [ 0, 250, -20 ],
+    "radius": 350,
+    "strength": 12.5,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 20,
+    "objectIds": [
+      "QUEST_LUNAR_HANGING_LANTERN"
+    ]
+  },
+  {
+    "description": "LADY_ZAY_LANTERN_LOWER",
+    "areas": [ "LADY_ZAY_PLANE_0" ],
+    "offset": [ 0, 300, -20 ],
+    "radius": 300,
+    "strength": 12.5,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 20,
+    "objectIds": [
+      "QUEST_LUNAR_HANGING_LANTERN"
+    ]
+  },
+  {
+    "description": "LADY_ZAY_TRANSITION_LIGHT_LUNAR",
+    "height": 300,
+    "worldX": 2140,
+    "worldY": 3912,
+    "visibleFromOtherPlanes": false,
+    "plane": 0,
+    "radius": 300,
+    "strength": 12.5,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 20
+  },
+  {
+    "description": "LADY_ZAY_TRANSITION_LIGHT_COVE",
+    "height": 300,
+    "worldX": 2224,
+    "worldY": 3809,
+    "visibleFromOtherPlanes": false,
+    "plane": 0,
+    "radius": 300,
+    "strength": 12.5,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 20
   },
   {
     "description": "LANTERN - VISIBLE ON OTHER PLANES",
@@ -34761,14 +34856,15 @@
     "height": 140,
     "radius": 180,
     "strength": 12,
+    "nightMultiplier": 3,
     "color": [
       255,
-      255,
+      200,
       15
     ],
     "type": "FLICKER",
     "duration": 0,
-    "range": 10,
+    "range": 15,
     "objectIds": [
       "WILD_FALLOFF_CRATER"
     ]
@@ -34777,15 +34873,16 @@
     "description": "FOSSIL_ISLAND_LAVA_VENT_SMALL",
     "height": 90,
     "radius": 100,
-    "strength": 6,
+    "strength": 8,
+    "nightMultiplier": 3,
     "color": [
       255,
-      255,
+      200,
       15
     ],
     "type": "FLICKER",
     "duration": 0,
-    "range": 10,
+    "range": 20,
     "objectIds": [
       "WILD_FALLOFF_CRATER_SMALL"
     ]
@@ -37897,8 +37994,7 @@
   },
   {
     "description": "CAVE_WALL_LANTERN",
-    "height": 150,
-    "alignment": "FRONT",
+    "offset": [ -8.0, 122.0, 49.0 ],
     "radius": 500,
     "strength": 7,
     "color": [
@@ -37910,7 +38006,8 @@
     "duration": 600,
     "range": 3,
     "objectIds": [
-      "SUROK_TUNNEL_WALL_LAMP"
+      "SUROK_TUNNEL_WALL_LAMP",
+      "POG_CAVE_MINE_WALL_LAMP"
     ]
   },
   {
@@ -39790,7 +39887,113 @@
     ]
   },
   {
-    "description": "HALLOWEEN_PUMPKIN_LARGE",
+    "description": "HALLOWEEN_TURNIP_LARGE",
+    "offset": [ 70, 15, -50 ],
+    "radius": 150,
+    "strength": 12.5,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_TURNIP01_LIT01_GROUP04"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_TURNIP_LARGE_2",
+    "offset": [ 80, 15, 40 ],
+    "radius": 100,
+    "strength": 12.5,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_TURNIP01_LIT01_GROUP04"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_TURNIP_LARGE_3",
+    "offset": [ -100, 15, -40 ],
+    "radius": 100,
+    "strength": 12.5,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_TURNIP01_LIT01_GROUP01_2X2",
+      "HW22_LANTERN_TURNIP01_LIT01_GROUP01"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_TURNIP_LARGE_4",
+    "offset": [ 10, 15, -70 ],
+    "radius": 100,
+    "strength": 12.5,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_TURNIP01_LIT01_GROUP01_2X2",
+      "HW22_LANTERN_TURNIP01_LIT01_GROUP01"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_TURNIP_LARGE_5",
+    "offset": [ -50, 15, -70 ],
+    "radius": 100,
+    "strength": 12.5,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_TURNIP01_LIT01_GROUP01_2X2",
+      "HW22_LANTERN_TURNIP01_LIT01_GROUP01"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_TURNIP_LARGE_6",
+    "offset": [ 110, 15, -60 ],
+    "radius": 100,
+    "strength": 12.5,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_TURNIP01_LIT01_GROUP01",
+      "HW22_LANTERN_TURNIP01_LIT01_GROUP01_2X2"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_PUMPKIN_LARGE_1",
     "height": 30,
     "radius": 150,
     "strength": 12.5,
@@ -39802,12 +40005,115 @@
     "type": "FLICKER",
     "duration": 0,
     "range": 25,
-    "objectIds": [ "HW22_LANTERN_PUMPKIN01_LIT01_LARGE01" ]
+    "objectIds": [
+      "HW22_LANTERN_PUMPKIN01_LIT01_LARGE01"
+    ]
   },
   {
-    "description": "HALLOWEEN_PUMPKIN_SMALL",
-    "height": 15,
-    "alignment": "RIGHT",
+    "description": "HALLOWEEN_PUMPKIN_LARGE_2",
+    "offset": [ 0, 60, 0 ],
+    "radius": 35,
+    "strength": 12.5,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_PUMPKIN01_LIT01_GROUP01"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_PUMPKIN_LARGE_3",
+    "offset": [ 0, 15, -80 ],
+    "radius": 175,
+    "strength": 12.5,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_PUMPKIN01_LIT01_GROUP01"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_PUMPKIN_LARGE_4",
+    "offset": [ 65, 15, -95 ],
+    "radius": 75,
+    "strength": 8,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_PUMPKIN01_LIT01_GROUP01"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_PUMPKIN_LARGE_5",
+    "offset": [ -65, 15, -85 ],
+    "radius": 75,
+    "strength": 8,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_PUMPKIN01_LIT01_GROUP01"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_PUMPKIN_LARGE_6",
+    "offset": [ 105, 15, -55 ],
+    "radius": 75,
+    "strength": 8,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_PUMPKIN01_GROUP05"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_PUMPKIN_LARGE_7",
+    "offset": [ -90, 15, -5 ],
+    "radius": 75,
+    "strength": 8,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_PUMPKIN01_GROUP05"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_PUMPKIN_SMALL 1",
+    "offset": [ -50, 25, 0 ],
     "radius": 100,
     "strength": 11.5,
     "color": [
@@ -39818,7 +40124,100 @@
     "type": "FLICKER",
     "duration": 0,
     "range": 25,
-    "objectIds": [ "HW22_LANTERN_PUMPKIN01_LIT01_SMALL02" ]
+    "objectIds": [
+      "HW22_LANTERN_PUMPKIN01_LIT01_SMALL02_OFFSET01",
+      "HW22_LANTERN_PUMPKIN01_LIT01_SMALL03_OFFSET02"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_PUMPKIN_SMALL 2",
+    "offset": [ -30, 25, 0 ],
+    "radius": 100,
+    "strength": 11.5,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_PUMPKIN01_LIT01_SMALL02",
+      "HW22_LANTERN_PUMPKIN01_LIT01_SMALL02_RED01",
+      "HW22_LANTERN_PUMPKIN01_LIT01_SMALL02_BIEGE01",
+      "HW22_LANTERN_PUMPKIN01_LIT01_SMALL03",
+      "HW22_LANTERN_PUMPKIN01_LIT01_SMALL02_YELLOW01",
+      "HW22_LANTERN_PUMPKIN01_LIT01_SMALL03_OFFSET03"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_PUMPKIN_SMALL 3",
+    "offset": [ -15, 25, 10 ],
+    "radius": 100,
+    "strength": 11.5,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_PUMPKIN01_LIT01_SMALL02_OFFSET02"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_PUMPKIN_SMALL 4",
+    "offset": [ -33, 25, 25 ],
+    "radius": 100,
+    "strength": 11.5,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_PUMPKIN01_LIT01_SMALL03_OFFSET01"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_PUMPKIN_SMALL_PURPLE",
+    "offset": [ -33, 25, 0 ],
+    "radius": 100,
+    "strength": 11.5,
+    "color": [
+      252,
+      0,
+      255
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_PUMPKIN01_LIT01_SMALL02_WHITE01"
+    ]
+  },
+  {
+    "description": "HALLOWEEN_PUMPKIN_SMALL_PURPLE",
+    "offset": [ -33, 25, 0 ],
+    "radius": 100,
+    "strength": 15,
+    "color": [
+      2,
+      0,
+      255
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 25,
+    "objectIds": [
+      "HW22_LANTERN_PUMPKIN01_LIT01_SMALL02_BLUE01"
+    ]
   },
   {
     "description": "FIRE_OF_DOMINATION",
@@ -44875,6 +45274,44 @@
     ]
   },
   {
+    "description": "Voidwaker Special Attack Lightning - Highlight",
+    "offset": [ 0, 75, 125 ],
+    "radius": 90,
+    "spawnDelay": 650,
+    "fixedDespawnTime": true,
+    "despawnDelay": 600,
+    "strength": 75,
+    "color": [
+      176,
+      70,
+      165
+    ],
+    "type": "FLICKER",
+    "range": 20,
+    "fadeInDuration": 50,
+    "fadeOutDuration": 400,
+    "graphicsObjectIds": [ "FX_VOIDWAKER02_SPECIAL" ]
+  },
+  {
+    "description": "Voidwaker Special Attack Lightning - Wide",
+    "offset": [ 0, 75, 125 ],
+    "radius": 175,
+    "spawnDelay": 650,
+    "fixedDespawnTime": true,
+    "despawnDelay": 600,
+    "strength": 30,
+    "color": [
+      176,
+      70,
+      165
+    ],
+    "type": "FLICKER",
+    "range": 35,
+    "fadeInDuration": 50,
+    "fadeOutDuration": 400,
+    "graphicsObjectIds": [ "FX_VOIDWAKER02_SPECIAL" ]
+  },
+  {
     "description": "Varlamore - Ruins of Tapoyauik - Brazier",
     "offset": [ 0, 350, 0 ],
     "radius": 500,
@@ -47546,10 +47983,27 @@
     ]
   },
   {
-    "description": "Mercanry Ship Wreak Fire 1",
-    "excludeAreas": [ "FIRE_ALTAR_CULL_FIRE_LIGHTS" ],
-    "offset": [ -70, 350, 70 ],
-    "radius": 350,
+    "description": "Mercenary Ship Wreak Fire Main",
+    "offset": [ -70, 400, 70 ],
+    "nightMultiplier": 3,
+    "radius": 550,
+    "strength": 7,
+    "color": [
+      252,
+      148,
+      3
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 10,
+    "objectIds": [
+      "SAILING_MERCENARY_SHIPWRECK"
+    ]
+  },
+  {
+    "description": "Mercenary Ship Wreak Fire 1",
+    "offset": [ -70, 400, 70 ],
+    "radius": 375,
     "strength": 12.5,
     "color": [
       252,
@@ -47564,10 +48018,9 @@
     ]
   },
   {
-    "description": "Mercanry Ship Wreak Fire 2",
-    "excludeAreas": [ "FIRE_ALTAR_CULL_FIRE_LIGHTS" ],
-    "offset": [ 100, 550, -30 ],
-    "radius": 250,
+    "description": "Mercenary Ship Wreak Fire 2",
+    "offset": [ 100, 580, -30 ],
+    "radius": 270,
     "strength": 12.5,
     "color": [
       252,
@@ -47582,8 +48035,7 @@
     ]
   },
   {
-    "description": "Mercanry Ship Wreak Fire 3",
-    "excludeAreas": [ "FIRE_ALTAR_CULL_FIRE_LIGHTS" ],
+    "description": "Mercenary Ship Wreak Fire 3",
     "offset": [ -220, 180, 100 ],
     "radius": 150,
     "strength": 17,
@@ -47600,8 +48052,7 @@
     ]
   },
   {
-    "description": "Mercanry Ship Wreak Fire 4",
-    "excludeAreas": [ "FIRE_ALTAR_CULL_FIRE_LIGHTS" ],
+    "description": "Mercenary Ship Wreak Fire 4",
     "offset": [ 65, 250, 190 ],
     "radius": 200,
     "strength": 17,
@@ -47618,8 +48069,7 @@
     ]
   },
   {
-    "description": "Mercanry Ship Wreak Fire 5",
-    "excludeAreas": [ "FIRE_ALTAR_CULL_FIRE_LIGHTS" ],
+    "description": "Mercenary Ship Wreak Fire 5",
     "offset": [ 145, 230, -140 ],
     "radius": 200,
     "strength": 17,
@@ -47636,8 +48086,7 @@
     ]
   },
   {
-    "description": "Mercanry Ship Wreak Fire 6",
-    "excludeAreas": [ "FIRE_ALTAR_CULL_FIRE_LIGHTS" ],
+    "description": "Mercenary Ship Wreak Fire 6",
     "offset": [ 85, 95, -200 ],
     "radius": 100,
     "strength": 25,
@@ -47654,8 +48103,7 @@
     ]
   },
   {
-    "description": "Mercanry Ship Wreak Fire 7",
-    "excludeAreas": [ "FIRE_ALTAR_CULL_FIRE_LIGHTS" ],
+    "description": "Mercenary Ship Wreak Fire 7",
     "offset": [ -60, 295, -80 ],
     "radius": 100,
     "strength": 25,
@@ -48933,6 +49381,121 @@
     ]
   },
   {
+    "description": "PoH Magic Tree Top",
+    "offset": [ 10, 380, -10 ],
+    "radius": 300,
+    "strength": 2,
+    "nightMultiplier": 2,
+    "fadeInDuration": 200,
+    "color": [
+      255,
+      255,
+      255
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 19,
+    "objectIds": [
+      "POH_BIG_TREE7_4",
+      "POH_SMALL_TREE7_5"
+    ]
+  },
+  {
+    "description": "PoH Magic Tree North",
+    "offset": [ 150, 250, -10 ],
+    "radius": 250,
+    "strength": 3,
+    "fadeInDuration": 200,
+    "color": [
+      255,
+      255,
+      255
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 17,
+    "objectIds": [
+      "POH_BIG_TREE7_4",
+      "POH_SMALL_TREE7_5"
+    ]
+  },
+  {
+    "description": "PoH Magic Tree South",
+    "offset": [ -150, 250, -10 ],
+    "radius": 250,
+    "strength": 3,
+    "fadeInDuration": 200,
+    "color": [
+      255,
+      255,
+      255
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 15,
+    "objectIds": [
+      "POH_BIG_TREE7_4",
+      "POH_SMALL_TREE7_5"
+    ]
+  },
+  {
+    "description": "PoH Magic Tree West",
+    "offset": [ 10, 250, 150 ],
+    "radius": 250,
+    "strength": 3,
+    "fadeInDuration": 200,
+    "color": [
+      255,
+      255,
+      255
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 10,
+    "objectIds": [
+      "POH_BIG_TREE7_4",
+      "POH_SMALL_TREE7_5"
+    ]
+  },
+  {
+    "description": "PoH Magic Tree East",
+    "offset": [ 10, 250, -150 ],
+    "radius": 250,
+    "strength": 3,
+    "fadeInDuration": 200,
+    "color": [
+      255,
+      255,
+      255
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 10,
+    "objectIds": [
+      "POH_BIG_TREE7_4",
+      "POH_SMALL_TREE7_5"
+    ]
+  },
+  {
+    "description": "PoH Magic Tree Main",
+    "offset": [ 10, 150, -10 ],
+    "radius": 250,
+    "strength": 7,
+    "fadeInDuration": 200,
+    "color": [
+      255,
+      255,
+      255
+    ],
+    "type": "FLICKER",
+    "duration": 0,
+    "range": 20,
+    "objectIds": [
+      "POH_BIG_TREE7_4",
+      "POH_SMALL_TREE7_5"
+    ]
+  },
+  {
     "description": "Magic Tree Top",
     "offset": [ 10, 600, -10 ],
     "radius": 300,
@@ -48949,7 +49512,8 @@
     "range": 19,
     "objectIds": [
       "MAGIC_TREE_FULLYGROWN_2",
-      "MAGICTREE"
+      "MAGICTREE",
+      "CRAB_MAGICTREE_NOOP"
     ]
   },
   {
@@ -48968,7 +49532,8 @@
     "range": 17,
     "objectIds": [
       "MAGIC_TREE_FULLYGROWN_2",
-      "MAGICTREE"
+      "MAGICTREE",
+      "CRAB_MAGICTREE_NOOP"
     ]
   },
   {
@@ -48987,7 +49552,8 @@
     "range": 15,
     "objectIds": [
       "MAGIC_TREE_FULLYGROWN_2",
-      "MAGICTREE"
+      "MAGICTREE",
+      "CRAB_MAGICTREE_NOOP"
     ]
   },
   {
@@ -49006,7 +49572,8 @@
     "range": 10,
     "objectIds": [
       "MAGIC_TREE_FULLYGROWN_2",
-      "MAGICTREE"
+      "MAGICTREE",
+      "CRAB_MAGICTREE_NOOP"
     ]
   },
   {
@@ -49025,7 +49592,8 @@
     "range": 10,
     "objectIds": [
       "MAGIC_TREE_FULLYGROWN_2",
-      "MAGICTREE"
+      "MAGICTREE",
+      "CRAB_MAGICTREE_NOOP"
     ]
   },
   {
@@ -49044,7 +49612,8 @@
     "range": 25,
     "objectIds": [
       "MAGIC_TREE_FULLYGROWN_2",
-      "MAGICTREE"
+      "MAGICTREE",
+      "CRAB_MAGICTREE_NOOP"
     ]
   },
   {
@@ -49063,7 +49632,8 @@
     "range": 35,
     "objectIds": [
       "MAGIC_TREE_FULLYGROWN_2",
-      "MAGICTREE"
+      "MAGICTREE",
+      "CRAB_MAGICTREE_NOOP"
     ]
   },
   {
@@ -49082,7 +49652,8 @@
     "range": 35,
     "objectIds": [
       "MAGIC_TREE_FULLYGROWN_2",
-      "MAGICTREE"
+      "MAGICTREE",
+      "CRAB_MAGICTREE_NOOP"
     ]
   },
   {
@@ -49101,7 +49672,8 @@
     "range": 25,
     "objectIds": [
       "MAGIC_TREE_FULLYGROWN_2",
-      "MAGICTREE"
+      "MAGICTREE",
+      "CRAB_MAGICTREE_NOOP"
     ]
   },
   {
@@ -49120,7 +49692,8 @@
     "range": 25,
     "objectIds": [
       "MAGIC_TREE_FULLYGROWN_2",
-      "MAGICTREE"
+      "MAGICTREE",
+      "CRAB_MAGICTREE_NOOP"
     ]
   },
   {
@@ -49139,7 +49712,8 @@
     "range": 25,
     "objectIds": [
       "MAGIC_TREE_FULLYGROWN_2",
-      "MAGICTREE"
+      "MAGICTREE",
+      "CRAB_MAGICTREE_NOOP"
     ]
   },
   {
@@ -49158,7 +49732,8 @@
     "range": 30,
     "objectIds": [
       "MAGIC_TREE_FULLYGROWN_2",
-      "MAGICTREE"
+      "MAGICTREE",
+      "CRAB_MAGICTREE_NOOP"
     ]
   },
   {
@@ -49177,7 +49752,8 @@
     "range": 20,
     "objectIds": [
       "MAGIC_TREE_FULLYGROWN_2",
-      "MAGICTREE"
+      "MAGICTREE",
+      "CRAB_MAGICTREE_NOOP"
     ]
   },
   {
@@ -49435,7 +50011,8 @@
     "range": 30,
     "objectIds": [
       "MYQ6_HIDEOUT_SHRINE_VIS_NOOP",
-      "MYQ6_HIDEOUT_SHRINE_VIS"
+      "MYQ6_HIDEOUT_SHRINE_VIS",
+      "MYQ6_PUB_SHRINE_VIS"
     ]
   },
   {
@@ -49453,7 +50030,8 @@
     "range": 30,
     "objectIds": [
       "MYQ6_HIDEOUT_SHRINE_VIS_NOOP",
-      "MYQ6_HIDEOUT_SHRINE_VIS"
+      "MYQ6_HIDEOUT_SHRINE_VIS",
+      "MYQ6_PUB_SHRINE_VIS"
     ]
   },
   {
@@ -49471,7 +50049,8 @@
     "range": 30,
     "objectIds": [
       "MYQ6_HIDEOUT_SHRINE_VIS_NOOP",
-      "MYQ6_HIDEOUT_SHRINE_VIS"
+      "MYQ6_HIDEOUT_SHRINE_VIS",
+      "MYQ6_PUB_SHRINE_VIS"
     ]
   },
   {
@@ -49489,7 +50068,8 @@
     "range": 30,
     "objectIds": [
       "MYQ6_HIDEOUT_SHRINE_VIS_NOOP",
-      "MYQ6_HIDEOUT_SHRINE_VIS"
+      "MYQ6_HIDEOUT_SHRINE_VIS",
+      "MYQ6_PUB_SHRINE_VIS"
     ]
   },
   {
@@ -49945,7 +50525,7 @@
   {
     "description": "Wyrmscraig Mad Angel Light Tennis Attack",
     "offset": [ 0, 30, 0 ],
-    "radius": 220,
+    "radius": 600,
     "strength": 7,
     "color": [
       255,
@@ -49957,7 +50537,7 @@
   {
     "description": "Wyrmscraig Mad Angel Light Tennis Volley Attack - Impact",
     "offset": [ 0, 300, 0 ],
-    "radius": 450,
+    "radius": 850,
     "strength": 7,
     "spawnDelay": 50,
     "fadeInDuration": 100,
@@ -49991,7 +50571,7 @@
   {
     "description": "Wyrmscraig Mad Angel Light Tennis Attack - Cast",
     "offset": [ 0, 270, 100 ],
-    "radius": 350,
+    "radius": 750,
     "strength": 9,
     "spawnDelay": 350,
     "fadeInDuration": 100,
@@ -50499,6 +51079,107 @@
     "visibleFromOtherPlanes": true,
     "objectIds": [
       "PRIF_CRYSTAL_STAIRCASE_TOP_ARCHES"
+    ]
+  },
+  {
+    "description": "HIGH_ALCH_1",
+    "offset": [ 0, 150, 50 ],
+    "radius": 300,
+    "strength": 8,
+    "fixedDespawnTime": true,
+    "fadeOverlap": true,
+    "despawnDelay": 650,
+    "fadeInDuration": 200,
+    "fadeOutDuration": 600,
+    "color": [
+      255,
+      255,
+      0
+    ],
+    "type": "STATIC",
+    "graphicsObjectIds": [
+      "HIGHLVLALCHEMY_CASTING"
+    ]
+  },
+  {
+    "description": "HIGH_ALCH_2",
+    "offset": [ 0, 150, 50 ],
+    "radius": 145,
+    "strength": 10,
+    "fixedDespawnTime": true,
+    "spawnDelay": 150,
+    "despawnDelay": 1600,
+    "fadeInDuration": 500,
+    "fadeOutDuration": 300,
+    "color": [
+      255,
+      255,
+      0
+    ],
+    "type": "FLICKER",
+    "range": 10,
+    "graphicsObjectIds": [
+      "HIGHLVLALCHEMY_CASTING"
+    ]
+  },
+  {
+    "description": "HIGH_ALCH_3",
+    "offset": [ 0, 150, 50 ],
+    "radius": 300,
+    "strength": 8,
+    "fixedDespawnTime": true,
+    "spawnDelay": 1300,
+    "despawnDelay": 1000,
+    "fadeInDuration": 600,
+    "fadeOutDuration": 300,
+    "color": [
+      255,
+      255,
+      0
+    ],
+    "type": "STATIC",
+    "graphicsObjectIds": [
+      "HIGHLVLALCHEMY_CASTING"
+    ]
+  },
+  {
+    "description": "HIGH_ALCH_4",
+    "offset": [ 0, 150, 50 ],
+    "radius": 250,
+    "strength": 10,
+    "fixedDespawnTime": true,
+    "spawnDelay": 2000,
+    "despawnDelay": 800,
+    "fadeInDuration": 300,
+    "fadeOutDuration": 500,
+    "color": [
+      255,
+      255,
+      0
+    ],
+    "type": "STATIC",
+    "graphicsObjectIds": [
+      "HIGHLVLALCHEMY_CASTING"
+    ]
+  },
+  {
+    "description": "LOW_ALCH",
+    "offset": [ 0, 150, 50 ],
+    "radius": 250,
+    "strength": 10,
+    "fixedDespawnTime": true,
+    "spawnDelay": 250,
+    "despawnDelay": 650,
+    "fadeInDuration": 250,
+    "fadeOutDuration": 500,
+    "color": [
+      255,
+      255,
+      0
+    ],
+    "type": "STATIC",
+    "graphicsObjectIds": [
+      "LOWLVLALCHEMY_CASTING"
     ]
   }
 ]
