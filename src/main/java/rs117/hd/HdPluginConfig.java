@@ -80,6 +80,21 @@ public interface HdPluginConfig extends Config
 	)
 	String generalSettings = "generalSettings";
 
+	String KEY_CLASSIC_HD_LOOK = "classicHdLook";
+	@ConfigItem(
+		keyName = KEY_CLASSIC_HD_LOOK,
+		name = "Classic HD look",
+		description =
+			"<html>One-click 2008-2009 RuneScape HD style, similar to HDOS:<br>" +
+			"long view distance, warm tan haze, soft shadows, anti-aliasing and the 'Classic HD' color grade.<br>" +
+			"Your current settings are saved first and put back when you turn this off.</html>",
+		position = 0,
+		section = generalSettings
+	)
+	default boolean classicHdLook() {
+		return false;
+	}
+
 	@Range(
 		max = MAX_DISTANCE
 	)

@@ -56,6 +56,11 @@ mind the shadow artifacts you should strongly consider disabling this as it can 
 
 ## Personal Preference
 
+### Classic HD Look (default: disabled)
+One switch for a 2008-2009 RuneScape HD style look, similar to HDOS. It sets a long view distance, extended map loading,
+the tan "2008 HD" haze, soft detailed shadows, MSAA x8, ground blending and the "Classic HD" color filter.
+Your own settings are saved first and put back when you turn it off. It is heavy on the GPU, so lower the draw distance if FPS drops.
+
 ### UI scaling (default: bilinear)
 
 Choose an algorithm to upscale the UI. This only applies if you're playing with the stretched mode plugin enabled.

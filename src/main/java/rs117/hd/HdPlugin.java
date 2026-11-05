@@ -260,6 +260,9 @@ public class HdPlugin extends Plugin {
 	private PluginManager pluginManager;
 
 	@Inject
+	private ClassicHdLook classicHdLook;
+
+	@Inject
 	private HdPluginConfig config;
 
 	@Inject
@@ -1903,6 +1906,9 @@ public class HdPlugin extends Plugin {
 
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event) {
+		if (event.getGroup().equals(CONFIG_GROUP) && event.getKey().equals(KEY_CLASSIC_HD_LOOK))
+			classicHdLook.onToggled(Boolean.parseBoolean(event.getNewValue()));
+
 		// Exit if the plugin is off, the config is unrelated to the plugin, or if switching to a profile with the plugin turned off
 		if (!isActive || !event.getGroup().equals(CONFIG_GROUP) || !pluginManager.isPluginEnabled(this))
 			return;
