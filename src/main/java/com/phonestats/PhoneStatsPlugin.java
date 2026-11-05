@@ -7,13 +7,18 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.GameState;
+import net.runelite.api.ItemComposition;
 import net.runelite.api.Player;
 import net.runelite.api.Prayer;
 import net.runelite.api.Skill;
@@ -23,6 +28,10 @@ import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.events.NpcLootReceived;
+import net.runelite.client.events.PlayerLootReceived;
+import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.ItemStack;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 
@@ -34,6 +43,8 @@ import net.runelite.client.plugins.PluginDescriptor;
 )
 public class PhoneStatsPlugin extends Plugin
 {
+	private static final int COINS = 995;
+
 	@Inject
 	private Client client;
 
@@ -42,6 +53,9 @@ public class PhoneStatsPlugin extends Plugin
 
 	@Inject
 	private PhoneStatsConfig config;
+
+	@Inject
+	private ItemManager itemManager;
 
 	private volatile StatsServer server;
 	private StatsSnapshot lastSent;
@@ -103,6 +117,63 @@ public class PhoneStatsPlugin extends Plugin
 	{
 		// Hitpoints and Prayer only change on game ticks, so checking every tick (0.6 s) catches every change
 		send(snapshot());
+	}
+
+	@Subscribe
+	public void onNpcLootReceived(NpcLootReceived event)
+	{
+		String name = event.getNpc().getName();
+		sendDrop(name != null ? name : "NPC", event.getItems());
+	}
+
+	@Subscribe
+	public void onPlayerLootReceived(PlayerLootReceived event)
+	{
+		String name = event.getPlayer().getName();
+		sendDrop(name != null ? name : "Player", event.getItems());
+	}
+
+	private void sendDrop(String source, Collection<ItemStack> items)
+	{
+		StatsServer current = server;
+		if (current == null || !config.dropAlerts())
+		{
+			return;
+		}
+
+		Set<String> ignored = new HashSet<>();
+		for (String name : config.dropIgnore().split(","))
+		{
+			if (!name.isBlank())
+			{
+				ignored.add(name.trim().toLowerCase(Locale.ROOT));
+			}
+		}
+
+		DropMessage drop = new DropMessage(source);
+		for (ItemStack stack : items)
+		{
+			int id = itemManager.canonicalize(stack.getId());
+			ItemComposition item = itemManager.getItemComposition(id);
+			String name = item.getName();
+			if (name == null || name.equalsIgnoreCase("null") || ignored.contains(name.toLowerCase(Locale.ROOT)))
+			{
+				continue;
+			}
+			// Coins have no Grand Exchange price of their own
+			long each = id == COINS ? 1 : itemManager.getItemPrice(id);
+			long value = each * stack.getQuantity();
+			boolean tradeable = item.isTradeable();
+			if ((value >= config.dropMinValue()) || (!tradeable && config.dropUntradeables()))
+			{
+				drop.add(name, stack.getQuantity(), value, tradeable);
+			}
+		}
+
+		if (!drop.isEmpty())
+		{
+			current.publishEvent("drop", drop.toJson());
+		}
 	}
 
 	private StatsSnapshot snapshot()

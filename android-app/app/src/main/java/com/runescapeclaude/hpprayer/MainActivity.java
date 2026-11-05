@@ -117,15 +117,20 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 		LinearLayout.LayoutParams barParams = new LinearLayout.LayoutParams(
 			LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 		barParams.topMargin = (int) (20 * dp);
-		root.addView(hpBar, barParams);
-		root.addView(prayerBar, new LinearLayout.LayoutParams(barParams));
+		root.addView(prayerBar, barParams);
+		root.addView(hpBar, new LinearLayout.LayoutParams(barParams));
 
 		statusBarSwitch = new Switch(this);
-		statusBarSwitch.setText("Show in status bar when the app is closed");
+		statusBarSwitch.setText("Keep running when the app is closed (status bar and alerts)");
 		statusBarSwitch.setTextColor(Color.rgb(200, 200, 210));
 		statusBarSwitch.setTextSize(15);
 		statusBarSwitch.setOnClickListener(v -> setStatusBar(statusBarSwitch.isChecked()));
 		root.addView(statusBarSwitch, new LinearLayout.LayoutParams(barParams));
+
+		root.addView(prefSwitch("Prayer alerts at 20, 10 and 0", StatsService.KEY_PRAYER_ALERTS),
+			new LinearLayout.LayoutParams(barParams));
+		root.addView(prefSwitch("Drop alerts (set the value in the RuneLite plugin)", StatsService.KEY_DROP_ALERTS),
+			new LinearLayout.LayoutParams(barParams));
 
 		ScrollView scroll = new ScrollView(this);
 		scroll.setFillViewport(true);
@@ -315,6 +320,11 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 	}
 
 	@Override
+	public void onDrop(StatsConnection source, String json) {
+		// Drop notifications come from the background service, so they work with the app closed
+	}
+
+	@Override
 	public void onDisconnected(StatsConnection source, String reason) {
 		runOnUiThread(() -> {
 			if (source == connection) {
@@ -334,6 +344,17 @@ public class MainActivity extends Activity implements StatsConnection.Listener {
 			return HP_GREEN;
 		}
 		return fraction > 0.25f ? HP_ORANGE : HP_RED;
+	}
+
+	/** A switch for an alert setting the background service reads. Alerts are on until turned off. */
+	private Switch prefSwitch(String label, String key) {
+		Switch view = new Switch(this);
+		view.setText(label);
+		view.setTextColor(Color.rgb(200, 200, 210));
+		view.setTextSize(15);
+		view.setChecked(prefs.getBoolean(key, true));
+		view.setOnCheckedChangeListener((v, checked) -> prefs.edit().putBoolean(key, checked).apply());
+		return view;
 	}
 
 	private TextView text(int sp, int color) {

@@ -70,6 +70,45 @@ public class StatsServerTest
 	}
 
 	@Test
+	public void namedEventsAreSentButNotKept() throws Exception
+	{
+		server.publish("{\"hp\":1}");
+		try (Socket socket = connect("/events"))
+		{
+			BufferedReader in = reader(socket);
+			skipHeaders(in);
+			assertEquals("data: {\"hp\":1}", in.readLine());
+			waitForListener();
+			server.publishEvent("drop", "{\"total\":5}");
+			String line;
+			do
+			{
+				line = in.readLine();
+			}
+			while (line.startsWith(":") || line.isEmpty());
+			assertEquals("event: drop", line);
+			assertEquals("data: {\"total\":5}", in.readLine());
+		}
+		try (Socket socket = connect("/stats"))
+		{
+			BufferedReader in = reader(socket);
+			skipHeaders(in);
+			assertEquals("{\"hp\":1}", in.readLine());
+		}
+	}
+
+	@Test
+	public void dropJsonListsItems()
+	{
+		DropMessage drop = new DropMessage("Vorkath \"boss\"");
+		drop.add("Vorkath's head", 1, 0, false);
+		drop.add("Dragon bones", 2, 10000, true);
+		assertEquals("{\"source\":\"Vorkath \\\"boss\\\"\",\"total\":10000,\"items\":[" +
+			"{\"name\":\"Vorkath's head\",\"quantity\":1,\"value\":0,\"tradeable\":false}," +
+			"{\"name\":\"Dragon bones\",\"quantity\":2,\"value\":10000,\"tradeable\":true}]}", drop.toJson());
+	}
+
+	@Test
 	public void unknownPathIs404() throws Exception
 	{
 		try (Socket socket = connect("/nope"))

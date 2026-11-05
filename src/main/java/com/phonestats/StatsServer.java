@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <ul>
  * <li>{@code GET /events} keeps the connection open and sends every new snapshot as a Server-Sent Event, which is
- * what the phone app uses.</li>
+ * what the phone app uses. Drops are sent on the same stream as {@code event: drop}.</li>
  * <li>{@code GET /} (or {@code /stats}) answers once with the latest snapshot, handy for checking the connection from
  * a phone's web browser.</li>
  * </ul>
@@ -97,6 +97,15 @@ public class StatsServer
 	{
 		latest = json;
 		sendToAll(event(json));
+	}
+
+	/**
+	 * Send a one-off named event, such as a drop, to every connected phone. Unlike {@link #publish}, it isn't kept for
+	 * phones that connect later.
+	 */
+	public void publishEvent(String name, String json)
+	{
+		sendToAll("event: " + name + "\n" + event(json));
 	}
 
 	private void sendToAll(String message)

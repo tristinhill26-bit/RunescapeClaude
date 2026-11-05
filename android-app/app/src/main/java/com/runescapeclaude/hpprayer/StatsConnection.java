@@ -20,6 +20,9 @@ final class StatsConnection {
 
 		void onStats(StatsConnection source, Stats stats);
 
+		/** A drop the plugin thought worth a ping, as the plugin's JSON. */
+		void onDrop(StatsConnection source, String json);
+
 		void onDisconnected(StatsConnection source, String reason);
 	}
 
@@ -96,12 +99,23 @@ final class StatsConnection {
 
 			BufferedReader in = new BufferedReader(new InputStreamReader(c.getInputStream(), StandardCharsets.UTF_8));
 			String line;
+			// Server-Sent Events name an event with an "event:" line before its data; unnamed ones are stats
+			String event = "";
 			while (running && (line = in.readLine()) != null) {
-				if (line.startsWith("data:")) {
-					try {
-						listener.onStats(this, Stats.parse(line.substring(5).trim()));
-					} catch (JSONException e) {
-						// Ignore a garbled update; the next one arrives within a game tick
+				if (line.isEmpty()) {
+					event = "";
+				} else if (line.startsWith("event:")) {
+					event = line.substring(6).trim();
+				} else if (line.startsWith("data:")) {
+					String data = line.substring(5).trim();
+					if (event.equals("drop")) {
+						listener.onDrop(this, data);
+					} else if (event.isEmpty()) {
+						try {
+							listener.onStats(this, Stats.parse(data));
+						} catch (JSONException e) {
+							// Ignore a garbled update; the next one arrives within a game tick
+						}
 					}
 				}
 			}

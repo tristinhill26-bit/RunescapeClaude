@@ -158,7 +158,8 @@ the 3x3 explosions of Volatile Baboons and Kephri's eggs. Ba-Ba's rockfall is on
 wiki says only the player directly under a shadow is hurt.
 
 **Phone HP & Prayer** sends your current and max Hitpoints and Prayer to the **HP & Prayer** Android app over
-your home Wi-Fi, so your phone can sit next to the keyboard as a big second display. See
+your home Wi-Fi, so your phone can sit next to the keyboard as a big second display. It also pings the phone
+when Prayer runs low and when you get a valuable or untradeable drop. See
 [`android-app/README.md`](android-app/README.md) for installing the app and connecting it.
 
 The overlays (beam, outline, dots, arrows) work on their own. The lighting needs 117 HD Enhanced running with
