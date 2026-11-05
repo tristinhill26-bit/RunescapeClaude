@@ -205,6 +205,8 @@ public class PhoneStatsPlugin extends Plugin
 	static List<String> lanAddresses()
 	{
 		List<String> addresses = new ArrayList<>();
+		// Some internet providers give the PC a public address directly, with no home router in between
+		List<String> otherAddresses = new ArrayList<>();
 		try
 		{
 			for (NetworkInterface nic : Collections.list(NetworkInterface.getNetworkInterfaces()))
@@ -222,10 +224,11 @@ public class PhoneStatsPlugin extends Plugin
 				}
 				for (InetAddress address : Collections.list(nic.getInetAddresses()))
 				{
-					if (address instanceof Inet4Address && address.isSiteLocalAddress())
+					if (!(address instanceof Inet4Address) || address.isLinkLocalAddress())
 					{
-						addresses.add(address.getHostAddress());
+						continue;
 					}
+					(address.isSiteLocalAddress() ? addresses : otherAddresses).add(address.getHostAddress());
 				}
 			}
 		}
@@ -233,6 +236,6 @@ public class PhoneStatsPlugin extends Plugin
 		{
 			log.debug("Couldn't list network addresses", e);
 		}
-		return addresses;
+		return addresses.isEmpty() ? otherAddresses : addresses;
 	}
 }

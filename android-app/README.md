@@ -13,7 +13,8 @@ for **Phone HP & Prayer** and turn it on. When you log in, a chat message tells 
 
 > Phone HP & Prayer: in the phone app, connect to 192.168.1.23, port 8765.
 
-The first time, Windows may ask whether Java can use the network. Tick **Private networks** and click **Allow**.
+The first time, Windows may ask whether Java can use the network. Tick **Private networks** (and **Public networks** too if
+the PC's network is set to Public) and click **Allow**.
 If you missed that prompt, search Windows for *Allow an app through Windows Firewall* and tick *Private* for Java
 (OpenJDK Platform binary).
 
