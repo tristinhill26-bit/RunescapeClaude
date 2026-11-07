@@ -1,0 +1,402 @@
+<title>Job Tab Triage</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Schibsted+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Layout: one tall portrait column, like a phone held up to a monitor. A drop zone, a threshold line, a funnel, the shortlist stack, then the detail lists. */
+:root {
+  --paper: #f6e8f5;
+  --panel: #fbf3fa;
+  --ink: #2b1d2f;
+  --muted: #806b83;
+  --rule: #e4cfe3;
+  --plum: #8d3d9f;
+  --card: #efe9ee;
+  --card-line: #cbbfca;
+  --shadow: rgba(60, 20, 70, .08);
+  --keep: #2c8549;
+  --close: #c4313a;
+  --close-bg: #f8dadd;
+  --display: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1c131f; --panel: #251a29; --ink: #f3e7f4; --muted: #a891aa; --rule: #3a2a3e;
+    --plum: #c67ad8; --card: #2c2131; --card-line: #4a3a4f; --shadow: rgba(0, 0, 0, .3);
+    --keep: #5cc47e; --close: #ff6e74; --close-bg: #42212a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #1c131f; --panel: #251a29; --ink: #f3e7f4; --muted: #a891aa; --rule: #3a2a3e;
+  --plum: #c67ad8; --card: #2c2131; --card-line: #4a3a4f; --shadow: rgba(0, 0, 0, .3);
+  --keep: #5cc47e; --close: #ff6e74; --close-bg: #42212a; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--display);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+.wrap { max-width: 540px; margin: 0 auto; display: grid; gap: 18px; }
+header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-bottom: 12px; border-bottom: 1px solid var(--rule); }
+h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -.01em; text-wrap: balance; }
+.sub { margin-top: 4px; font: 11.5px/1.4 var(--mono); color: var(--muted); }
+.ctrls { display: flex; align-items: center; gap: 8px; }
+.chip { font: 600 10.5px var(--mono); text-transform: uppercase; letter-spacing: .08em; padding: 5px 8px; border-radius: 99px; border: 1px solid var(--rule); color: var(--muted); background: var(--panel); white-space: nowrap; }
+.chip.live { color: var(--keep); border-color: var(--keep); }
+.chip.live::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--keep); margin-right: 6px; vertical-align: 1px; animation: pulse 1.6s infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+button { font: 600 12px var(--display); color: var(--ink); background: var(--panel); border: 1px solid var(--card-line); border-radius: 7px; padding: 6px 11px; cursor: pointer; }
+button:hover { border-color: var(--plum); color: var(--plum); }
+button:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--plum); outline-offset: 2px; }
+
+.stage { position: relative; height: 600px; overflow: hidden; }
+.funnel { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.funnel path { fill: none; stroke: var(--plum); stroke-width: 1.5; }
+.funnel .line { stroke-width: 2; }
+.gate { position: absolute; top: calc(var(--line-y) + 8px); font: 10px/1.5 var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.gate.l { left: 6px; }
+.gate.r { right: 6px; text-align: right; }
+.gate.r b { display: block; font-size: 13px; color: var(--close); font-variant-numeric: tabular-nums; }
+.hint { position: absolute; top: 46px; left: 0; right: 0; text-align: center; font: 11.5px var(--mono); color: var(--muted); }
+.stack { position: absolute; top: var(--stack-top); bottom: 0; left: calc(50% - var(--card-w) / 2); width: var(--card-w); display: flex; flex-direction: column; gap: 7px; -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
+
+.card { position: relative; display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 10px; background: var(--card); border: 1px solid var(--card-line); border-radius: 7px; box-shadow: 0 1px 2px var(--shadow); flex: none; transition: background-color .2s, border-color .2s; }
+.flyer { position: absolute; top: 0; z-index: 2; will-change: transform; }
+.ico { flex: none; width: 22px; height: 22px; border-radius: 5px; color: #fff; font: 700 10.5px/22px var(--mono); text-align: center; }
+.tx { flex: 1; min-width: 0; }
+.t { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m { font: 10.5px/1.5 var(--mono); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.x { flex: none; color: var(--muted); font-size: 13px; }
+.is-keep .m { color: var(--keep); }
+.is-close { background: var(--close-bg); border-color: var(--close); }
+.is-close .t { color: var(--close); text-decoration: line-through; }
+.is-close .m { color: var(--close); }
+.badge { position: absolute; top: -9px; right: -9px; width: 20px; height: 20px; border-radius: 50%; background: var(--close); color: var(--paper); font: 700 13px/20px var(--display); text-align: center; transform: scale(0); transition: transform .18s cubic-bezier(.3, 1.6, .5, 1); }
+.x-on .badge { transform: scale(1); }
+
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tile { background: var(--panel); border: 1px solid var(--rule); border-radius: 9px; padding: 10px 14px 8px; }
+.tile .k { font: 10px var(--mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.tile .v { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.tile.closed .v { color: var(--close); }
+.tile.kept .v { color: var(--keep); }
+
+section h2 { margin: 6px 0 8px; font-size: 15px; font-weight: 700; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+section h2 span { font: 11px var(--mono); color: var(--muted); font-weight: 400; }
+.rows { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+.rows li { display: grid; grid-template-columns: 22px 1fr auto; gap: 4px 10px; padding: 10px 0; border-bottom: 1px solid var(--rule); align-items: start; }
+.rows .ico { margin-top: 1px; }
+.rows .main { min-width: 0; }
+.rows .ti { font-size: 13.5px; font-weight: 600; overflow-wrap: anywhere; }
+.rows .ti a { color: inherit; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+.rows .ti a:hover { color: var(--plum); }
+.rows .meta { font: 11px/1.5 var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.rows .why { font-size: 12.5px; line-height: 1.45; margin-top: 3px; color: var(--ink); opacity: .85; }
+.score { font: 600 12px var(--mono); padding: 2px 7px; border-radius: 5px; font-variant-numeric: tabular-nums; }
+.score.keep { color: var(--keep); border: 1px solid var(--keep); }
+.score.close { color: var(--close); border: 1px solid var(--close); }
+.empty { font: 12px var(--mono); color: var(--muted); padding: 10px 0; }
+details summary { cursor: pointer; font-size: 15px; font-weight: 700; padding: 6px 0 8px; }
+details summary span { font: 11px var(--mono); color: var(--muted); font-weight: 400; }
+.handoff { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.handoff code { font: 11.5px var(--mono); color: var(--ink); background: var(--panel); border: 1px solid var(--rule); border-radius: 5px; padding: 3px 6px; overflow-wrap: anywhere; user-select: all; }
+.note { font: 11px/1.5 var(--mono); color: var(--muted); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+@media (max-width: 440px) { .stage { height: 560px; } h1 { font-size: 22px; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Job Tab Triage</h1>
+      <div class="sub" id="sub">/job-search · Chrome · 4 job sites · keep ≥ 75</div>
+    </div>
+    <div class="ctrls">
+      <span class="chip" id="mode">Sample run</span>
+      <button type="button" id="replay">Replay</button>
+    </div>
+  </header>
+
+  <div class="stage" id="stage" aria-hidden="true">
+    <svg class="funnel" id="funnel"></svg>
+    <div class="gate l" id="gateL">Score ≥ 75<br>stays open</div>
+    <div class="gate r">Closed ×<b id="gateN">0</b></div>
+    <div class="hint" id="hint" hidden>Waiting for the first tab…</div>
+    <div class="stack" id="stack"></div>
+  </div>
+
+  <div class="tiles" aria-live="polite">
+    <div class="tile closed"><div class="k">Tabs closed ×</div><div class="v" id="nClosed">0</div></div>
+    <div class="tile kept"><div class="k">Shortlist ✓</div><div class="v" id="nKept">0</div></div>
+  </div>
+
+  <section>
+    <h2>Shortlist <span id="keepCount"></span></h2>
+    <ul class="rows" id="keepList"></ul>
+  </section>
+
+  <div class="handoff" id="handoff">
+    <span>IDs for “Apply to approved jobs”:</span>
+    <code id="ids">none yet</code>
+    <button type="button" id="copy">Copy IDs</button>
+  </div>
+
+  <details>
+    <summary>Closed tabs <span id="closeCount"></span></summary>
+    <ul class="rows" id="closeList"></ul>
+  </details>
+
+  <p class="note" id="note">This is a sample run with made-up postings. The first time the job-tab-triage skill runs, your real tabs replace it and stream in live.</p>
+</div>
+
+<script>
+const SITES = {
+  linkedin:   { l: "in", c: "#0a66c2", d: "linkedin.com" },
+  indeed:     { l: "I",  c: "#2b4fb5", d: "indeed.com" },
+  glassdoor:  { l: "G",  c: "#0a9e3c", d: "glassdoor.com" },
+  upwork:     { l: "U",  c: "#5f9e22", d: "upwork.com" },
+  greenhouse: { l: "gh", c: "#2f7d5d", d: "greenhouse.io" },
+  lever:      { l: "L",  c: "#5a5560", d: "lever.co" },
+  workday:    { l: "W",  c: "#d9791a", d: "myworkday.com" },
+  ashby:      { l: "A",  c: "#5b4bd6", d: "ashbyhq.com" },
+  ziprecruiter: { l: "Z", c: "#3c8c3c", d: "ziprecruiter.com" },
+  other:      { l: "•",  c: "#7d6a80", d: "careers site" }
+};
+const DEFAULT_META = { threshold: 75, label: "/job-search", source: "Chrome" };
+
+// Example postings for the sample run only. Not the user's data.
+const SAMPLE = [
+  ["Denials & Appeals Analyst", "indeed", 88, "Appeals and denials work, remote, $72K-$88K."],
+  ["Unpaid Trial Gig", "upwork", 31, "Unpaid trial task."],
+  ["Power Platform Developer (Contract)", "linkedin", 84, "Power Apps and Power Automate builds, $55/hr contract."],
+  ["Clinical Review Nurse", "linkedin", 22, "Requires an active RN license."],
+  ["Revenue Cycle Analyst", "glassdoor", 81, "Remote RCM reporting and workflow fixes."],
+  ["Medical Coder (CPC required)", "indeed", 48, "CPC certification required."],
+  ["Appeals Analyst at Aetna", "linkedin", 82, "Excluded employer (Aetna).", "close"],
+  ["Quickbase Developer", "upwork", 79, "Quickbase app builds, part-time hourly."],
+  ["Senior Data Engineer", "glassdoor", 41, "Spark and SQL pipelines; not your stack."],
+  ["Process Improvement Lead", "linkedin", 86, "Process mapping and automation in healthcare ops."],
+  ["Billing Rep (on-site)", "indeed", 35, "On-site only."],
+  ["Prior Authorization Analyst", "indeed", 77, "Prior auth background matches; remote."],
+  ["Posting removed", "linkedin", 0, "Posting closed (404)."],
+  ["Healthcare Ops Analyst (Part-time)", "glassdoor", 80, "Part-time, remote, fits around a day job."],
+  ["Call Center Representative", "indeed", 28, "Pay under your $60K minimum."],
+  ["Copilot Studio Consultant", "upwork", 83, "Copilot Studio agents for a clinic group."],
+  ["Head of Revenue Cycle", "linkedin", 58, "Needs 10+ years and people management."],
+  ["SQL Report Writer", "glassdoor", 62, "SQL required (gap)."],
+  ["Grievances & Appeals Specialist II", "linkedin", 76, "Direct domain match; pay at the low end."],
+  ["Front Desk Coordinator", "indeed", 30, "On-site, under your minimum."],
+  ["RCM Automation Analyst", "indeed", 82, "Automating denial workflows with Power Automate."],
+  ["Epic Analyst (certification required)", "indeed", 55, "Epic certification required."],
+  ["Operations Manager (hybrid NYC)", "glassdoor", 50, "Hybrid, three days in office."],
+  ["Implementation Analyst, health tech", "greenhouse", 78, "Implementation and process work at a health-tech startup."],
+  ["Virtual Assistant", "upwork", 26, "General admin; low pay."],
+  ["Power Automate Developer (nights)", "upwork", 85, "Night-shift contract, strong automation fit."],
+  ["Claims Processor I", "indeed", 46, "Pay under your $60K minimum."],
+  ["Sales Development Rep", "linkedin", 18, "Sales role; off target."]
+].map(([title, site, score, reason, verdict], i) => ({
+  id: "s" + i, seq: i, title, site, score, reason, verdict, company: "Example", jobId: "SAMPLE-" + String(i + 1).padStart(2, "0")
+}));
+
+const $ = (id) => document.getElementById(id);
+const stage = $("stage"), stack = $("stack");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const state = { mode: "sample", meta: { ...DEFAULT_META }, rows: SAMPLE };
+let token = 0, closed = 0, kept = 0;
+
+const verdict = (d) => d.verdict === "keep" || d.verdict === "close" ? d.verdict : (Number(d.score) >= state.meta.threshold ? "keep" : "close");
+const site = (d) => SITES[String(d.site || "").toLowerCase()] || SITES.other;
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function icon(d) { const s = site(d); const i = el("span", "ico", s.l); i.style.background = s.c; return i; }
+
+function geom() {
+  const W = stage.clientWidth, H = stage.clientHeight;
+  const cardW = Math.min(310, W * 0.62), lineY = 150, neckY = 300;
+  return { W, H, cardW, lineY, neckY, restY: lineY - 24, stackTop: neckY + 26 };
+}
+function layout() {
+  const g = geom();
+  stage.style.setProperty("--line-y", g.lineY + "px");
+  stage.style.setProperty("--card-w", g.cardW + "px");
+  stage.style.setProperty("--stack-top", g.stackTop + "px");
+  const nl = (g.W - g.cardW) / 2 - 12, nr = g.W - nl;
+  $("funnel").setAttribute("viewBox", `0 0 ${g.W} ${g.H}`);
+  $("funnel").innerHTML =
+    `<path class="line" d="M0 ${g.lineY} H${g.W}"/>` +
+    `<path d="M${g.W * 0.03} ${g.lineY} L${nl} ${g.neckY} V${g.neckY + 22}"/>` +
+    `<path d="M${g.W * 0.97} ${g.lineY} L${nr} ${g.neckY} V${g.neckY + 22}"/>`;
+}
+
+function card(d, scored) {
+  const c = el("div", "card");
+  const tx = el("div", "tx");
+  tx.append(el("div", "t", d.title || "Untitled posting"), el("div", "m", site(d).d));
+  c.append(icon(d), tx, el("span", "x", "×"), el("span", "badge", "×"));
+  if (scored) score(c, d);
+  return c;
+}
+function score(c, d) {
+  const v = verdict(d);
+  c.classList.add(v === "keep" ? "is-keep" : "is-close");
+  c.querySelector(".m").textContent = `score ${d.score ?? "–"} · ${v === "keep" ? "keep" : "closed"}`;
+}
+function counts() {
+  $("nClosed").textContent = closed; $("gateN").textContent = closed; $("nKept").textContent = kept;
+}
+function pushStack(d) {
+  const before = [...stack.children].map((c) => c.getBoundingClientRect().top);
+  const c = card(d, true);
+  stack.prepend(c);
+  [...stack.children].slice(1).forEach((ch, i) => {
+    const dy = before[i] - ch.getBoundingClientRect().top;
+    if (dy) ch.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], { duration: 260, easing: "ease-out" });
+  });
+  while (stack.children.length > 12) stack.lastChild.remove();
+}
+
+async function fly(d, t) {
+  const g = geom(), v = verdict(d);
+  const c = card(d, false);
+  c.classList.add("flyer");
+  c.style.width = g.cardW + "px";
+  c.style.left = (g.W - g.cardW) / 2 + "px";
+  stage.append(c);
+  const at = (y, extra = "") => `translateY(${y}px) ${extra}`;
+  const go = (frames, duration, easing) => c.animate(frames, { duration, easing, fill: "forwards" }).finished;
+  try {
+    await go([{ transform: at(-20), opacity: 0 }, { transform: at(20), opacity: 1 }], 300, "ease-out");
+    await go([{ transform: at(20) }, { transform: at(g.restY) }], 420, "cubic-bezier(.3,.7,.4,1)");
+    if (t !== token) return c.remove();
+    score(c, d);
+    await wait(380);
+    if (t !== token) return c.remove();
+    if (v === "keep") {
+      await go([{ transform: at(g.restY) }, { transform: at(g.stackTop) }], 560, "cubic-bezier(.55,0,.8,.3)");
+      c.remove();
+      if (t === token) { pushStack(d); kept++; counts(); }
+    } else {
+      c.classList.add("x-on");
+      closed++; counts();
+      await wait(320);
+      await go([{ transform: at(g.restY), opacity: 1 }, { transform: at(g.restY - 40, `translateX(${g.W * 0.8}px) rotate(14deg)`), opacity: 0 }], 480, "cubic-bezier(.5,0,.8,.4)");
+      c.remove();
+    }
+  } catch (e) { c.remove(); }
+}
+
+function clearStage() {
+  token++;
+  stage.querySelectorAll(".flyer").forEach((f) => f.remove());
+  stack.replaceChildren();
+  closed = 0; kept = 0; counts();
+}
+function renderFinal() {
+  clearStage();
+  for (const d of state.rows) { if (verdict(d) === "keep") { kept++; stack.prepend(card(d, true)); } else closed++; }
+  while (stack.children.length > 12) stack.lastChild.remove();
+  counts();
+}
+async function play() {
+  if (reduce) return renderFinal();
+  clearStage();
+  const t = token, rows = state.rows;
+  const gap = Math.max(240, Math.min(900, 32000 / Math.max(rows.length, 1)));
+  for (const d of rows) { if (t !== token) return; fly(d, t); await wait(gap); }
+}
+
+const liveQueue = [];
+let draining = false;
+async function drain() {
+  if (draining) return;
+  draining = true;
+  while (liveQueue.length) { const d = liveQueue.shift(); if (reduce) renderFinal(); else fly(d, token); await wait(850); }
+  draining = false;
+}
+
+function row(d) {
+  const v = verdict(d), li = el("li"), main = el("div", "main"), ti = el("div", "ti");
+  if (d.url && /^https?:\/\//i.test(d.url)) { const a = el("a", null, d.title || "Untitled posting"); a.href = d.url; a.target = "_blank"; a.rel = "noopener"; ti.append(a); }
+  else ti.textContent = d.title || "Untitled posting";
+  const bits = [d.jobId || d.id, d.company, d.pay, d.type].filter(Boolean);
+  main.append(ti, el("div", "meta", bits.join(" · ")));
+  if (d.reason) main.append(el("div", "why", d.reason));
+  li.append(icon(d), main, el("span", "score " + v, d.score ?? "–"));
+  return li;
+}
+function renderLists() {
+  const keep = state.rows.filter((d) => verdict(d) === "keep").sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  const shut = state.rows.filter((d) => verdict(d) === "close").sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  $("keepList").replaceChildren(...(keep.length ? keep.map(row) : [el("li", "empty", "Nothing at " + state.meta.threshold + " or above yet.")]));
+  $("closeList").replaceChildren(...(shut.length ? shut.map(row) : [el("li", "empty", "No tabs closed yet.")]));
+  $("keepCount").textContent = keep.length + " kept";
+  $("closeCount").textContent = shut.length + " closed";
+  const ids = keep.map((d) => d.jobId || d.id).join(", ");
+  $("ids").textContent = ids || "none yet";
+  $("copy").disabled = !ids;
+}
+function renderHeader() {
+  const m = state.meta;
+  const nSites = m.sites ? (Array.isArray(m.sites) ? m.sites.length : m.sites) : new Set(state.rows.map((d) => d.site)).size;
+  $("sub").textContent = `${m.label || DEFAULT_META.label} · ${m.source || DEFAULT_META.source} · ${nSites} job site${nSites === 1 ? "" : "s"} · keep ≥ ${m.threshold}` + (m.run && state.mode === "live" ? ` · run ${m.run}` : "");
+  $("gateL").innerHTML = "";
+  $("gateL").append(`Score ≥ ${m.threshold}`, el("br"), "stays open");
+  const live = state.mode === "live";
+  $("mode").textContent = live ? "Live" : "Sample run";
+  $("mode").classList.toggle("live", live);
+  $("note").hidden = live;
+  $("hint").hidden = !(live && !state.rows.length);
+}
+function renderAll() { renderHeader(); renderLists(); renderFinal(); }
+
+$("replay").addEventListener("click", () => { liveQueue.length = 0; play(); });
+$("copy").addEventListener("click", async () => {
+  const text = $("ids").textContent;
+  try { await navigator.clipboard.writeText(text); $("copy").textContent = "Copied"; }
+  catch (e) { const r = document.createRange(); r.selectNodeContents($("ids")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("copy").textContent = "Selected"; }
+  setTimeout(() => { $("copy").textContent = "Copy IDs"; }, 1600);
+});
+let rw;
+addEventListener("resize", () => { clearTimeout(rw); rw = setTimeout(() => { layout(); renderFinal(); }, 150); });
+
+// Live data: the skill writes meta/current and one doc per tab under tabs/.
+const live = { meta: null, metaReady: false, docs: new Map(), tabsReady: false, run: undefined, seen: new Set() };
+function recompute() {
+  if (!live.metaReady || !live.tabsReady) return;
+  const run = live.meta && live.meta.run ? live.meta.run : null;
+  const rows = [...live.docs.values()].filter((d) => !run || d.run === run).sort((a, b) => (a.seq ?? 0) - (b.seq ?? 0));
+  if (!rows.length && !live.meta) return;
+  const meta = { ...DEFAULT_META, ...(live.meta || {}) };
+  if (state.mode !== "live" || run !== live.run) {
+    state.mode = "live"; live.run = run; liveQueue.length = 0;
+    state.meta = meta; state.rows = rows; live.seen = new Set(rows.map((d) => d.id));
+    renderAll();
+    if (rows.length) setTimeout(play, 900);
+    return;
+  }
+  state.meta = meta; state.rows = rows;
+  renderHeader(); renderLists();
+  for (const d of rows) if (!live.seen.has(d.id)) { live.seen.add(d.id); liveQueue.push(d); }
+  drain();
+}
+async function connect() {
+  if (!window.claude || !window.claude.use) return;
+  let db = null;
+  try { db = await window.claude.use("db"); } catch (e) { db = null; }
+  if (!db) return;
+  db.doc("meta/current").onSnapshot((s) => { live.meta = s.exists ? s.data() : null; live.metaReady = true; recompute(); }, () => {});
+  db.collection("tabs").limit(1000).onSnapshot((s) => {
+    live.docs = new Map(s.docs.map((x) => [x.id, { id: x.id, ...x.data() }]));
+    live.tabsReady = true; recompute();
+  }, () => {});
+}
+
+layout();
+renderAll();
+if (!reduce) setTimeout(() => { if (state.mode === "sample") play(); }, 1100);
+connect();
+</script>
