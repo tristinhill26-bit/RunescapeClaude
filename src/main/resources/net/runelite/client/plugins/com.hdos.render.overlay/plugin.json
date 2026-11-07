@@ -1,0 +1,12 @@
+{
+  "name": "HDOS Renderer",
+  "description": "Custom render engine overlay with styled text, progress tracking, and animations based on the HDOS render engine",
+  "tags": ["hdos", "render", "overlay", "progress", "animation", "text"],
+  "plugins": [
+    {
+      "id": "com.hdos.render.overlay.HdosRenderPlugin",
+      "displayName": "HDOS Renderer",
+      "description": "Custom render engine overlay with styled text, progress bar, and animation support"
+    }
+  ]
+}
