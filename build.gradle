@@ -13,7 +13,7 @@ repositories {
 def runeLiteVersion = '1.10.44'
 
 dependencies {
-    implementation group: 'net.runelite', name: 'client', version: runeLiteVersion
+    compileOnly group: 'net.runelite', name: 'client', version: runeLiteVersion
 
     compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
@@ -34,15 +34,13 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.register('run', JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass = 'net.runelite.client.RuneLite'
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'com.hdos.render.overlay.HdosRenderPluginTest'
     jvmArgs = [
         '-ea',
         '-Xmx512m',
         '-Xss2m',
-        '-XX:+UseG1GC',
-        "-Drunelite.pluginpath=${project.buildDir}/classes/java/main",
-        '-Drunelite.externalmanager.enable=true'
+        '-XX:+UseG1GC'
     ]
-    dependsOn classes
+    dependsOn testClasses
 }
